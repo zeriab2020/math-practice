@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Math Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: a workbook. Home = topic cards; Practice = one problem at a time with 3 attempt dots; Report = topics to review. */
+:root{
+  --paper:#f4f6fb; --card:#ffffff; --ink:#1b2a4a; --muted:#5b6782; --line:#dbe1ec;
+  --accent:#2f6fd6; --accent-soft:#e6eefc; --hi:#ffd23f;
+  --good:#1f9d63; --good-soft:#e1f4ea; --bad:#d6453d; --bad-soft:#fde6e4; --warn:#b97c00; --warn-soft:#fdf2d4;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#0f1626; --card:#172036; --ink:#e8edf7; --muted:#9aa6c2; --line:#2a3552;
+  --accent:#7aa8ff; --accent-soft:#1c2b4d; --hi:#ffd23f;
+  --good:#4fd197; --good-soft:#16352a; --bad:#ff7b72; --bad-soft:#3a1f22; --warn:#f2c14e; --warn-soft:#3a3018;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:18px 60px}
+main{max-width:860px;margin:0 auto;display:grid;gap:18px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,38px);font-weight:800}
+h2{font-size:22px;font-weight:800}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.mark{background:linear-gradient(transparent 58%,var(--hi) 58%,var(--hi) 92%,transparent 92%);padding:0 .08em}
+.mark-ink{color:var(--ink)}
+header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+.tab{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-weight:700}
+.tab[aria-current="page"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sub{color:var(--muted)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:14px;min-width:0}
+.bar{height:12px;border-radius:99px;background:var(--line);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .g{background:var(--good)} .bar .r{background:var(--bad)}
+.stats{display:flex;gap:16px;flex-wrap:wrap;font-size:15px;color:var(--muted)}
+.stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.topic{text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px}
+.topic:hover{border-color:var(--accent)}
+.topic h3{font-size:18px}
+.topic .meta{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pill{justify-self:start;font-size:12.5px;font-weight:700;border-radius:99px;padding:2px 9px}
+.pill.review{background:var(--bad-soft);color:var(--bad)}
+.pill.done{background:var(--good-soft);color:var(--good)}
+.pill.new{background:var(--accent-soft);color:var(--accent)}
+.btn{border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:10px 16px;font-weight:700}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.big{padding:12px 20px;font-size:18px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spread{justify-content:space-between}
+.strip{display:flex;gap:5px;flex-wrap:wrap}
+.strip button{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.strip .right{background:var(--good);border-color:var(--good);color:#fff}
+.strip .locked{background:var(--bad);border-color:var(--bad);color:#fff}
+.strip .tried{border-color:var(--warn);background:var(--warn-soft)}
+.strip .cur{outline:2.5px solid var(--ink);outline-offset:1px}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;display:grid;gap:16px}
+.qlabel{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.qtext{font-size:20px;line-height:1.6}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;margin:0 .12em;font-size:.92em}
+.frac>span:first-child{border-bottom:2px solid currentColor;padding:0 .15em}
+.frac>span{padding:0 .15em}
+.attempts{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--muted)}
+.attempts i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);display:inline-block}
+.attempts i.used{background:var(--bad);border-color:var(--bad)}
+.answer{display:flex;gap:10px;flex-wrap:wrap}
+.answer input{flex:1;min-width:0;border:2px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--paper);font-size:20px}
+.answer input:focus{border-color:var(--accent)}
+.choices{display:flex;gap:10px;flex-wrap:wrap}
+.choices button{min-width:64px;font-size:24px;font-weight:800;border:2px solid var(--line);background:var(--paper);border-radius:12px;padding:8px 16px}
+.choices button:hover{border-color:var(--accent)}
+.hint{font-size:14px;color:var(--muted)}
+.fb{border-radius:12px;padding:12px 14px;font-weight:700}
+.fb.ok{background:var(--good-soft);color:var(--good)}
+.fb.no{background:var(--bad-soft);color:var(--bad)}
+.fb.info{background:var(--warn-soft);color:var(--warn)}
+.steps{background:var(--accent-soft);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
+.steps h3{font-size:17px}
+.steps ol{margin:0;padding-left:22px;display:grid;gap:6px}
+.steps .final{font-weight:700}
+.tried-list{font-size:14px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+th{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+.empty{color:var(--muted);border:1.5px dashed var(--line);border-radius:12px;padding:12px}
+.parent input{border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--paper);width:9rem}
+details summary{cursor:pointer;font-weight:700}
+@media (prefers-reduced-motion:no-preference){.qcard{animation:in .18s ease-out}@keyframes in{from{transform:translateY(4px);opacity:.6}}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<script>
+/* ===== QUESTIONS =====
+   Each question: id, topic, type, text, answer, steps.
+   Types: num (any equal number), frac (fraction in lowest terms), exact (exactly this fraction),
+   ratio (reduced ratio), choice (<, >, =), time (h:mm am/pm), list (several numbers).
+   Write fractions in text and steps as [[3/8]] to show them stacked. */
+const QUESTIONS = [
+  // ---------- Fractions ----------
+  {id:"f1",topic:"Fractions",type:"frac",text:"Reduce [[9/12]] to lowest terms.",answer:"3/4",
+   steps:["Find the greatest common factor (GCF) of 9 and 12. Factors of 9: 1, 3, 9. Factors of 12: 1, 2, 3, 4, 6, 12. The GCF is 3.","Divide the top and bottom by 3: 9 ÷ 3 = 3 and 12 ÷ 3 = 4."],final:"[[3/4]]"},
+  {id:"f2",topic:"Fractions",type:"frac",text:"Reduce [[6/10]] to lowest terms.",answer:"3/5",
+   steps:["Both 6 and 10 are even, so they can both be divided by 2.","6 ÷ 2 = 3 and 10 ÷ 2 = 5.","3 and 5 have no common factor except 1, so we are done."],final:"[[3/5]]"},
+  {id:"f3",topic:"Fractions",type:"frac",text:"Reduce [[18/24]] to lowest terms.",answer:"3/4",
+   steps:["The GCF of 18 and 24 is 6 (6 × 3 = 18 and 6 × 4 = 24).","Divide the top and bottom by 6: 18 ÷ 6 = 3 and 24 ÷ 6 = 4.","Tip: if you divided by 2 first and got [[9/12]], keep going and divide by 3."],final:"[[3/4]]"},
+  {id:"f4",topic:"Fractions",type:"frac",text:"Reduce [[16/24]] to lowest terms.",answer:"2/3",
+   steps:["The GCF of 16 and 24 is 8 (8 × 2 = 16 and 8 × 3 = 24).","Divide the top and bottom by 8: 16 ÷ 8 = 2 and 24 ÷ 8 = 3."],final:"[[2/3]]"},
+  {id:"f5",topic:"Fractions",type:"frac",text:"Add: [[1/8]] + [[3/8]]. Reduce your answer.",answer:"1/2",
+   steps:["The bottoms (denominators) are the same, so add only the tops: 1 + 3 = 4.","That gives [[4/8]].","Reduce: divide the top and bottom by 4. 4 ÷ 4 = 1 and 8 ÷ 4 = 2."],final:"[[1/2]]"},
+  {id:"f6",topic:"Fractions",type:"frac",text:"Subtract: [[7/12]] − [[3/12]]. Reduce your answer.",answer:"1/3",
+   steps:["The denominators are the same, so subtract only the tops: 7 − 3 = 4.","That gives [[4/12]].","Reduce: divide the top and bottom by 4. 4 ÷ 4 = 1 and 12 ÷ 4 = 3."],final:"[[1/3]]"},
+  {id:"f7",topic:"Fractions",type:"frac",text:"Multiply: [[3/8]] × [[2/3]]. Reduce your answer.",answer:"1/4",
+   steps:["Multiply the tops: 3 × 2 = 6.","Multiply the bottoms: 8 × 3 = 24.","That gives [[6/24]]. Reduce by dividing the top and bottom by 6: 6 ÷ 6 = 1 and 24 ÷ 6 = 4."],final:"[[1/4]]"},
+  {id:"f8",topic:"Fractions",type:"frac",text:"How many [[2/3]]s are in [[3/8]]? In other words, find [[3/8]] ÷ [[2/3]].",answer:"9/16",
+   steps:["To divide by a fraction, multiply by its reciprocal (flip it). The reciprocal of [[2/3]] is [[3/2]].","[[3/8]] × [[3/2]]: tops 3 × 3 = 9, bottoms 8 × 2 = 16.","9 and 16 have no common factor, so it is already reduced."],final:"[[9/16]]"},
+  {id:"f9",topic:"Fractions",type:"num",text:"Simplify: [[5/6]] × 6²",answer:"30",
+   steps:["Do the exponent first: 6² = 6 × 6 = 36.","Now find [[5/6]] of 36: 36 ÷ 6 = 6, then 6 × 5 = 30."],final:"30"},
+  {id:"f10",topic:"Fractions",type:"choice",options:["<",">","="],text:"Compare. Pick the right sign: [[2/3]] ◯ [[3/5]]",answer:">",
+   steps:["Give both fractions the same denominator. 3 × 5 = 15.","[[2/3]] = [[10/15]] (multiply top and bottom by 5).","[[3/5]] = [[9/15]] (multiply top and bottom by 3).","10 fifteenths is more than 9 fifteenths."],final:"[[2/3]] > [[3/5]]"},
+  {id:"f11",topic:"Fractions",type:"frac",text:"Multiply [[1/2]] by [[1/2]]. Then subtract that product from the sum of [[1/2]] and [[1/2]]. What is the difference?",answer:"3/4",
+   steps:["Product means multiply: [[1/2]] × [[1/2]] = [[1/4]].","Sum means add: [[1/2]] + [[1/2]] = 1.","\"Subtract the product from the sum\" means sum − product: 1 − [[1/4]].","1 = [[4/4]], so [[4/4]] − [[1/4]] = [[3/4]]."],final:"[[3/4]]"},
+  {id:"f12",topic:"Fractions",type:"exact",text:"[[2/3]] is multiplied by a fraction equal to 1 (like [[2/2]] or [[3/3]]) to make a fraction with a denominator of 15. Which fraction equal to 1 is used?",answer:"5/5",
+   steps:["A fraction equal to 1 has the same top and bottom, like [[5/5]].","Ask: 3 × what = 15? The answer is 5.","So multiply by [[5/5]]: [[2/3]] × [[5/5]] = [[10/15]]."],final:"[[5/5]]"},
+  {id:"f13",topic:"Fractions",type:"frac",text:"Five months of the year have passed. What fraction of the year is left?",answer:"7/12",
+   steps:["A year has 12 months.","12 − 5 = 7 months are left.","7 out of 12 months is [[7/12]]."],final:"[[7/12]]"},
+  {id:"f14",topic:"Fractions",type:"num",text:"From 1901 to 1999, 96 Nobel Prizes in Literature were given out. One eighth of them went to Americans. How many went to Americans?",answer:"12",
+   steps:["\"One eighth of 96\" means [[1/8]] × 96.","To find one eighth, divide by 8: 96 ÷ 8 = 12."],final:"12 prizes"},
+  {id:"f15",topic:"Fractions",type:"frac",text:"Rosa mixes [[1/2]] teaspoon of yellow paint with [[3/4]] teaspoon of red paint. How much orange paint does she make? (You can write a mixed number like 1 1/2.)",answer:"5/4",
+   steps:["Add [[1/2]] + [[3/4]]. The denominators are different, so change [[1/2]] to fourths: [[1/2]] = [[2/4]].","[[2/4]] + [[3/4]] = [[5/4]].","[[5/4]] is more than 1. 5 ÷ 4 = 1 with 1 left over, so [[5/4]] = 1 [[1/4]]."],final:"1 [[1/4]] teaspoons"},
+  {id:"f16",topic:"Fractions",type:"frac",text:"After a club meeting, [[1/4]] of a cheese pizza, [[1/2]] of a mushroom pizza, and [[5/12]] of a tomato pizza were left. How much pizza was left in all?",answer:"7/6",
+   steps:["Use a common denominator of 12.","[[1/4]] = [[3/12]] and [[1/2]] = [[6/12]].","[[3/12]] + [[6/12]] + [[5/12]] = [[14/12]].","Reduce: [[14/12]] = [[7/6]] = 1 [[1/6]]."],final:"1 [[1/6]] pizzas"},
+  // ---------- Decimals ----------
+  {id:"d1",topic:"Decimals",type:"num",text:"Simplify: (4 − 0.4) ÷ 4",answer:"0.9",
+   steps:["Parentheses first: 4 − 0.4 = 3.6. (Think of 4 as 4.0.)","Then divide: 3.6 ÷ 4 = 0.9."],final:"0.9"},
+  {id:"d2",topic:"Decimals",type:"num",text:"Simplify: 4 − (0.4 ÷ 4)",answer:"3.9",
+   steps:["Parentheses first: 0.4 ÷ 4 = 0.1.","Then subtract: 4 − 0.1 = 3.9.","Compare with the last problem: same numbers, different parentheses, different answer."],final:"3.9"},
+  {id:"d3",topic:"Decimals",type:"num",text:"A sheet of 100 stamps costs $39. What is the price of one stamp, in dollars?",answer:"0.39",
+   steps:["Divide the total cost by the number of stamps: $39 ÷ 100.","Dividing by 100 moves the decimal point 2 places left: 39 → 0.39."],final:"$0.39 (39 cents)"},
+  // ---------- Percents & Money ----------
+  {id:"p1",topic:"Percents & Money",type:"num",text:"The sales-tax rate is 7%. Dexter buys one item for $4.95 and another for $2.79. What is the total cost including tax?",answer:"8.28",
+   steps:["Add the prices: $4.95 + $2.79 = $7.74.","Find the tax: 7% = 0.07, and $7.74 × 0.07 = $0.5418, which rounds to $0.54.","Add the tax: $7.74 + $0.54 = $8.28.","Check: about $5 + $3 = $8, plus about 50¢ tax ≈ $8.50. Close, so it makes sense."],final:"$8.28"},
+  {id:"p2",topic:"Percents & Money",type:"num",text:"The sales-tax rate is 7%. Two CDs cost $15.49 each. What is the total cost of both CDs including tax?",answer:"33.15",
+   steps:["Price of both: $15.49 × 2 = $30.98.","Tax: $30.98 × 0.07 = $2.1686, which rounds to $2.17.","Total: $30.98 + $2.17 = $33.15."],final:"$33.15"},
+  {id:"p3",topic:"Percents & Money",type:"frac",text:"Write 30% as a fraction in lowest terms.",answer:"3/10",
+   steps:["Percent means \"out of 100\", so 30% = [[30/100]].","Reduce by dividing the top and bottom by 10."],final:"[[3/10]]"},
+  {id:"p4",topic:"Percents & Money",type:"num",text:"Jefferson went to bat 240 times and got a hit 30% of the time. How many hits did he get?",answer:"72",
+   steps:["30% = [[3/10]].","Find [[1/10]] of 240: 240 ÷ 10 = 24.","[[3/10]] is 3 times that: 24 × 3 = 72."],final:"72 hits"},
+  // ---------- Ratios ----------
+  {id:"r1",topic:"Ratios",type:"ratio",text:"A class has 30 students, and 20 are girls. What is the ratio of boys to girls? Write it as a reduced fraction like 2/3.",answer:"1/2",
+   steps:["First find the boys: 30 − 20 = 10 boys.","Boys to girls means boys first: [[10/20]].","Reduce by dividing by 10."],final:"[[1/2]]"},
+  {id:"r2",topic:"Ratios",type:"ratio",text:"A team won 6 games and lost 8 games. What is the team's win-loss ratio? Write it as a reduced fraction.",answer:"3/4",
+   steps:["Win-loss means wins first: [[6/8]].","Reduce by dividing by 2."],final:"[[3/4]]"},
+  {id:"r3",topic:"Ratios",type:"ratio",text:"What is the ratio of the value of a dime to the value of a quarter? Write it as a reduced fraction.",answer:"2/5",
+   steps:["A dime is worth 10¢ and a quarter is worth 25¢.","Dime to quarter: [[10/25]].","Reduce by dividing by 5."],final:"[[2/5]]"},
+  // ---------- Geometry ----------
+  {id:"g1",topic:"Geometry",type:"num",text:"How many faces does a rectangular prism (a box shape) have?",answer:"6",
+   steps:["Think of a cereal box.","Faces are the flat sides: top, bottom, front, back, left, right."],final:"6 faces"},
+  {id:"g2",topic:"Geometry",type:"num",text:"How many edges does a rectangular prism have?",answer:"12",
+   steps:["Edges are the lines where two faces meet.","The top has 4 edges, the bottom has 4 edges, and 4 edges go up and down the sides.","4 + 4 + 4 = 12."],final:"12 edges"},
+  {id:"g3",topic:"Geometry",type:"num",text:"How many vertices (corners) does a rectangular prism have?",answer:"8",
+   steps:["Vertices are the corners.","4 corners on top + 4 corners on the bottom = 8."],final:"8 vertices"},
+  {id:"g4",topic:"Geometry",type:"num",text:"Each edge of a cube is 3 cm long. Each face is a square. What is the area of one face, in square centimeters?",answer:"9",
+   steps:["Area of a square = side × side.","3 cm × 3 cm = 9 square centimeters."],final:"9 cm²"},
+  {id:"g5",topic:"Geometry",type:"num",text:"Each edge of a cube is 3 cm long. What is the total surface area of the cube (the area of all its faces added together), in square centimeters?",answer:"54",
+   steps:["One face is 3 × 3 = 9 cm².","A cube has 6 faces, all the same size.","6 × 9 = 54 cm².","Careful: 3 × 3 × 3 = 27 is the volume, not the surface area."],final:"54 cm²"},
+  {id:"g6",topic:"Geometry",type:"num",text:"A circle has a radius of 4 units. What is its diameter?",answer:"8",
+   steps:["The diameter goes all the way across the circle through the center.","It is twice the radius: 4 × 2 = 8."],final:"8 units"},
+  {id:"g7",topic:"Geometry",type:"num",text:"A circle has a radius of 4 units, so its diameter is 8. Using 3.14 for π, what is its circumference?",answer:"25.12",
+   steps:["Circumference = π × diameter.","3.14 × 8 = 25.12."],final:"25.12 units"},
+  {id:"g8",topic:"Geometry",type:"num",text:"The perimeter of a square is 1 foot. What is its area in square inches?",answer:"9",
+   steps:["Change feet to inches: 1 foot = 12 inches.","A square has 4 equal sides: 12 ÷ 4 = 3 inches per side.","Area = 3 × 3 = 9 square inches."],final:"9 square inches"},
+  {id:"g9",topic:"Geometry",type:"num",text:"The Pentagon building has 5 sides, and each side is 921 feet long. What is its perimeter in yards?",answer:"1535",
+   steps:["Perimeter = add all the sides: 921 × 5 = 4,605 feet.","3 feet = 1 yard, so divide by 3: 4,605 ÷ 3 = 1,535 yards."],final:"1,535 yards"},
+  // ---------- Exponents & Roots ----------
+  {id:"e1",topic:"Exponents & Roots",type:"choice",options:["<",">","="],text:"Compare. Pick the right sign: 4² ◯ √144",answer:">",
+   steps:["4² = 4 × 4 = 16.","√144 asks: what number times itself is 144? 12 × 12 = 144, so √144 = 12.","16 is greater than 12."],final:"4² > √144"},
+  // ---------- Equations ----------
+  {id:"q1",topic:"Equations",type:"num",text:"Find m: 15m = 3 · 10²",answer:"20",
+   steps:["Simplify the right side: 10² = 100, and 3 × 100 = 300.","Now 15m = 300 means 15 × m = 300.","Divide: 300 ÷ 15 = 20."],final:"m = 20"},
+  {id:"q2",topic:"Equations",type:"num",text:"Find n: [[1/10]] = [[n/100]]",answer:"10",
+   steps:["10 × 10 = 100, so the bottom was multiplied by 10.","Multiply the top by 10 too: 1 × 10 = 10."],final:"n = 10"},
+  {id:"q3",topic:"Equations",type:"num",text:"Jena has run 11.5 miles of a 26.2-mile race. Solve 11.5 + d = 26.2 to find how many miles she has left.",answer:"14.7",
+   steps:["To find the missing addend, subtract: d = 26.2 − 11.5.","Line up the decimal points: 26.2 − 11.5 = 14.7."],final:"14.7 miles"},
+  // ---------- Patterns ----------
+  {id:"s1",topic:"Patterns",type:"num",text:"What is the next number in this pattern? 100, 10, 1, …",answer:"0.1",
+   steps:["Each number is the one before divided by 10.","1 ÷ 10 = 0.1 (you can also write [[1/10]])."],final:"0.1"},
+  {id:"s2",topic:"Patterns",type:"list",count:3,text:"Find the next three numbers: 1, 4, 7, 10, … (type them with commas, like 1, 2, 3)",answer:["13","16","19"],
+   steps:["Find the rule: each number is 3 more than the one before (1 → 4 → 7 → 10).","10 + 3 = 13, 13 + 3 = 16, 16 + 3 = 19."],final:"13, 16, 19"},
+  // ---------- Measurement ----------
+  {id:"m1",topic:"Measurement",type:"num",text:"An African elephant can weigh 8 tons. One ton is 2,000 pounds. How many pounds can it weigh?",answer:"16000",
+   steps:["Tons to pounds: multiply by 2,000.","8 × 2,000 = 16,000."],final:"16,000 pounds"},
+  {id:"m2",topic:"Measurement",type:"num",text:"16 dried beans weigh 1 ounce, and 1 pound = 16 ounces. How many beans weigh 1 pound?",answer:"256",
+   steps:["1 pound = 16 ounces, and each ounce has 16 beans.","16 × 16 = 256."],final:"256 beans"},
+  // ---------- Time & Estimation ----------
+  {id:"t1",topic:"Time & Estimation",type:"time",text:"What time is 5 hours 15 minutes after 9:50 a.m.? (Type a time like 3:30 pm.)",answer:"15:05",
+   steps:["Add the hours first: 9:50 a.m. + 5 hours = 2:50 p.m. (passing noon switches a.m. to p.m.).","Add 15 minutes: 2:50 + 10 min = 3:00, then 5 more minutes = 3:05."],final:"3:05 p.m."},
+  {id:"t2",topic:"Time & Estimation",type:"num",text:"Estimate the sum of $642.23 and $861.17 by first rounding each to the nearest dollar.",answer:"1503",
+   steps:["$642.23 rounds to $642 (23¢ is less than 50¢, so round down).","$861.17 rounds to $861.","$642 + $861 = $1,503."],final:"$1,503"}
+];
+
+/* ===== ANSWER CHECKING ===== */
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a||1};
+// Parse text into {n,d,kind} where kind is "int","dec","frac","mixed". Returns null if it is not a number.
+function parseNum(raw){
+  let s=String(raw).trim().toLowerCase().replace(/[$,]/g,"").replace(/¢/g,"").replace(/\s+/g," ");
+  let m,res,rest;
+  if((m=s.match(/^(-?\d+) (\d+) ?\/ ?(\d+)(.*)$/))){const w=+m[1],a=+m[2],b=+m[3];if(!b)return null;res={n:w*b+(w<0?-a:a),d:b,kind:"mixed",fn:a,fd:b};rest=m[4];}
+  else if((m=s.match(/^(-?\d+) ?\/ ?(\d+)(.*)$/))){if(!+m[2])return null;res={n:+m[1],d:+m[2],kind:"frac",fn:+m[1],fd:+m[2]};rest=m[3];}
+  else if((m=s.match(/^(-?)(\d*)\.(\d+)(.*)$/))){const dec=m[3],d=Math.pow(10,dec.length);res={n:(m[1]?-1:1)*(+(m[2]||0)*d+ +dec),d,kind:"dec"};rest=m[4];}
+  else if((m=s.match(/^(-?\d+)\.?(.*)$/))){res={n:+m[1],d:1,kind:"int"};rest=m[2];}
+  else return null;
+  // allow a unit word after the number, like "cm", "sq in", "yards", "cm2"
+  const left=rest.replace(/([a-z.])\s*(\^?2|²)$/,"$1").replace(/[a-z.²\s]/g,"");
+  if(left!=="")return null;
+  return res;
+}
+const eq=(a,b)=>a.n*b.d===b.n*a.d;
+function parseRatio(raw){
+  const s=String(raw).trim().toLowerCase().replace(/\s+to\s+/," / ").replace(/:/,"/");
+  return parseNum(s);
+}
+function parseTime(raw){
+  const m=String(raw).trim().toLowerCase().replace(/\s+/g,"").match(/^(\d{1,2}):?(\d{2})(a|p)?\.?(m)?\.?$/);
+  if(!m)return null;
+  let h=+m[1],min=+m[2];if(h<1||h>12||min>59)return null;
+  if(!m[3])return {needAmPm:true};
+  if(m[3]==="p"&&h!==12)h+=12; if(m[3]==="a"&&h===12)h=0;
+  return {h,min};
+}
+// Returns {result:"right"|"wrong"|"format", msg}
+function check(q,input){
+  const raw=String(input).trim();
+  if(!raw)return {result:"format",msg:"Type an answer first."};
+  if(q.type==="choice")return raw===q.answer?{result:"right"}:{result:"wrong"};
+  if(q.type==="time"){
+    const t=parseTime(raw);
+    if(!t)return {result:"format",msg:"Type a time like 3:30 pm."};
+    if(t.needAmPm)return {result:"format",msg:"Add a.m. or p.m. to your time."};
+    const [h,mm]=q.answer.split(":").map(Number);
+    return t.h===h&&t.min===mm?{result:"right"}:{result:"wrong"};
+  }
+  if(q.type==="list"){
+    const parts=raw.split(/[,\s]+/).filter(Boolean);
+    if(parts.length!==q.count)return {result:"format",msg:`Type exactly ${q.count} numbers, separated by commas.`};
+    const nums=parts.map(parseNum);
+    if(nums.some(x=>!x))return {result:"format",msg:"Use numbers only, like 1, 2, 3."};
+    return nums.every((x,i)=>eq(x,parseNum(q.answer[i])))?{result:"right"}:{result:"wrong"};
+  }
+  const ans=parseNum(q.answer);
+  if(q.type==="num"){
+    const v=parseNum(raw);
+    if(!v)return {result:"format",msg:"Type a number, like 12, 0.5 or 3/4."};
+    return eq(v,ans)?{result:"right"}:{result:"wrong"};
+  }
+  if(q.type==="ratio"){
+    const v=parseRatio(raw);
+    if(!v)return {result:"format",msg:"Type the ratio as a fraction, like 2/3."};
+    if(v.kind==="dec")return {result:"format",msg:"Write the ratio as a fraction, like 2/3, not a decimal."};
+    if(!eq(v,ans))return {result:"wrong"};
+    if(v.kind==="frac"&&gcd(v.fn,v.fd)!==1)return {result:"wrong",msg:"That ratio is equal, but it is not reduced. Divide both numbers by their greatest common factor."};
+    return {result:"right"};
+  }
+  if(q.type==="exact"){
+    const v=parseNum(raw);
+    if(!v||v.kind!=="frac")return {result:"format",msg:"Type a fraction, like 4/4."};
+    return v.n===ans.n&&v.d===ans.d?{result:"right"}:{result:"wrong"};
+  }
+  if(q.type==="frac"){
+    const v=parseNum(raw);
+    if(!v)return {result:"format",msg:"Type a fraction like 3/4, or a mixed number like 1 1/4."};
+    if(v.kind==="dec")return {result:"format",msg:"Write your answer as a fraction, like 3/4, not a decimal."};
+    if(!eq(v,ans))return {result:"wrong"};
+    if((v.kind==="frac"||v.kind==="mixed")&&gcd(v.fn,v.fd)!==1)return {result:"wrong",msg:"Your answer is equal, but it is not in lowest terms. Remember to reduce."};
+    if(v.kind==="mixed"&&v.fn>=v.fd)return {result:"wrong",msg:"The fraction part of a mixed number must be less than 1."};
+    return {result:"right"};
+  }
+  return {result:"wrong"};
+}
+
+/* ===== STATE (saved on this device) ===== */
+const KEY="math-practice-v1";
+let S={q:{},pin:null};
+try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&x.q)S=x}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const qs=id=>S.q[id]||(S.q[id]={a:0,s:"open",g:[]});
+const TOPICS=[...new Set(QUESTIONS.map(q=>q.topic))];
+const byTopic=t=>QUESTIONS.filter(q=>q.topic===t);
+function counts(list){let right=0,locked=0,tried=0;list.forEach(q=>{const st=S.q[q.id];if(!st)return;if(st.s==="right")right++;else if(st.s==="locked")locked++;else if(st.a>0)tried++;});return {right,locked,tried,total:list.length,open:list.length-right-locked};}
+
+/* ===== RENDER ===== */
+const app=document.getElementById("app");
+let view={name:"home"}; // {name:"home"|"practice"|"report", list:[ids], i:0, title}
+let flash=null; // feedback for current question
+function esc(t){return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function fmt(t){return esc(t).replace(/\[\[(\w+)\/(\w+)\]\]/g,'<span class="frac" aria-label="$1 over $2"><span>$1</span><span>$2</span></span>')}
+function bar(c){const g=c.total?c.right/c.total*100:0,r=c.total?c.locked/c.total*100:0;return `<div class="bar" role="img" aria-label="${c.right} right, ${c.locked} locked, out of ${c.total}"><i class="g" style="width:${g}%"></i><i class="r" style="width:${r}%"></i></div>`}
+function header(){
+  const c=counts(QUESTIONS);
+  return `<header><div><h1>Math <span class="mark mark-ink">Practice</span></h1><div class="sub">6th grade · Saxon Course 1 topics</div></div>
+  <nav aria-label="Sections"><button class="tab" data-go="home" ${view.name!=="report"?'aria-current="page"':""}>Practice</button><button class="tab" data-go="report" ${view.name==="report"?'aria-current="page"':""}>My report</button></nav></header>
+  <section class="panel" aria-label="Overall progress">${bar(c)}
+  <div class="stats"><span><i class="dot" style="background:var(--good)"></i>Right <b>${c.right}</b></span><span><i class="dot" style="background:var(--bad)"></i>Locked <b>${c.locked}</b></span><span><i class="dot" style="background:var(--line)"></i>Not done <b>${c.open}</b></span><span>Total <b>${c.total}</b></span></div></section>`;
+}
+function home(){
+  const cards=TOPICS.map(t=>{const c=counts(byTopic(t));
+    const pill=c.locked?`<span class="pill review">Needs review</span>`:c.right===c.total?`<span class="pill done">All done</span>`:c.right+c.tried?`<span class="pill new">In progress</span>`:`<span class="pill new">Start</span>`;
+    return `<button class="topic" data-topic="${esc(t)}"><h3>${esc(t)}</h3>${pill}${bar(c)}<span class="meta">${c.right} right · ${c.locked} locked · ${c.total} problems</span></button>`}).join("");
+  return header()+`<section class="panel"><div class="row spread"><h2>Pick a topic</h2><button class="btn primary" data-all="1">Practice everything</button></div>
+  <p class="sub" style="margin:0">You get <b>3 tries</b> on each problem. After 3 wrong tries the problem locks and shows you the steps. Locked problems tell your parent which topics to review.</p>
+  <div class="grid">${cards}</div></section>`;
+}
+function attemptsHtml(st){const wrong=st.s==="right"?st.a-1:st.a;let d="";for(let k=0;k<3;k++)d+=`<i class="${k<wrong?"used":""}"></i>`;return `<div class="attempts" aria-label="${st.a} of 3 tries used">${d}<span>${st.s==="right"?"Solved":st.s==="locked"?"Locked":`${3-st.a} ${3-st.a===1?"try":"tries"} left`}</span></div>`}
+function stepsHtml(q,heading){return `<div class="steps"><h3>${heading}</h3><ol>${q.steps.map(s=>`<li>${fmt(s)}</li>`).join("")}</ol><div class="final">Answer: ${fmt(q.final)}</div></div>`}
+function practice(){
+  const q=QUESTIONS.find(x=>x.id===view.list[view.i]);const st=qs(q.id);
+  const strip=view.list.map((id,k)=>{const s=S.q[id];const cls=s?(s.s==="right"?"right":s.s==="locked"?"locked":s.a?"tried":""):"";return `<button class="${cls}${k===view.i?" cur":""}" data-jump="${k}" aria-label="Problem ${k+1}">${k+1}</button>`}).join("");
+  let body="";
+  if(st.s==="open"){
+    if(q.type==="choice")body=`<div class="choices" role="group" aria-label="Choose a sign">${q.options.map(o=>`<button data-choice="${esc(o)}">${esc(o)}</button>`).join("")}</div>`;
+    else{const ph={num:"Type a number",frac:"Type a fraction, like 3/4",exact:"Type a fraction",ratio:"Type a fraction, like 2/3",time:"Type a time, like 3:30 pm",list:"Type numbers with commas"}[q.type];
+      body=`<form class="answer" id="af" autocomplete="off"><input id="ans" inputmode="${q.type==="time"||q.type==="list"?"text":"text"}" placeholder="${ph}" aria-label="Your answer"><button class="btn primary big" type="submit">Check</button></form>`;}
+  }
+  let fb="";
+  if(flash&&flash.id===q.id){fb=`<div class="fb ${flash.kind}" role="status">${esc(flash.msg)}</div>`}
+  if(st.s==="right")fb+=`<details><summary>Show the steps</summary>${stepsHtml(q,"How to solve it")}</details>`;
+  if(st.s==="locked")fb+=stepsHtml(q,"Here is how to solve it")+`<p class="hint" style="margin:0">This problem is locked. Its topic, <b>${esc(q.topic)}</b>, is now on your review list.</p>`;
+  const tried=st.g.length?`<div class="tried-list">Your tries: ${st.g.map(esc).join(" · ")}</div>`:"";
+  const last=view.i===view.list.length-1;
+  return header()+`<section class="panel"><div class="row spread"><h2>${esc(view.title)}</h2><button class="btn" data-go="home">← Topics</button></div><div class="strip">${strip}</div></section>
+  <article class="qcard"><div class="row spread"><span class="qlabel">Problem ${view.i+1} of ${view.list.length} · ${esc(q.topic)}</span>${attemptsHtml(st)}</div>
+  <div class="qtext">${fmt(q.text)}</div>${body}${fb}${tried}
+  <div class="row spread"><button class="btn" data-step="-1" ${view.i===0?"disabled":""}>← Back</button><button class="btn ${st.s!=="open"?"primary":""}" data-step="1">${last?"Finish":"Next →"}</button></div></article>`;
+}
+function report(){
+  const rows=TOPICS.map(t=>{const c=counts(byTopic(t));return `<tr><td>${esc(t)}</td><td>${c.right}</td><td>${c.locked}</td><td>${c.open}</td><td>${c.locked?'<span class="pill review">Review</span>':c.right===c.total?'<span class="pill done">Strong</span>':"—"}</td></tr>`}).join("");
+  const locked=QUESTIONS.filter(q=>S.q[q.id]&&S.q[q.id].s==="locked");
+  const weak=TOPICS.filter(t=>counts(byTopic(t)).locked);
+  return header()+`<section class="panel"><h2>Topics to review</h2>${weak.length?`<p style="margin:0">Practice these topics more: <b>${weak.map(esc).join(", ")}</b>.</p>`:`<div class="empty">No locked problems yet. Locked problems will show up here.</div>`}</section>
+  <section class="panel"><h2>By topic</h2><div class="tablewrap"><table><thead><tr><th>Topic</th><th>Right</th><th>Locked</th><th>Not done</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></section>
+  <section class="panel"><h2>Locked problems</h2>${locked.length?locked.map(q=>`<details><summary>${esc(q.topic)}: ${fmt(q.text.length>70?q.text.slice(0,70)+"…":q.text)}</summary><p class="tried-list">Tries: ${S.q[q.id].g.map(esc).join(" · ")}</p>${stepsHtml(q,"Steps")}</details>`).join(""):`<div class="empty">None yet.</div>`}</section>
+  <section class="panel parent"><h2>For parents</h2><p class="sub" style="margin:0">Progress is saved in this browser on this device. To let your child try locked problems again, enter your parent PIN.</p>
+  <form id="pf" class="row" autocomplete="off"><label for="pin">${S.pin?"Parent PIN":"Create a 4-digit parent PIN"}</label><input id="pin" type="password" inputmode="numeric" maxlength="8" required><button class="btn" type="submit">${S.pin?"Unlock options":"Save PIN"}</button></form>
+  <div id="pa"></div></section>`;
+}
+function parentActions(){
+  const topicBtns=TOPICS.filter(t=>byTopic(t).some(q=>S.q[q.id])).map(t=>`<button class="btn" data-reset="${esc(t)}">Reset ${esc(t)}</button>`).join("");
+  return `<div class="row">${topicBtns||'<span class="sub">Nothing to reset yet.</span>'}${topicBtns?'<button class="btn" data-reset="*">Reset everything</button>':""}</div>`;
+}
+function render(){app.innerHTML=view.name==="practice"?practice():view.name==="report"?report():home();const a=document.getElementById("ans");if(a)a.focus({preventScroll:true});}
+
+/* ===== EVENTS ===== */
+function submit(value){
+  const q=QUESTIONS.find(x=>x.id===view.list[view.i]);const st=qs(q.id);if(st.s!=="open")return;
+  const r=check(q,value);
+  if(r.result==="format"){flash={id:q.id,kind:"info",msg:r.msg+" (This did not use a try.)"};render();return;}
+  st.a++;st.g.push(String(value).trim());
+  if(r.result==="right"){st.s="right";flash={id:q.id,kind:"ok",msg:st.a===1?"Correct! Great job on the first try.":"Correct! Nice work."};}
+  else if(st.a>=3){st.s="locked";flash={id:q.id,kind:"no",msg:(r.msg?r.msg+" ":"")+"That was your 3rd try. Read the steps below."};}
+  else{flash={id:q.id,kind:"no",msg:(r.msg||"Not quite.")+` Try again. ${3-st.a} ${3-st.a===1?"try":"tries"} left.`};}
+  save();render();
+}
+app.addEventListener("submit",e=>{
+  e.preventDefault();
+  if(e.target.id==="af"){submit(document.getElementById("ans").value);}
+  if(e.target.id==="pf"){const v=document.getElementById("pin").value.trim();const pa=document.getElementById("pa");
+    if(!/^\d{4,8}$/.test(v)){pa.innerHTML='<p class="fb info">Use 4 to 8 digits.</p>';return;}
+    if(!S.pin){S.pin=v;save();pa.innerHTML='<p class="fb ok">PIN saved. Enter it again to see reset options.</p>';document.getElementById("pin").value="";return;}
+    pa.innerHTML=v===S.pin?parentActions():'<p class="fb no">Wrong PIN.</p>';}
+});
+app.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.go){view={name:b.dataset.go};flash=null;render();window.scrollTo(0,0);}
+  else if(b.dataset.topic){const t=b.dataset.topic;const list=byTopic(t).map(q=>q.id);const first=list.findIndex(id=>!S.q[id]||S.q[id].s==="open");view={name:"practice",list,i:first<0?0:first,title:t};flash=null;render();}
+  else if(b.dataset.all){const list=QUESTIONS.map(q=>q.id);const first=list.findIndex(id=>!S.q[id]||S.q[id].s==="open");view={name:"practice",list,i:first<0?0:first,title:"Everything"};flash=null;render();}
+  else if(b.dataset.jump){view.i=+b.dataset.jump;flash=null;render();}
+  else if(b.dataset.step){const n=view.i+ +b.dataset.step;if(n>=view.list.length){view={name:"report"};}else if(n>=0)view.i=n;flash=null;render();window.scrollTo(0,0);}
+  else if(b.dataset.choice){submit(b.dataset.choice);}
+  else if(b.dataset.reset){const t=b.dataset.reset;QUESTIONS.forEach(q=>{if(t==="*"||q.topic===t)delete S.q[q.id]});save();render();}
+});
+render();
+</script>
+</body>
+</html>

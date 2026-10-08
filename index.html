@@ -24,7 +24,10 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;padding-inline:16px;padding-block:18px 60px}
-main{max-width:860px;margin:0 auto;display:grid;gap:18px}
+main{max-width:860px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.qcard,.panel,.qtext{min-width:0}
+.qcard,.panel,.steps{grid-template-columns:minmax(0,1fr)}
+.qtext,.fb,.steps,.tried-list{overflow-wrap:anywhere}
 h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em;text-wrap:balance}
 h1{font-size:clamp(28px,6vw,38px);font-weight:800}
 h2{font-size:22px;font-weight:800}

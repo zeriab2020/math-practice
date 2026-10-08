@@ -187,6 +187,12 @@ const QUESTIONS = [
    steps:["Change feet to inches: 1 foot = 12 inches.","A square has 4 equal sides: 12 ÷ 4 = 3 inches per side.","Area = 3 × 3 = 9 square inches."],final:"9 square inches"},
   {id:"g9",topic:"Geometry",type:"num",text:"The Pentagon building has 5 sides, and each side is 921 feet long. What is its perimeter in yards?",answer:"1535",
    steps:["Perimeter = add all the sides: 921 × 5 = 4,605 feet.","3 feet = 1 yard, so divide by 3: 4,605 ÷ 3 = 1,535 yards."],final:"1,535 yards"},
+  {id:"g10",topic:"Geometry",type:"num",text:"A rectangle is 30 cm long and 10 cm wide. A diagonal line cuts it into two congruent (matching) triangles, and one triangle is shaded. What is the area of the shaded triangle, in square centimeters?",answer:"150",
+   steps:["Find the area of the whole rectangle: 30 × 10 = 300 cm².","The diagonal cuts it into 2 matching triangles, so each triangle is half.","300 ÷ 2 = 150 cm²."],final:"150 cm²"},
+  {id:"g11",topic:"Geometry",type:"num",whole:true,text:"A paper cup rolls along a table. Its larger end is 7 cm in diameter. In one full roll, how far does the larger end travel? Use 3.14 for π and round to the nearest centimeter.",answer:"22",
+   steps:["In one full roll, a circle travels its circumference (the distance around it).","Circumference = π × diameter = 3.14 × 7 = 21.98 cm.","Round to the nearest centimeter: 21.98 → 22."],final:"22 cm"},
+  {id:"g12",topic:"Geometry",type:"num",whole:true,text:"The same cup's smaller end is 5 cm in diameter. In one full roll, how far does the smaller end travel? Use 3.14 for π and round to the nearest centimeter.",answer:"16",
+   steps:["Circumference = π × diameter = 3.14 × 5 = 15.7 cm.","Round to the nearest centimeter: 15.7 → 16 (7 tenths is 5 or more, so round up).","The larger end travels farther (22 cm) than the smaller end (16 cm), which is why the cup rolls in a circle."],final:"16 cm"},
   // ---------- Exponents & Roots ----------
   {id:"e1",topic:"Exponents & Roots",type:"choice",options:["<",">","="],text:"Compare. Pick the right sign: 4² ◯ √144",answer:">",
    steps:["4² = 4 × 4 = 16.","√144 asks: what number times itself is 144? 12 × 12 = 144, so √144 = 12.","16 is greater than 12."],final:"4² > √144"},
@@ -266,6 +272,7 @@ function check(q,input){
   if(q.type==="num"){
     const v=parseNum(raw);
     if(!v)return {result:"format",msg:"Type a number, like 12, 0.5 or 3/4."};
+    if(q.whole&&v.kind!=="int")return {result:"format",msg:"Round your answer to the nearest whole number."};
     return eq(v,ans)?{result:"right"}:{result:"wrong"};
   }
   if(q.type==="ratio"){
@@ -320,7 +327,7 @@ function header(){
 function home(){
   const cards=TOPICS.map(t=>{const c=counts(byTopic(t));
     const pill=c.locked?`<span class="pill review">Needs review</span>`:c.right===c.total?`<span class="pill done">All done</span>`:c.right+c.tried?`<span class="pill new">In progress</span>`:`<span class="pill new">Start</span>`;
-    return `<button class="topic" data-topic="${esc(t)}"><h3>${esc(t)}</h3>${pill}${bar(c)}<span class="meta">${c.right} right · ${c.locked} locked · ${c.total} problems</span></button>`}).join("");
+    return `<button class="topic" data-topic="${esc(t)}"><h3>${esc(t)}</h3>${pill}${bar(c)}<span class="meta">${c.right} right · ${c.locked} locked · ${c.total} ${c.total===1?"problem":"problems"}</span></button>`}).join("");
   return header()+`<section class="panel"><div class="row spread"><h2>Pick a topic</h2><button class="btn primary" data-all="1">Practice everything</button></div>
   <p class="sub" style="margin:0">You get <b>3 tries</b> on each problem. After 3 wrong tries the problem locks and shows you the steps. Locked problems tell your parent which topics to review.</p>
   <div class="grid">${cards}</div></section>`;

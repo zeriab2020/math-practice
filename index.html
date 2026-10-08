@@ -262,7 +262,16 @@ const QUESTIONS = [
   {id:"s4",topic:"Patterns",type:"num",text:"What is the tenth prime number?",answer:"29",
    steps:["A prime number has exactly two factors: 1 and itself. (1 is not prime.)","List them: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29.","The tenth one is 29."],final:"29"},
   {id:"m3",topic:"Measurement",type:"num",text:"A ton is 2,000 pounds. How many pounds is 2 [[1/2]] tons?",answer:"5000",
-   steps:["2 tons = 2 × 2,000 = 4,000 pounds.","[[1/2]] ton = 2,000 ÷ 2 = 1,000 pounds.","4,000 + 1,000 = 5,000 pounds."],final:"5,000 pounds"}
+   steps:["2 tons = 2 × 2,000 = 4,000 pounds.","[[1/2]] ton = 2,000 ÷ 2 = 1,000 pounds.","4,000 + 1,000 = 5,000 pounds."],final:"5,000 pounds"},
+  // ---------- Lesson 64 homework ----------
+  {id:"g17",topic:"Geometry",type:"num",text:"A circle is drawn with a compass. Its radius is 1 [[1/2]] inches. What is its diameter, in inches?",answer:"3",
+   steps:["The diameter is twice the radius.","1 [[1/2]] + 1 [[1/2]] = 3 (or 2 × 1 [[1/2]] = 3)."],final:"3 inches"},
+  {id:"g18",topic:"Geometry",type:"num",text:"The same circle has a diameter of 3 inches. Using 3.14 for π, what is its circumference, in inches?",answer:"9.42",
+   steps:["Circumference = π × diameter.","3.14 × 3 = 9.42."],final:"9.42 inches"},
+  {id:"p6",topic:"Percents & Money",type:"num",text:"What number is 40% of 200?",answer:"80",
+   steps:["40% = [[40/100]] = [[2/5]].","Find [[1/5]] of 200: 200 ÷ 5 = 40.","[[2/5]] is 2 times that: 40 × 2 = 80.","Shortcut: 10% of 200 is 20, so 40% is 4 × 20 = 80."],final:"80"},
+  {id:"n1",topic:"Primes & Factors",type:"factors",text:"18 written as a product of prime numbers is 2 · 3 · 3. Write 20 as a product of prime numbers.",answer:"2 · 2 · 5",
+   steps:["Start dividing by the smallest prime, 2: 20 ÷ 2 = 10.","10 is still even: 10 ÷ 2 = 5.","5 is prime, so stop.","The primes you used: 2 · 2 · 5. Check: 2 × 2 × 5 = 20."],final:"2 · 2 · 5"}
 ];
 
 /* ===== ANSWER CHECKING ===== */
@@ -312,6 +321,17 @@ function check(q,input){
     const nums=parts.map(parseNum);
     if(nums.some(x=>!x))return {result:"format",msg:"Use numbers only, like 1, 2, 3."};
     return nums.every((x,i)=>eq(x,parseNum(q.answer[i])))?{result:"right"}:{result:"wrong"};
+  }
+  if(q.type==="factors"){
+    const parts=raw.split(/[^0-9]+/).filter(Boolean).map(Number);
+    if(parts.length<2)return {result:"format",msg:"Write it as a product of numbers, like 2 · 3 · 3 (you can type 2*3*3)."};
+    const target=q.answer.split(/[^0-9]+/).filter(Boolean).map(Number).reduce((a,b)=>a*b,1);
+    const prod=parts.reduce((a,b)=>a*b,1);
+    const isP=n=>{if(n<2)return false;for(let i=2;i*i<=n;i++)if(n%i===0)return false;return true};
+    if(prod!==target)return {result:"wrong",msg:`Those numbers multiply to ${prod}, not ${target}.`};
+    const bad=parts.find(n=>!isP(n));
+    if(bad!==undefined)return {result:"wrong",msg:`${bad} is not a prime number. Keep breaking it down.`};
+    return {result:"right"};
   }
   const ans=parseNum(q.answer);
   if(q.type==="num"){
@@ -492,6 +512,19 @@ const GEN={
   return {type:"choice",options:["<",">","="],text:`Compare. Pick the right sign: ${a}² ◯ √${b*b}`,answer:ans,steps:[`${a}² = ${a} × ${a} = ${A}.`,`√${b*b} = ${b}, because ${b} × ${b} = ${b*b}.`,`${A} ${ans} ${b}.`],final:`${a}² ${ans} √${b*b}`}},
  function(){const k=R(2,9),p=R(1,4),v=k*10**p;return {type:"num",text:`Simplify: ${k} · 10${SUP[p]}`,answer:String(v),steps:[`10${SUP[p]} = ${comma(10**p)} (a 1 with ${p} zero${p>1?"s":""}).`,`${k} × ${comma(10**p)} = ${comma(v)}.`],final:comma(v)}}
 ],
+"Primes & Factors":[
+ function(){const P=[2,2,2,3,3,5,7];let f,n;do{const k=R(2,4);f=[];for(let i=0;i<k;i++)f.push(pick(P));n=f.reduce((a,b)=>a*b,1)}while(n>120||n<6);f.sort((a,b)=>a-b);
+  const st=[];let m=n;for(const p of f){if(m===p)break;st.push(`${m} ÷ ${p} = ${m/p}.`);m=m/p}st.push(`${f[f.length-1]} is prime, so stop.`);st.push(`Check: ${f.join(" × ")} = ${n}.`);
+  return {type:"factors",text:`Write ${n} as a product of prime numbers.`,answer:f.join(" · "),steps:[`Divide by the smallest prime that works, again and again.`,...st],final:f.join(" · ")}},
+ function(){let x,y;do{x=R(1,9);y=R(2,9)}while(x===y||gcd(x,y)!==1);const g=R(2,12),a=g*x,b=g*y;
+  const fac=n=>{const o=[];for(let i=1;i<=n;i++)if(n%i===0)o.push(i);return o.join(", ")};
+  return {type:"num",text:`What is the greatest common factor (GCF) of ${a} and ${b}?`,answer:String(g),steps:[`Factors of ${a}: ${fac(a)}.`,`Factors of ${b}: ${fac(b)}.`,`The greatest number in both lists is ${g}.`],final:String(g)}},
+ function(){let a,b;do{a=R(2,12);b=R(2,12)}while(a===b);const L=lcm(a,b),big=Math.max(a,b),sm=Math.min(a,b),ms=[];for(let m=big;m<=L;m+=big)ms.push(m);
+  return {type:"num",text:`What is the least common multiple (LCM) of ${a} and ${b}?`,answer:String(L),steps:[`List multiples of the bigger number, ${big}: ${ms.join(", ")}.`,`The first one that ${sm} also divides evenly is ${L}.`],final:String(L)}},
+ function(){const n=R(2,60),isP=(()=>{for(let i=2;i*i<=n;i++)if(n%i===0)return i;return 0})();
+  return {type:"choice",options:["Prime","Composite"],text:`Is ${n} prime or composite?`,answer:isP?"Composite":"Prime",
+  steps:isP?[`A composite number has more than two factors.`,`${n} = ${isP} × ${n/isP}, so it has factors other than 1 and ${n}.`]:[`A prime number has exactly two factors: 1 and itself.`,`Nothing between 2 and ${n-1} divides ${n} evenly, so its only factors are 1 and ${n}.`],final:isP?"Composite":"Prime"}}
+],
 "Equations":[
  function(){const x=R(11,199),a=R(11,199),b=x+a;return {type:"num",text:`Find d: ${dec(a,1)} + d = ${dec(b,1)}`,answer:dec(x,1),steps:[`To find the missing addend, subtract: d = ${dec(b,1)} − ${dec(a,1)}.`,`Line up the decimal points: ${dec(b,1)} − ${dec(a,1)} = ${dec(x,1)}.`],final:`d = ${dec(x,1)}`}},
  function(){if(Math.random()<.5){const a=R(2,15),x=R(2,20);return {type:"num",text:`Find m: ${a}m = ${a*x}`,answer:String(x),steps:[`${a}m means ${a} × m.`,`Divide to find m: ${a*x} ÷ ${a} = ${x}.`],final:`m = ${x}`}}
@@ -584,7 +617,7 @@ function practice(){
   let body="";
   if(st.s==="open"){
     if(q.type==="choice")body=`<div class="choices" role="group" aria-label="Choose a sign">${q.options.map(o=>`<button data-choice="${esc(o)}">${esc(o)}</button>`).join("")}</div>`;
-    else{const ph={num:"Type a number",frac:q.form==="improper"?"Type an improper fraction, like 7/3":"Type a fraction, like 3/4",exact:"Type a fraction",ratio:"Type a fraction, like 2/3",time:"Type a time, like 3:30 pm",list:"Type numbers with commas"}[q.type];
+    else{const ph={num:"Type a number",frac:q.form==="improper"?"Type an improper fraction, like 7/3":"Type a fraction, like 3/4",exact:"Type a fraction",ratio:"Type a fraction, like 2/3",time:"Type a time, like 3:30 pm",list:"Type numbers with commas",factors:"Type like 2 · 3 · 3 or 2*3*3"}[q.type];
       body=`<form class="answer" id="af" autocomplete="off"><input id="ans" placeholder="${ph}" aria-label="Your answer"><button class="btn primary big" type="submit">Check</button></form>`;}
   }
   let fb="";

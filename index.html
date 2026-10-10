@@ -85,6 +85,8 @@ nav{display:flex;gap:6px;flex-wrap:wrap}
 .choices button{min-width:64px;font-size:24px;font-weight:800;border:2px solid var(--line);background:var(--paper);border-radius:12px;padding:8px 16px}
 .choices button:hover{border-color:var(--accent)}
 .hint{font-size:14px;color:var(--muted)}
+.hintbox{background:var(--warn-soft);border-radius:14px;padding:12px 16px;min-width:0;overflow-wrap:anywhere}
+.hintbox b{color:var(--warn)}
 .fb{border-radius:12px;padding:12px 14px;font-weight:700}
 .fb.ok{background:var(--good-soft);color:var(--good)}
 .fb.no{background:var(--bad-soft);color:var(--bad)}
@@ -278,7 +280,7 @@ const QUESTIONS = [
 const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a||1};
 // Parse text into {n,d,kind} where kind is "int","dec","frac","mixed". Returns null if it is not a number.
 function parseNum(raw){
-  let s=String(raw).trim().toLowerCase().replace(/[$,]/g,"").replace(/¢/g,"").replace(/\s+/g," ");
+  let s=String(raw).trim().toLowerCase().replace(/[\u2212\u2013]/g,"-").replace(/[$,%]/g,"").replace(/¢/g,"").replace(/\s+/g," ");
   let m,res,rest;
   if((m=s.match(/^(-?\d+) (\d+) ?\/ ?(\d+)(.*)$/))){const w=+m[1],a=+m[2],b=+m[3];if(!b)return null;res={n:w*b+(w<0?-a:a),d:b,kind:"mixed",fn:a,fd:b};rest=m[4];}
   else if((m=s.match(/^(-?\d+) ?\/ ?(\d+)(.*)$/))){if(!+m[2])return null;res={n:+m[1],d:+m[2],kind:"frac",fn:+m[1],fd:+m[2]};rest=m[3];}
@@ -382,7 +384,7 @@ const comma=n=>n.toLocaleString("en-US");
 function coprime(d,lo=1){let n,t=0;do{n=R(lo,d-1);t++}while(gcd(n,d)!==1&&t<50);return n}
 function reduceStep(n,d){const [a,b]=red(n,d);return b===d?null:`Reduce: divide the top and bottom by ${d/b}. ${F(n,d)} = ${F(a,b)}.`}
 
-const GEN={
+const BASE={
 "Fractions":[
  function(){const b=R(3,12),a=coprime(b),k=R(2,6);
   return {type:"frac",text:`Reduce ${F(a*k,b*k)} to lowest terms.`,answer:`${a}/${b}`,
@@ -564,19 +566,164 @@ const GEN={
   return {type:"num",text:`Round ${comma(n)} to the nearest ${comma(to)}.`,answer:String(r),steps:[`Look at the digit just to the right of the ${comma(to)}s place: it is ${dg}.`,`${+dg>=5?"5 or more, so round up":"Less than 5, so round down"}: ${comma(r)}.`],final:comma(r)}}
 ]
 };
-function makeProblem(topic){const g=pick(GEN[topic]);return g()}
-function makeSet(topic,size=10){const gens=[...GEN[topic]].sort(()=>Math.random()-.5),out=[],seen=new Set();let k=0,t=0;
-  while(out.length<size&&t<200){t++;const q=gens[k%gens.length]();k++;if(seen.has(q.text))continue;seen.add(q.text);q.topic=topic;q.id="x"+Date.now().toString(36)+out.length+R(100,999);out.push(q)}return out}
+/* ===== HIDDEN DIFFICULTY LEVELS =====
+   1 = Easy, 2 = Medium, 3 = Hard, 4 = Harder (7th-grade skills, never beyond). */
+const LV={
+"Fractions":[[1,2],[1,1],[2,3],[2,2],[2,3],[1,2],[3,4],[1,2],[1,2]],
+"Decimals":[[1,1],[1,2],[2,2],[2,2],[3,3],[2,3],[1,2]],
+"Percents & Money":[[1,1],[1,2],[3,3],[2,3]],
+"Ratios":[[1,1],[1,2],[2,2],[1,2]],
+"Geometry":[[1,1],[1,1],[2,2],[2,2],[1,1],[3,3],[2,3],[1,2],[2,3],[3,4]],
+"Exponents & Roots":[[1,1],[2,2],[1,2],[2,2],[2,3]],
+"Primes & Factors":[[1,2],[2,3],[2,3],[1,2]],
+"Equations":[[2,3],[2,3],[1,2],[1,1],[1,2]],
+"Patterns":[[1,2],[1,2],[2,3],[2,3]],
+"Measurement":[[1,3]],
+"Time & Estimation":[[1,2],[1,2],[1,1]]
+};
+const toImp=(w,n,d)=>w*d+n;
+const EXTRA={
+"Fractions":[
+ {L:[3,4],f:function(){const b=R(2,6),d=R(2,6),W1=R(1,3),W2=R(1,2),a=coprime(b),c=coprime(d),n1=toImp(W1,a,b),n2=toImp(W2,c,d),[rn,rd]=red(n1*n2,b*d);
+  const st=[`Change each mixed number to an improper fraction: ${W1} ${F(a,b)} = ${F(n1,b)} and ${W2} ${F(c,d)} = ${F(n2,d)}.`,`Multiply: tops ${n1} × ${n2} = ${n1*n2}, bottoms ${b} × ${d} = ${b*d}. That gives ${F(n1*n2,b*d)}.`];const r=reduceStep(n1*n2,b*d);if(r)st.push(r);if(rn>rd&&rd>1)st.push(`As a mixed number: ${mixed(rn,rd)}.`);
+  return {type:"frac",text:`Multiply: ${W1} ${F(a,b)} × ${W2} ${F(c,d)}. Reduce your answer.`,answer:`${rn}/${rd}`,steps:st,final:mixed(rn,rd)}}},
+ {L:[3,4],f:function(){const b=R(2,6),d=R(2,8),W=R(1,4),a=coprime(b),c=coprime(d),n1=toImp(W,a,b),[rn,rd]=red(n1*d,b*c);
+  const st=[`Change the mixed number to an improper fraction: ${W} ${F(a,b)} = ${F(n1,b)}.`,`Dividing by ${F(c,d)} is the same as multiplying by its reciprocal ${F(d,c)}.`,`${F(n1,b)} × ${F(d,c)} = ${F(n1*d,b*c)}.`];const r=reduceStep(n1*d,b*c);if(r)st.push(r);if(rn>rd&&rd>1)st.push(`As a mixed number: ${mixed(rn,rd)}.`);
+  return {type:"frac",text:`Divide: ${W} ${F(a,b)} ÷ ${F(c,d)}. Reduce your answer.`,answer:`${rn}/${rd}`,steps:st,final:mixed(rn,rd)}}},
+ {L:[3,3],f:function(){let d1,d2;do{d1=pick([2,3,4,6]);d2=pick([3,4,6,8,12])}while(d1===d2||lcm(d1,d2)>24);const L=lcm(d1,d2),W1=R(1,5),W2=R(1,5),a=coprime(d1),c=coprime(d2),A=a*L/d1,C=c*L/d2,tot=(W1+W2)*L+A+C,[rn,rd]=red(tot,L);
+  const st=[`Use the common denominator ${L}: ${F(a,d1)} = ${F(A,L)} and ${F(c,d2)} = ${F(C,L)}.`,`Add the whole numbers: ${W1} + ${W2} = ${W1+W2}. Add the fractions: ${F(A,L)} + ${F(C,L)} = ${F(A+C,L)}.`];if(A+C>=L)st.push(`${F(A+C,L)} is more than 1, so carry 1 to the whole number.`);st.push(`Answer: ${mixed(rn,rd)}.`);
+  return {type:"frac",text:`Add: ${W1} ${F(a,d1)} + ${W2} ${F(c,d2)}. Reduce your answer.`,answer:`${rn}/${rd}`,steps:st,final:mixed(rn,rd)}}},
+ {L:[4,4],f:function(){const q=R(5,11),h=pick([3,4,5,6]),need8=q*h;let k;do{k=R(1,Math.floor(need8/2)-1)}while(k<1);const diff8=need8-2*k,[rn,rd]=red(diff8,8),[nn,nd]=red(need8,8);
+  return {type:"frac",text:`A recipe needs ${mixed(q,4)} cups of flour. Lisa makes ${mixed(h,2)} batches. She already has ${mixed(k,4)} cups. How many more cups of flour does she need?`,answer:`${rn}/${rd}`,
+  steps:[`Flour needed: ${mixed(q,4)} × ${mixed(h,2)} = ${F(q,4)} × ${F(h,2)} = ${F(need8,8)} = ${mixed(nn,nd)} cups.`,`She has ${mixed(k,4)} = ${F(2*k,8)} cups.`,`Subtract: ${F(need8,8)} − ${F(2*k,8)} = ${F(diff8,8)} = ${mixed(rn,rd)} cups.`],final:`${mixed(rn,rd)} cups`}}},
+ {L:[4,4],f:function(){const b=R(2,5),a=coprime(b),c=R(1,4),d=R(c+1,6),e=R(1,5),f=R(e+1,8),pn=c*e,pd=d*f,L=lcm(b,pd),tot=a*L/b+pn*L/pd,[rn,rd]=red(tot,L),[qn,qd]=red(pn,pd);
+  return {type:"frac",text:`Simplify: ${F(a,b)} + ${F(c,d)} × ${F(e,f)}. Reduce your answer.`,answer:`${rn}/${rd}`,
+  steps:[`Order of operations: multiply before you add.`,`${F(c,d)} × ${F(e,f)} = ${F(pn,pd)}${qd!==pd?` = ${F(qn,qd)}`:""}.`,`Now add: ${F(a,b)} + ${F(pn,pd)}. Use the common denominator ${L}: ${F(a*L/b,L)} + ${F(pn*L/pd,L)} = ${F(tot,L)}.`,`Answer: ${mixed(rn,rd)}.`],final:mixed(rn,rd)}}}
+],
+"Decimals":[
+ {L:[3,4],f:function(){const a=R(2,99),b=R(2,99),p=a*b;
+  return {type:"num",text:`Multiply: ${dec(a,1)} × ${dec(b,1)}`,answer:dec(p,2),steps:[`Multiply as if there were no decimal points: ${a} × ${b} = ${p}.`,`Count decimal places: 1 + 1 = 2. So the answer is ${dec(p,2)}.`],final:dec(p,2)}}},
+ {L:[4,4],f:function(){const dv=pick([2,3,4,5,6,8,12,15,25]),n=R(2,60),x=n*dv;
+  return {type:"num",text:`Divide: ${dec(x,2)} ÷ ${dec(dv,2)}`,answer:String(n),steps:[`Make the divisor a whole number: move both decimal points 2 places right (multiply both by 100).`,`${dec(x,2)} × 100 = ${x} and ${dec(dv,2)} × 100 = ${dv}.`,`${x} ÷ ${dv} = ${n}.`],final:String(n)}}},
+ {L:[4,4],f:function(){const k=R(2,4),p=R(105,495),q=R(50,300),cost=k*p+q,pay=cost<1000?1000:2000,ch=pay-cost;
+  return {type:"num",text:`Ana buys ${k} notebooks for ${money(p)} each and a pen for ${money(q)}. She pays with a $${pay/100} bill. How much change does she get?`,answer:(ch/100).toFixed(2),
+  steps:[`Notebooks: ${k} × ${money(p)} = ${money(k*p)}.`,`Add the pen: ${money(k*p)} + ${money(q)} = ${money(cost)}.`,`Change: ${money(pay)} − ${money(cost)} = ${money(ch)}.`],final:money(ch)}}}
+],
+"Percents & Money":[
+ {L:[2,3],f:function(){if(Math.random()<.5){const [n,d]=pick([[1,4],[3,4],[1,5],[2,5],[3,5],[4,5],[1,2],[1,10],[7,10],[3,20],[7,20],[9,25],[1,25],[17,50]]),p=n*100/d;
+   return {type:"num",text:`Write ${F(n,d)} as a percent.`,answer:String(p),steps:[`A percent is a number out of 100.`,`Multiply the top and bottom by ${100/d}: ${F(n,d)} = ${F(p,100)}.`,`${p} out of 100 = ${p}%.`],final:`${p}%`}}
+  const v=R(1,99);return {type:"num",text:`Write ${dec(v,2)} as a percent.`,answer:String(v),steps:[`To change a decimal to a percent, multiply by 100 (move the decimal point 2 places right).`,`${dec(v,2)} = ${v}%.`],final:`${v}%`}}},
+ {L:[4,4],f:function(){const p=pick([10,20,25,40,50,75,5,15]),[n,d]=red(p,100),W=d*R(2,20),part=W/d*n;
+  return {type:"num",text:`What percent of ${W} is ${part}?`,answer:String(p),steps:[`Write it as a fraction: ${F(part,W)}.`,`Reduce: ${F(part,W)} = ${F(n,d)}.`,`${F(n,d)} = ${F(p,100)} = ${p}%.`],final:`${p}%`}}},
+ {L:[4,4],f:function(){const p=pick([10,20,25,30,40,50,60,75]),[n,d]=red(p,100),W=d*R(2,25),part=W/d*n;
+  return {type:"num",text:`${part} is ${p}% of what number?`,answer:String(W),steps:[`${p}% = ${F(n,d)}. So ${F(n,d)} of the number is ${part}.`,`Find ${F(1,d)} of the number: ${part} ÷ ${n} = ${part/n}.`,`The whole is ${d} times that: ${part/n} × ${d} = ${W}.`],final:String(W)}}},
+ {L:[4,4],f:function(){const p=pick([10,20,25,50]),[n,d]=red(p,100),old=d*R(2,20),up=Math.random()<.6,chg=old/d*n,nw=up?old+chg:old-chg;
+  return {type:"num",text:`A price changed from $${old} to $${nw}. By what percent did it ${up?"increase":"decrease"}?`,answer:String(p),steps:[`Find the change: $${Math.max(old,nw)} − $${Math.min(old,nw)} = $${chg}.`,`Compare the change to the ORIGINAL price: ${F(chg,old)} = ${F(n,d)}.`,`${F(n,d)} = ${p}%.`],final:`${p}% ${up?"increase":"decrease"}`}}}
+],
+"Ratios":[
+ {L:[3,4],f:function(){const u=5*R(5,60),n1=R(2,6);let n2;do{n2=R(3,12)}while(n2===n1);const t1=n1*u,ans=n2*u,item=pick(["notebooks","pencils","apples","stickers"]);
+  return {type:"num",text:`${n1} ${item} cost ${money(t1)}. At the same price, how much do ${n2} ${item} cost?`,answer:(ans/100).toFixed(2),
+  steps:[`Find the unit price (cost of 1): ${money(t1)} ÷ ${n1} = ${money(u)}.`,`Multiply by ${n2}: ${money(u)} × ${n2} = ${money(ans)}.`],final:money(ans)}}},
+ {L:[3,3],f:function(){const a=R(1,4),m=R(5,30),k=R(2,6);
+  return {type:"num",text:`On a map, ${a} inch${a>1?"es":""} = ${a*m} miles. How many miles is ${a*k} inches on the map?`,answer:String(a*m*k),
+  steps:[`${a*k} inches is ${k} times ${a} inch${a>1?"es":""}.`,`So the distance is ${k} × ${a*m} = ${a*m*k} miles.`],final:`${a*m*k} miles`}}},
+ {L:[4,4],f:function(){let r1,r2;do{r1=R(1,7);r2=R(1,7)}while(r1===r2||gcd(r1,r2)!==1);const k=R(2,8),T=(r1+r2)*k,ask=Math.random()<.5;
+  return {type:"num",text:`The ratio of boys to girls in a club is ${r1} to ${r2}. There are ${T} members. How many are ${ask?"boys":"girls"}?`,answer:String((ask?r1:r2)*k),
+  steps:[`The ratio has ${r1} + ${r2} = ${r1+r2} parts in all.`,`Each part is ${T} ÷ ${r1+r2} = ${k} members.`,`${ask?"Boys":"Girls"} = ${ask?r1:r2} parts × ${k} = ${(ask?r1:r2)*k}.`],final:String((ask?r1:r2)*k)}}}
+],
+"Geometry":[
+ {L:[3,3],f:function(){let b,h;do{b=R(3,20);h=R(2,16)}while((b*h)%2);return {type:"num",text:`A triangle has a base of ${b} cm and a height of ${h} cm. What is its area, in square centimeters?`,answer:String(b*h/2),steps:[`Area of a triangle = base × height ÷ 2.`,`${b} × ${h} = ${b*h}, and ${b*h} ÷ 2 = ${b*h/2} cm².`],final:`${b*h/2} cm²`}}},
+ {L:[3,3],f:function(){const l=R(2,12),w=R(2,10),h=R(2,10);return {type:"num",text:`A box (rectangular prism) is ${l} cm long, ${w} cm wide and ${h} cm tall. What is its volume, in cubic centimeters?`,answer:String(l*w*h),steps:[`Volume = length × width × height.`,`${l} × ${w} = ${l*w}, and ${l*w} × ${h} = ${l*w*h} cm³.`],final:`${l*w*h} cm³`}}},
+ {L:[4,4],f:function(){const r=R(1,10),useD=Math.random()<.4,A=314*r*r;return {type:"num",text:`A circle has a ${useD?"diameter":"radius"} of ${useD?2*r:r} m. Using 3.14 for π, what is its area, in square meters?`,answer:dec(A,2),
+  steps:[...(useD?[`The radius is half the diameter: ${2*r} ÷ 2 = ${r} m.`]:[]),`Area of a circle = π × radius × radius.`,`${r} × ${r} = ${r*r}, and 3.14 × ${r*r} = ${dec(A,2)} m².`],final:`${dec(A,2)} m²`}}},
+ {L:[4,4],f:function(){const W=R(8,16),H=R(8,16),w=R(2,W-3),h=R(2,H-3);return {type:"num",text:`An L-shaped room is made from a ${W} ft by ${H} ft rectangle with a ${w} ft by ${h} ft corner cut out. What is the area of the room, in square feet?`,answer:String(W*H-w*h),
+  steps:[`Area of the big rectangle: ${W} × ${H} = ${W*H} ft².`,`Area of the cut-out corner: ${w} × ${h} = ${w*h} ft².`,`Subtract: ${W*H} − ${w*h} = ${W*H-w*h} ft².`],final:`${W*H-w*h} ft²`}}},
+ {L:[4,4],f:function(){if(Math.random()<.5){const a=R(25,90),b=R(25,150-a);return {type:"num",text:`Two angles of a triangle measure ${a}° and ${b}°. What is the third angle, in degrees?`,answer:String(180-a-b),steps:[`The angles of a triangle add up to 180°.`,`${a} + ${b} = ${a+b}, and 180 − ${a+b} = ${180-a-b}°.`],final:`${180-a-b}°`}}
+  const a=R(15,165);return {type:"num",text:`Two angles together make a straight line (they are supplementary). One angle is ${a}°. What is the other angle, in degrees?`,answer:String(180-a),steps:[`Angles on a straight line add up to 180°.`,`180 − ${a} = ${180-a}°.`],final:`${180-a}°`}}},
+ {L:[4,4],f:function(){const l=R(2,10),w=R(2,8),h=R(2,8),sa=2*(l*w+l*h+w*h);return {type:"num",text:`A box is ${l} in long, ${w} in wide and ${h} in tall. What is its total surface area, in square inches?`,answer:String(sa),
+  steps:[`A box has 3 pairs of matching faces.`,`Top and bottom: 2 × (${l} × ${w}) = ${2*l*w}. Front and back: 2 × (${l} × ${h}) = ${2*l*h}. Sides: 2 × (${w} × ${h}) = ${2*w*h}.`,`Add them: ${2*l*w} + ${2*l*h} + ${2*w*h} = ${sa} in².`],final:`${sa} in²`}}}
+],
+"Exponents & Roots":[
+ {L:[3,3],f:function(){const b=R(2,9),c=R(2,6),d=R(2,6),a=R(c*d,c*d+20),v=a+b*b-c*d;return {type:"num",text:`Simplify: ${a} + ${b}² − ${c} × ${d}`,answer:String(v),steps:[`Exponents first: ${b}² = ${b*b}.`,`Then multiply: ${c} × ${d} = ${c*d}.`,`Then add and subtract left to right: ${a} + ${b*b} = ${a+b*b}, and ${a+b*b} − ${c*d} = ${v}.`],final:String(v)}}},
+ {L:[4,4],f:function(){const b=R(2,3),x=R(2,6),y=R(1,x-1),diff=x-y,sq=diff*diff,dv=pick([1,2,4].filter(z=>sq%z===0)),v=b**3+sq/dv;
+  return {type:"num",text:`Simplify: ${b}³ + (${x} − ${y})² ÷ ${dv}`,answer:String(v),steps:[`Parentheses first: ${x} − ${y} = ${diff}.`,`Exponents: ${b}³ = ${b**3} and ${diff}² = ${sq}.`,`Divide: ${sq} ÷ ${dv} = ${sq/dv}.`,`Add: ${b**3} + ${sq/dv} = ${v}.`],final:String(v)}}},
+ {L:[4,4],f:function(){const x=R(2,9),k=R(2,8),v=x*x+k*x;return {type:"num",text:`Find the value of x² + ${k}x when x = ${x}.`,answer:String(v),steps:[`Replace x with ${x}: ${x}² + ${k} × ${x}.`,`${x}² = ${x*x} and ${k} × ${x} = ${k*x}.`,`${x*x} + ${k*x} = ${v}.`],final:String(v)}}}
+],
+"Primes & Factors":[
+ {L:[3,3],f:function(){const P=[2,2,3,3,5,7,11];let f,n;do{const k=R(3,5);f=[];for(let i=0;i<k;i++)f.push(pick(P));n=f.reduce((a,b)=>a*b,1)}while(n>240||n<40);f.sort((a,b)=>a-b);
+  const st=[];let m=n;for(const p of f){if(m===p)break;st.push(`${m} ÷ ${p} = ${m/p}.`);m=m/p}st.push(`${f[f.length-1]} is prime, so stop.`);
+  return {type:"factors",text:`Write ${n} as a product of prime numbers.`,answer:f.join(" · "),steps:[`Divide by the smallest prime that works, again and again.`,...st,`Check: ${f.join(" × ")} = ${n}.`],final:f.join(" · ")}}},
+ {L:[4,4],f:function(){let x,y;do{x=R(2,7);y=R(2,7)}while(x===y||gcd(x,y)!==1);const g=R(2,9),a=g*x,b=g*y,[i1,i2]=pick([["apples","oranges"],["red pencils","blue pencils"],["cookies","brownies"]]);
+  return {type:"num",text:`Maya has ${a} ${i1} and ${b} ${i2}. She puts them into identical bags with nothing left over. What is the greatest number of bags she can make?`,answer:String(g),
+  steps:[`The number of bags must divide both ${a} and ${b}, so find the greatest common factor.`,`${a} = ${g} × ${x} and ${b} = ${g} × ${y}, and ${x} and ${y} share no factor.`,`GCF = ${g}, so she can make ${g} bags (each with ${x} ${i1} and ${y} ${i2}).`],final:`${g} bags`}}},
+ {L:[4,4],f:function(){let a,b;do{a=pick([6,8,9,10,12,15,18,20]);b=pick([6,8,9,10,12,15,18,20,24])}while(a===b);const L=lcm(a,b),ms=[];for(let m=Math.max(a,b);m<=L;m+=Math.max(a,b))ms.push(m);
+  return {type:"num",text:`Bus A leaves every ${a} minutes and Bus B leaves every ${b} minutes. They both leave at 8:00. In how many minutes will they next leave at the same time?`,answer:String(L),
+  steps:[`Find the least common multiple of ${a} and ${b}.`,`Multiples of ${Math.max(a,b)}: ${ms.join(", ")}.`,`The first one that ${Math.min(a,b)} also divides is ${L}. So in ${L} minutes.`],final:`${L} minutes`}}}
+],
+"Equations":[
+ {L:[3,4],f:function(){const a=R(2,9),x=R(1,15),b=R(1,25),plus=Math.random()<.6,c=plus?a*x+b:a*x-b;if(c<=0)return EXTRA["Equations"][0].f();
+  return {type:"num",text:`Find x: ${a}x ${plus?"+":"−"} ${b} = ${c}`,answer:String(x),steps:[`Undo the ${plus?"addition":"subtraction"} first: ${a}x = ${c} ${plus?"−":"+"} ${b} = ${a*x}.`,`Then undo the multiplication: x = ${a*x} ÷ ${a} = ${x}.`,`Check: ${a} × ${x} ${plus?"+":"−"} ${b} = ${c}.`],final:`x = ${x}`}}},
+ {L:[4,4],f:function(){const k=R(0,2),a=R(1,15),b=R(1,15);
+  if(k===0){const A=-a,v=A+b;return {type:"num",text:`Add: −${a} + ${b}`,answer:String(v),steps:[`Start at −${a} on the number line and move ${b} to the right.`,`−${a} + ${b} = ${v<0?"−"+(-v):v}.`],final:v<0?"−"+(-v):String(v)}}
+  if(k===1){const v=a-b-b;return {type:"num",text:`Subtract: ${a-b} − ${b+b}`.replace(/^Subtract: (-?\d+)/,(m,x)=>`Subtract: ${+x<0?"−"+(-x):x}`),answer:String(v),steps:[`Subtracting means moving left on the number line.`,`${a-b<0?"−"+(b-a):a-b} − ${2*b} = ${v<0?"−"+(-v):v}.`],final:v<0?"−"+(-v):String(v)}}
+  const p=-a*b;return {type:"num",text:`Multiply: (−${a}) × ${b}`,answer:String(p),steps:[`A negative times a positive is negative.`,`${a} × ${b} = ${a*b}, so (−${a}) × ${b} = −${a*b}.`],final:`−${a*b}`}}}
+],
+"Patterns":[
+ {L:[3,4],f:function(){const m=pick([2,3]),k=R(1,3),s=R(1,4),t=[s];for(let i=1;i<5;i++)t.push(t[i-1]*m+k);
+  return {type:"num",text:`What is the next number? ${t.slice(0,4).join(", ")}, …`,answer:String(t[4]),steps:[`Look for a rule with two steps: each number is ${m} times the one before, plus ${k}.`,`Check: ${t[0]} × ${m} + ${k} = ${t[1]}.`,`${t[3]} × ${m} + ${k} = ${t[4]}.`],final:String(t[4])}}},
+ {L:[4,4],f:function(){const a=R(2,12),d=R(2,9),n=pick([10,15,20,25,50]),v=a+(n-1)*d;
+  return {type:"num",text:`A pattern starts at ${a} and adds ${d} each time: ${a}, ${a+d}, ${a+2*d}, ${a+3*d}, … What is the ${ord(n)} number?`,answer:String(v),steps:[`To get to the ${ord(n)} number, you add ${d} a total of ${n-1} times.`,`${n-1} × ${d} = ${(n-1)*d}.`,`${a} + ${(n-1)*d} = ${v}.`],final:String(v)}}},
+ {L:[4,4],f:function(){const m=R(2,6),b=R(1,9),x=R(7,15);
+  return {type:"num",text:`In a table, x = 1, 2, 3, 4 gives y = ${[1,2,3,4].map(i=>m*i+b).join(", ")}. The rule is the same for every x. What is y when x = ${x}?`,answer:String(m*x+b),
+  steps:[`y goes up by ${m} each time x goes up by 1, so the rule starts with ${m} × x.`,`Check x = 1: ${m} × 1 = ${m}, and y is ${m+b}, so add ${b}. Rule: y = ${m}x + ${b}.`,`When x = ${x}: ${m} × ${x} + ${b} = ${m*x+b}.`],final:String(m*x+b)}}}
+],
+"Measurement":[
+ {L:[3,3],f:function(){const U=[["feet","inches",12],["hours","minutes",60],["pounds","ounces",16],["yards","feet",3],["gallons","quarts",4]],[big,small,f]=pick(U),w=R(2,9),r=R(1,f-1),ans=w*f+r;
+  return {type:"num",text:`How many ${small} are in ${w} ${big} ${r} ${small}? (1 ${big.replace(/s$/,"")} = ${f} ${small})`,answer:String(ans),steps:[`Change the ${big}: ${w} × ${f} = ${w*f} ${small}.`,`Add the extra ${r} ${small}: ${w*f} + ${r} = ${ans} ${small}.`],final:`${ans} ${small}`}}},
+ {L:[4,4],f:function(){const U=[["kilometers","meters",1000],["kilograms","grams",1000],["liters","milliliters",1000],["meters","centimeters",100]],[big,small,f]=pick(U),down=Math.random()<.5;
+  if(down){const v=R(1,f-1)*(f===1000?pick([1,10,50,100]):1),vv=v;const p=f===1000?3:2;return {type:"num",text:`How many ${big} is ${comma(vv)} ${small}?`,answer:dec(vv,p),steps:[`1 ${big.replace(/s$/,"")} = ${comma(f)} ${small}, so divide by ${comma(f)}.`,`${comma(vv)} ÷ ${comma(f)} = ${dec(vv,p)} ${big}.`],final:`${dec(vv,p)} ${big}`}}
+  const t=R(11,99),ans=t*f/10;return {type:"num",text:`How many ${small} are in ${dec(t,1)} ${big}?`,answer:String(ans),steps:[`1 ${big.replace(/s$/,"")} = ${comma(f)} ${small}, so multiply by ${comma(f)}.`,`${dec(t,1)} × ${comma(f)} = ${comma(ans)} ${small}.`],final:`${comma(ans)} ${small}`}}},
+ {L:[4,4],f:function(){const sp=5*R(6,14),h2=R(2,9),d=sp*h2/2;if(d!==Math.floor(d))return EXTRA["Measurement"][2].f();
+  return {type:"num",text:`A car travels at ${sp} miles per hour for ${mixed(h2,2)} hours. How many miles does it go?`,answer:String(d),steps:[`Distance = speed × time.`,`${sp} × ${mixed(h2,2)} = ${sp} × ${F(h2,2)} = ${sp*h2} ÷ 2 = ${d} miles.`],final:`${d} miles`}}}
+],
+"Time & Estimation":[
+ {L:[3,4],f:function(){const s=R(84,150)*5,len=R(7,40)*5,e=s+len;const f=t=>{const h=Math.floor(t/60),m=t%60,h12=h%12===0?12:h%12;return `${h12}:${String(m).padStart(2,"0")} ${h<12?"a.m.":"p.m."}`};
+  return {type:"num",text:`How many minutes is it from ${f(s)} to ${f(e)}?`,answer:String(len),steps:[`Count up to the next full hour, then count the rest.`,`From ${f(s)} to ${f(e)} is ${Math.floor(len/60)} hour${Math.floor(len/60)===1?"":"s"} ${len%60} minutes.`,`${Math.floor(len/60)} × 60 + ${len%60} = ${len} minutes.`],final:`${len} minutes`}}},
+ {L:[2,3],f:function(){const a=Array.from({length:R(5,7)},()=>R(10,99)),mx=Math.max(...a),mn=Math.min(...a);
+  return {type:"num",text:`Find the range of these numbers: ${a.join(", ")}`,answer:String(mx-mn),steps:[`Range = largest − smallest.`,`Largest: ${mx}. Smallest: ${mn}.`,`${mx} − ${mn} = ${mx-mn}.`],final:String(mx-mn)}}},
+ {L:[3,4],f:function(){const n=pick([4,5,6]),mean=R(10,90);let a=Array.from({length:n-1},()=>mean+R(-12,12));const last=mean*n-a.reduce((x,y)=>x+y,0);if(last<1||last>150)return EXTRA["Time & Estimation"][2].f();a.push(last);
+  return {type:"num",text:`Find the mean (average) of these numbers: ${a.join(", ")}`,answer:String(mean),steps:[`Add them: ${a.join(" + ")} = ${mean*n}.`,`Divide by how many numbers there are (${n}): ${mean*n} ÷ ${n} = ${mean}.`],final:String(mean)}}},
+ {L:[4,4],f:function(){const n=pick([5,7,6]),a=Array.from({length:n},()=>R(10,60));const s=[...a].sort((x,y)=>x-y);let med,st;
+  if(n%2){med=s[(n-1)/2];st=[`Put them in order: ${s.join(", ")}.`,`The middle number is ${med}.`]}else{const m1=s[n/2-1],m2=s[n/2];med=(m1+m2)/2;st=[`Put them in order: ${s.join(", ")}.`,`There are two middle numbers: ${m1} and ${m2}.`,`Their average is (${m1} + ${m2}) ÷ 2 = ${med}.`]}
+  return {type:"num",text:`Find the median of these numbers: ${a.join(", ")}`,answer:String(med),steps:st,final:String(med)}}},
+ {L:[3,3],f:function(){const a=R(12,98),b=R(12,98),ra=Math.round(a/10)*10,rb=Math.round(b/10)*10;
+  return {type:"num",text:`Estimate ${a} × ${b} by first rounding each number to the nearest ten.`,answer:String(ra*rb),steps:[`${a} rounds to ${ra} and ${b} rounds to ${rb}.`,`${ra} × ${rb} = ${comma(ra*rb)}.`],final:comma(ra*rb)}}}
+]
+};
+const GEN={};
+for(const t of Object.keys(BASE)){GEN[t]=BASE[t].map((f,i)=>({L:LV[t][i],f})).concat(EXTRA[t]||[])}
+const LEVEL_NAMES=["","Easy","Medium","Hard","Harder (7th grade)"];
+function makeOne(topic,L,avoid){const pool=GEN[topic].filter(g=>L>=g.L[0]&&L<=g.L[1]);let q,t=0;do{q=pick(pool).f();t++}while(avoid&&avoid.has(q.text)&&t<30);
+  q.topic=topic;q.lv=L;q.id="x"+Date.now().toString(36)+R(1000,9999)+(avoid?avoid.size:0);return q}
+function makeSet(topic,size=10,L=1){const out=[],seen=new Set();for(let i=0;i<size;i++){const q=makeOne(topic,L,seen);seen.add(q.text);out.push(q)}return out}
+
 
 /* ===== STATE (saved on this device) ===== */
 const KEY="math-practice-v1";
 let S={q:{},sets:{},log:[],pin:null};
 try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&x.q)S=Object.assign(S,x)}catch(e){}
-S.sets=S.sets||{};S.log=S.log||[];
+S.sets=S.sets||{};S.log=S.log||[];S.lv=S.lv||{};S.hu=S.hu||{};
 if(!S.migrated){QUESTIONS.forEach(q=>{const st=S.q[q.id];if(st&&st.s!=="open")S.log.push({t:q.topic,ok:st.s==="right",at:0,hw:1,text:q.text,final:q.final})});S.migrated=1;}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const qs=id=>S.q[id]||(S.q[id]={a:0,s:"open",g:[]});
 const TOPICS=Object.keys(GEN);
+const SET_SIZE=10;
+const HINTS=3;
+const hintKey=()=>view.topic&&S.sets[view.topic]&&S.sets[view.topic].list===view.items?"set:"+view.topic:"hw:"+view.title;
+const hintsLeft=()=>Math.max(0,HINTS-(S.hu[hintKey()]||0));
+const lvOf=t=>S.lv[t]||1;
+const setTotal=s=>Math.max(SET_SIZE,s.list.length);
+const setOpen=s=>counts(s.list).open>0||s.list.length<SET_SIZE;
 const byTopic=t=>QUESTIONS.filter(q=>q.topic===t);
 const findQ=id=>QUESTIONS.find(q=>q.id===id)||Object.values(S.sets).flatMap(s=>s.list).find(q=>q.id===id);
 function counts(list){let right=0,locked=0,tried=0;list.forEach(q=>{const st=S.q[q.id];if(!st)return;if(st.s==="right")right++;else if(st.s==="locked")locked++;else if(st.a>0)tried++;});return {right,locked,tried,total:list.length,open:list.length-right-locked};}
@@ -600,20 +747,22 @@ function header(){
   <section class="panel" aria-label="Overall progress"><div class="stats"><span>Problems finished <b>${tot}</b></span><span><i class="dot" style="background:var(--good)"></i>Right <b>${ok}</b></span><span><i class="dot" style="background:var(--bad)"></i>Locked <b>${tot-ok}</b></span><span>Score <b>${tot?Math.round(ok/tot*100):0}%</b></span></div></section>`;
 }
 function home(){
-  const cards=TOPICS.map(t=>{const c=counts(byTopic(t)),st=status(t),set=S.sets[t],sc=set?counts(set.list):null,cont=set&&sc.open>0;
+  const cards=TOPICS.map(t=>{const c=counts(byTopic(t)),st=status(t),set=S.sets[t],sc=set?counts(set.list):null,cont=set&&setOpen(set);
     return `<div class="topic"><div class="row spread"><h3>${esc(t)}</h3><span class="pill ${st.cls}">${st.label}</span></div>${last10(t)}
     <div class="meta">${st.n?`Last ${st.n}: ${st.ok} right`:"No problems yet"}</div>
-    <div class="row"><button class="btn primary" data-practice="${esc(t)}">${cont?`Continue practice (${sc.right+sc.locked}/${sc.total})`:"Practice 10 problems"}</button>
+    <div class="row"><button class="btn primary" data-practice="${esc(t)}">${cont?`Continue practice (${sc.right+sc.locked}/${setTotal(set)})`:"Practice 10 problems"}</button>
     ${c.total?`<button class="btn" data-topic="${esc(t)}">Homework ${c.right+c.locked}/${c.total}</button>`:""}</div></div>`}).join("");
   return header()+`<section class="panel"><div class="row spread"><h2>Pick a topic</h2><button class="btn" data-all="1">All homework problems</button></div>
-  <p class="sub" style="margin:0"><b>Practice</b> gives you 10 brand-new problems every time. <b>Homework</b> has the problems from your book. You get <b>3 tries</b> on each problem. After 3 wrong tries it locks and shows the steps. The squares show your last 10 problems: green is right, red is locked.</p>
+  <p class="sub" style="margin:0"><b>Practice</b> gives you 10 brand-new problems every time. <b>Homework</b> has the problems from your book. You get <b>3 tries</b> on each problem. After 3 wrong tries it locks and shows the steps. Stuck? You get <b>3 hints</b> in each practice set and each homework list. The squares show your last 10 problems: green is right, red is locked.</p>
   <div class="grid">${cards}</div></section>`;
 }
 function attemptsHtml(st){const wrong=st.s==="right"?st.a-1:st.a;let d="";for(let k=0;k<3;k++)d+=`<i class="${k<wrong?"used":""}"></i>`;return `<div class="attempts" aria-label="${st.a} of 3 tries used">${d}<span>${st.s==="right"?"Solved":st.s==="locked"?"Locked":`${3-st.a} ${3-st.a===1?"try":"tries"} left`}</span></div>`}
 function stepsHtml(q,heading){return `<div class="steps"><h3>${heading}</h3><ol>${q.steps.map(s=>`<li>${fmt(s)}</li>`).join("")}</ol><div class="final">Answer: ${fmt(q.final)}</div></div>`}
 function practice(){
   const q=view.items[view.i];const st=qs(q.id);
-  const strip=view.items.map((x,k)=>{const s=S.q[x.id];const cls=s?(s.s==="right"?"right":s.s==="locked"?"locked":s.a?"tried":""):"";return `<button class="${cls}${k===view.i?" cur":""}" data-jump="${k}" aria-label="Problem ${k+1}">${k+1}</button>`}).join("");
+  const total=view.total||view.items.length;
+  let strip=view.items.map((x,k)=>{const s=S.q[x.id];const cls=s?(s.s==="right"?"right":s.s==="locked"?"locked":s.a?"tried":""):"";return `<button class="${cls}${k===view.i?" cur":""}" data-jump="${k}" aria-label="Problem ${k+1}">${k+1}</button>`}).join("");
+  for(let k=view.items.length;k<total;k++)strip+=`<button disabled aria-label="Problem ${k+1}, not started">${k+1}</button>`;
   let body="";
   if(st.s==="open"){
     if(q.type==="choice")body=`<div class="choices" role="group" aria-label="Choose a sign">${q.options.map(o=>`<button data-choice="${esc(o)}">${esc(o)}</button>`).join("")}</div>`;
@@ -624,11 +773,14 @@ function practice(){
   if(flash&&flash.id===q.id){fb=`<div class="fb ${flash.kind}" role="status">${esc(flash.msg)}</div>`}
   if(st.s==="right")fb+=`<details><summary>Show the steps</summary>${stepsHtml(q,"How to solve it")}</details>`;
   if(st.s==="locked")fb+=stepsHtml(q,"Here is how to solve it")+`<p class="hint" style="margin:0">This problem is locked. It counts as a miss for <b>${esc(q.topic)}</b>.</p>`;
+  let hint="";
+  if(st.h)hint=`<div class="hintbox" role="note"><b>Hint:</b> ${fmt(q.steps[0])}</div>`;
+  else if(st.s==="open"){const left=hintsLeft();hint=`<div class="row"><button class="btn" data-hint="1" ${left?"":"disabled"}>${left?`Need a hint? (${left} left)`:"No hints left in this set"}</button></div>`;}
   const tried=st.g.length?`<div class="tried-list">Your tries: ${st.g.map(esc).join(" · ")}</div>`:"";
-  const last=view.i===view.items.length-1;
+  const last=view.i===total-1;
   return header()+`<section class="panel"><div class="row spread"><h2>${esc(view.title)}</h2><button class="btn" data-go="home">← Topics</button></div><div class="strip">${strip}</div></section>
-  <article class="qcard"><div class="row spread"><span class="qlabel">Problem ${view.i+1} of ${view.items.length} · ${esc(q.topic)}</span>${attemptsHtml(st)}</div>
-  <div class="qtext">${fmt(q.text)}</div>${body}${fb}${tried}
+  <article class="qcard"><div class="row spread"><span class="qlabel">Problem ${view.i+1} of ${total} · ${esc(q.topic)}</span>${attemptsHtml(st)}</div>
+  <div class="qtext">${fmt(q.text)}</div>${body}${st.s==="open"?hint:""}${fb}${st.s!=="open"&&st.h?hint:""}${tried}
   <div class="row spread"><button class="btn" data-step="-1" ${view.i===0?"disabled":""}>← Back</button><button class="btn ${st.s!=="open"?"primary":""}" data-step="1">${last?"Finish":"Next →"}</button></div></article>`;
 }
 function summary(){
@@ -653,13 +805,17 @@ function report(){
 }
 function parentActions(){
   const topicBtns=TOPICS.filter(t=>byTopic(t).some(q=>S.q[q.id])||S.sets[t]||S.log.some(l=>l.t===t)).map(t=>`<button class="btn" data-reset="${esc(t)}">Reset ${esc(t)}</button>`).join("");
-  return `<div class="row">${topicBtns||'<span class="sub">Nothing to reset yet.</span>'}${topicBtns?'<button class="btn" data-reset="*">Reset everything</button>':""}</div>`;
+  const lvRows=TOPICS.map(t=>`<tr><td>${esc(t)}</td><td>${LEVEL_NAMES[lvOf(t)]}</td></tr>`).join("");
+  return `<h3 style="margin:.6em 0 .2em">Practice difficulty (parents only)</h3><p class="sub" style="margin:0">Each topic starts at Easy. A first-try correct answer moves the next problem up one level, up to Harder (7th-grade skills). A locked problem moves it back down one level. A problem solved with a hint does not move the level up. Your child does not see the level.</p>
+  <div class="tablewrap"><table id="lvtable"><thead><tr><th>Topic</th><th>Current level</th></tr></thead><tbody>${lvRows}</tbody></table></div>
+  <div class="row">${topicBtns||'<span class="sub">Nothing to reset yet.</span>'}${topicBtns?'<button class="btn" data-reset="*">Reset everything</button>':""}</div>`;
 }
 function render(){app.innerHTML=view.name==="practice"?practice():view.name==="report"?report():view.name==="summary"?summary():home();const a=document.getElementById("ans");if(a)a.focus({preventScroll:true});}
 
 /* ===== EVENTS ===== */
-function startList(items,title,topic){const first=items.findIndex(x=>!S.q[x.id]||S.q[x.id].s==="open");view={name:"practice",items,i:first<0?0:first,title,topic};flash=null;render();window.scrollTo(0,0)}
-function newSet(t){if(S.sets[t])S.sets[t].list.forEach(q=>delete S.q[q.id]);S.sets[t]={list:makeSet(t)};save();startList(S.sets[t].list,t+" · Practice",t)}
+function startList(items,title,topic,total){let first=items.findIndex(x=>!S.q[x.id]||S.q[x.id].s==="open");if(first<0&&total&&items.length<total){items.push(makeOne(topic,lvOf(topic),new Set(items.map(x=>x.text))));save();first=items.length-1}view={name:"practice",items,i:first<0?0:first,title,topic,total};flash=null;render();window.scrollTo(0,0)}
+function newSet(t){if(S.sets[t])S.sets[t].list.forEach(q=>delete S.q[q.id]);delete S.hu["set:"+t];S.sets[t]={list:[makeOne(t,lvOf(t))]};save();startList(S.sets[t].list,t+" · Practice",t,SET_SIZE)}
+function nextPractice(){const t=view.topic,set=t&&S.sets[t];if(!set||set.list!==view.items||set.list.length>=SET_SIZE)return;set.list.push(makeOne(t,lvOf(t),new Set(set.list.map(x=>x.text))))}
 function submit(value){
   const q=view.items[view.i];const st=qs(q.id);if(st.s!=="open")return;
   const r=check(q,value);
@@ -668,6 +824,7 @@ function submit(value){
   if(r.result==="right"){st.s="right";flash={id:q.id,kind:"ok",msg:st.a===1?"Correct! Great job on the first try.":"Correct! Nice work."};}
   else if(st.a>=3){st.s="locked";flash={id:q.id,kind:"no",msg:(r.msg?r.msg+" ":"")+"That was your 3rd try. Read the steps below."};}
   else{flash={id:q.id,kind:"no",msg:(r.msg||"Not quite.")+` Try again. ${3-st.a} ${3-st.a===1?"try":"tries"} left.`};}
+  if(st.s!=="open"&&q.id[0]==="x"&&GEN[q.topic]){const L=lvOf(q.topic);if(st.s==="right"&&st.a===1&&!st.h)S.lv[q.topic]=Math.min(4,L+1);else if(st.s==="locked")S.lv[q.topic]=Math.max(1,L-1);if(view.i===view.items.length-1)nextPractice();}
   if(st.s!=="open"){S.log.push({t:q.topic,ok:st.s==="right",at:Date.now(),hw:q.id[0]!=="x"?1:0,text:q.text,final:q.final,tries:st.s==="locked"?st.g.slice():undefined});if(S.log.length>3000)S.log=S.log.slice(-3000);}
   save();render();
 }
@@ -683,16 +840,17 @@ app.addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.go){view={name:b.dataset.go};flash=null;render();window.scrollTo(0,0);}
   else if(b.dataset.topic){const t=b.dataset.topic;startList(byTopic(t),t+" · Homework",t);}
-  else if(b.dataset.practice){const t=b.dataset.practice,s=S.sets[t];if(s&&counts(s.list).open>0)startList(s.list,t+" · Practice",t);else newSet(t);}
+  else if(b.dataset.practice){const t=b.dataset.practice,s=S.sets[t];if(s&&setOpen(s))startList(s.list,t+" · Practice",t,SET_SIZE);else newSet(t);}
   else if(b.dataset.newset){newSet(b.dataset.newset);}
   else if(b.dataset.back){view.name="practice";view.i=0;flash=null;render();}
   else if(b.dataset.all){startList(QUESTIONS,"All homework",null);}
   else if(b.dataset.jump){view.i=+b.dataset.jump;flash=null;render();}
-  else if(b.dataset.step){const n=view.i+ +b.dataset.step;if(n>=view.items.length){view.name="summary";}else if(n>=0)view.i=n;flash=null;render();window.scrollTo(0,0);}
+  else if(b.dataset.step){const n=view.i+ +b.dataset.step;if(n>=view.items.length&&view.total&&n<view.total)nextPractice();if(n>=view.items.length){view.name="summary";}else if(n>=0)view.i=n;flash=null;render();window.scrollTo(0,0);}
   else if(b.dataset.choice){submit(b.dataset.choice);}
+  else if(b.dataset.hint){const q=view.items[view.i],st=qs(q.id);if(st.s==="open"&&!st.h&&hintsLeft()>0){st.h=1;const k=hintKey();S.hu[k]=(S.hu[k]||0)+1;save();}render();}
   else if(b.dataset.reset){const t=b.dataset.reset;QUESTIONS.forEach(q=>{if(t==="*"||q.topic===t)delete S.q[q.id]});
     Object.keys(S.sets).forEach(k=>{if(t==="*"||k===t){S.sets[k].list.forEach(q=>delete S.q[q.id]);delete S.sets[k]}});
-    S.log=t==="*"?[]:S.log.filter(l=>l.t!==t);save();render();}
+    S.log=t==="*"?[]:S.log.filter(l=>l.t!==t);if(t==="*"){S.lv={};S.hu={}}else{delete S.lv[t];delete S.hu["set:"+t];delete S.hu["hw:"+t+" · Homework"]}save();render();}
 });
 render();
 </script>

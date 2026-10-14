@@ -845,12 +845,14 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const qs=id=>S.q[id]||(S.q[id]={a:0,s:"open",g:[]});
 const TOPICS=Object.keys(GEN);
 const SET_SIZE=10;
+const sizeOf=t=>LESSONS[t]?20:SET_SIZE;
+const setSize=s=>sizeOf(s.list[0]&&s.list[0].topic);
 const HINTS=3;
 const hintKey=()=>view.topic&&S.sets[view.topic]&&S.sets[view.topic].list===view.items?"set:"+view.topic:"hw:"+view.title;
 const hintsLeft=()=>Math.max(0,HINTS-(S.hu[hintKey()]||0));
 const lvOf=t=>S.lv[t]||1;
-const setTotal=s=>Math.max(SET_SIZE,s.list.length);
-const setOpen=s=>counts(s.list).open>0||s.list.length<SET_SIZE;
+const setTotal=s=>Math.max(setSize(s),s.list.length);
+const setOpen=s=>counts(s.list).open>0||s.list.length<setSize(s);
 const byTopic=t=>QUESTIONS.filter(q=>q.topic===t);
 const findQ=id=>QUESTIONS.find(q=>q.id===id)||Object.values(S.sets).flatMap(s=>s.list).find(q=>q.id===id);
 function counts(list){let right=0,locked=0,tried=0;list.forEach(q=>{const st=S.q[q.id];if(!st)return;if(st.s==="right")right++;else if(st.s==="locked")locked++;else if(st.a>0)tried++;});return {right,locked,tried,total:list.length,open:list.length-right-locked};}
@@ -877,10 +879,10 @@ function home(){
   const cards=TOPICS.map(t=>{const c=counts(byTopic(t)),st=status(t),set=S.sets[t],sc=set?counts(set.list):null,cont=set&&setOpen(set);
     return `<div class="topic"><div class="row spread"><h3>${esc(t)}</h3><span class="pill ${st.cls}">${st.label}</span></div>${LESSON_SUB[t]?`<div class="meta">${LESSON_SUB[t]}</div>`:""}${last10(t)}
     <div class="meta">${st.n?`Last ${st.n}: ${st.ok} right`:"No problems yet"}</div>
-    <div class="row"><button class="btn primary" data-practice="${esc(t)}">${cont?`Continue practice (${sc.right+sc.locked}/${setTotal(set)})`:"Practice 10 problems"}</button>
+    <div class="row"><button class="btn primary" data-practice="${esc(t)}">${cont?`Continue practice (${sc.right+sc.locked}/${setTotal(set)})`:`Practice ${sizeOf(t)} problems`}</button>
     ${c.total?`<button class="btn" data-topic="${esc(t)}">Homework ${c.right+c.locked}/${c.total}</button>`:""}</div></div>`}).join("");
   return header()+`<section class="panel"><div class="row spread"><h2>Pick a topic</h2><button class="btn" data-all="1">All homework problems</button></div>
-  <p class="sub" style="margin:0"><b>Practice</b> gives you 10 brand-new problems every time. <b>Homework</b> has the problems from your book. You get <b>3 tries</b> on each problem. After 3 wrong tries it locks and shows the steps. Stuck? You get <b>3 hints</b> in each practice set and each homework list. The squares show your last 10 problems: green is right, red is locked.</p>
+  <p class="sub" style="margin:0"><b>Practice</b> gives you brand-new problems every time (10 per topic, 20 per lesson). <b>Homework</b> has the problems from your book. You get <b>3 tries</b> on each problem. After 3 wrong tries it locks and shows the steps. Stuck? You get <b>3 hints</b> in each practice set and each homework list. The squares show your last 10 problems: green is right, red is locked.</p>
   <div class="grid">${cards}</div></section>`;
 }
 function attemptsHtml(st){const wrong=st.s==="right"?st.a-1:st.a;let d="";for(let k=0;k<3;k++)d+=`<i class="${k<wrong?"used":""}"></i>`;return `<div class="attempts" aria-label="${st.a} of 3 tries used">${d}<span>${st.s==="right"?"Solved":st.s==="locked"?"Locked":`${3-st.a} ${3-st.a===1?"try":"tries"} left`}</span></div>`}
@@ -916,7 +918,7 @@ function summary(){
   <p class="big-score">${c.right} <span class="sub">of ${c.total} right</span></p>${bar(c)}
   ${c.open?`<p class="sub" style="margin:0">${c.open} problem${c.open>1?"s are":" is"} not finished yet.</p>`:""}
   <p style="margin:0">${c.right===c.total?"Perfect score. Great work!":c.right>=c.total*.8?"Great job! You're strong in this topic.":c.right>=c.total*.6?"Good work. A little more practice will make it stick.":"This topic needs more practice. Read the steps on the red problems, then try a new set."}</p>
-  <div class="row">${t&&GEN[t]?`<button class="btn primary" data-newset="${esc(t)}">Practice 10 more</button>`:""}<button class="btn" data-go="home">Topics</button><button class="btn" data-back="1">Review these problems</button></div></section>`;
+  <div class="row">${t&&GEN[t]?`<button class="btn primary" data-newset="${esc(t)}">Practice ${sizeOf(t)} more</button>`:""}<button class="btn" data-go="home">Topics</button><button class="btn" data-back="1">Review these problems</button></div></section>`;
 }
 function report(){
   const rows=TOPICS.map(t=>{const c=counts(byTopic(t)),st=status(t),all=S.log.filter(l=>l.t===t),ok=all.filter(l=>l.ok).length;
@@ -941,8 +943,8 @@ function render(){app.innerHTML=view.name==="practice"?practice():view.name==="r
 
 /* ===== EVENTS ===== */
 function startList(items,title,topic,total){let first=items.findIndex(x=>!S.q[x.id]||S.q[x.id].s==="open");if(first<0&&total&&items.length<total){items.push(makeOne(topic,lvOf(topic),new Set(items.map(x=>x.text))));save();first=items.length-1}view={name:"practice",items,i:first<0?0:first,title,topic,total};flash=null;render();window.scrollTo(0,0)}
-function newSet(t){if(S.sets[t])S.sets[t].list.forEach(q=>delete S.q[q.id]);delete S.hu["set:"+t];S.sets[t]={list:[makeOne(t,lvOf(t))]};save();startList(S.sets[t].list,t+" · Practice",t,SET_SIZE)}
-function nextPractice(){const t=view.topic,set=t&&S.sets[t];if(!set||set.list!==view.items||set.list.length>=SET_SIZE)return;set.list.push(makeOne(t,lvOf(t),new Set(set.list.map(x=>x.text))))}
+function newSet(t){if(S.sets[t])S.sets[t].list.forEach(q=>delete S.q[q.id]);delete S.hu["set:"+t];S.sets[t]={list:[makeOne(t,lvOf(t))]};save();startList(S.sets[t].list,t+" · Practice",t,sizeOf(t))}
+function nextPractice(){const t=view.topic,set=t&&S.sets[t];if(!set||set.list!==view.items||set.list.length>=sizeOf(t))return;set.list.push(makeOne(t,lvOf(t),new Set(set.list.map(x=>x.text))))}
 function submit(value){
   const q=view.items[view.i];const st=qs(q.id);if(st.s!=="open")return;
   const r=check(q,value);
@@ -967,7 +969,7 @@ app.addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.go){view={name:b.dataset.go};flash=null;render();window.scrollTo(0,0);}
   else if(b.dataset.topic){const t=b.dataset.topic;startList(byTopic(t),t+" · Homework",t);}
-  else if(b.dataset.practice){const t=b.dataset.practice,s=S.sets[t];if(s&&setOpen(s))startList(s.list,t+" · Practice",t,SET_SIZE);else newSet(t);}
+  else if(b.dataset.practice){const t=b.dataset.practice,s=S.sets[t];if(s&&setOpen(s))startList(s.list,t+" · Practice",t,sizeOf(t));else newSet(t);}
   else if(b.dataset.newset){newSet(b.dataset.newset);}
   else if(b.dataset.back){view.name="practice";view.i=0;flash=null;render();}
   else if(b.dataset.all){startList(QUESTIONS,"All homework",null);}

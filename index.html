@@ -700,7 +700,134 @@ const EXTRA={
   return {type:"num",text:`Estimate ${a} × ${b} by first rounding each number to the nearest ten.`,answer:String(ra*rb),steps:[`${a} rounds to ${ra} and ${b} rounds to ${rb}.`,`${ra} × ${rb} = ${comma(ra*rb)}.`],final:comma(ra*rb)}}}
 ]
 };
+/* ===== LESSON SETS (Saxon Course 1, Lessons 65 and 66) ===== */
+const pfac=n=>{const f=[];let m=n;for(let p=2;m>1;p++)while(m%p===0){f.push(p);m/=p}return f};
+const isPrimeN=n=>{if(n<2)return false;for(let i=2;i*i<=n;i++)if(n%i===0)return false;return true};
+const fracAns=(n,d)=>{const [a,b]=red(n,d);return b===1?{type:"num",answer:String(a)}:{type:"frac",answer:`${a}/${b}`}};
+function pfQ(n,tree){const f=pfac(n),st=[];let m=n;
+  if(tree){for(const p of f){if(m===p)break;st.push(`${m} = ${p} × ${m/p}. Circle the prime ${p} and keep splitting ${m/p}.`);m/=p}}
+  else{for(const p of f){if(m===p)break;st.push(`${m} ÷ ${p} = ${m/p}.`);m/=p}}
+  return {type:"factors",text:tree?`Make a factor tree for ${n}. Then write the prime factorization of ${n}.`:`Use division by primes to find the prime factorization of ${n}.`,answer:f.join(" · "),
+  steps:[tree?`Split ${n} into two factors. Keep splitting until every branch ends in a prime number.`:`Divide by the smallest prime that goes in evenly (2, then 3, then 5, then 7...). Keep going until you reach a prime.`,...st,`${f[f.length-1]} is prime, so stop.`,`Check: ${f.join(" × ")} = ${n}.`],final:f.join(" · ")}}
+function mixImp(W,n,d){return W*d+n}
+function mulStep(n1,d1,n2,d2){const [a,b]=red(n1*n2,d1*d2);const st=[`Multiply the tops and the bottoms: ${F(n1,d1)} × ${F(n2,d2)} = ${F(n1*n2,d1*d2)}.`];const r=reduceStep(n1*n2,d1*d2);if(r)st.push(r);if(a>b&&b>1)st.push(`As a mixed number: ${mixed(a,b)}.`);return {st,a,b}}
+const LESSONS={
+"Lesson 65":[
+ {L:[1,2],f:()=>pfQ(pick([12,18,20,24,28,30,36,40,42,44,45,48,50,54,56,60,63,72,75,80,84,90]),Math.random()<.4)},
+ {L:[2,3],f:()=>pfQ(pick([100,120,125,126,135,144,150,160,180,196,200,225,240,250,270,288,300]),Math.random()<.3)},
+ {L:[3,4],f:()=>pfQ(pick([375,400,450,500,540,600,625,720,750,800,900,1000,1200,1250]),false)},
+ {L:[1,2],f:function(){const k=R(1,4),n=10**k,f=pfac(n);return {type:"factors",text:`Write the prime factorization of ${comma(n)}.`,answer:f.join(" · "),
+  steps:[`10 = 2 × 5.`,`${comma(n)} has ${k} zero${k>1?"s":""}, so it is ${k} ten${k>1?"s":""} multiplied together.`,`Each 10 gives one 2 and one 5. Put the 2s first: ${f.join(" · ")}.`],final:f.join(" · ")}}},
+ {L:[1,2],f:function(){const P=[11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97],C=[21,27,33,39,49,51,57,63,69,77,81,87,91,93];
+  const askComp=Math.random()<.6;let nums=askComp?[pick(C)]:[pick(P)];while(nums.length<3){const x=askComp?pick(P):pick(C);if(!nums.includes(x))nums.push(x)}
+  const target=nums[0];nums.sort(()=>Math.random()-.5);const L=["A","B","C"],ans=L[nums.indexOf(target)];
+  const sf=n=>{for(let i=2;i*i<=n;i++)if(n%i===0)return `${n} = ${i} × ${n/i}`;return ""};
+  return {type:"choice",options:L,text:`Which of these numbers is a ${askComp?"composite":"prime"} number?   A ${nums[0]}    B ${nums[1]}    C ${nums[2]}`,answer:ans,
+  steps:askComp?[`A composite number can be divided evenly by a number other than 1 and itself.`,`${sf(target)}, so ${target} is composite.`,`The other two numbers are prime.`]:[`A prime number has only two factors: 1 and itself.`,`The other two are composite: ${nums.filter(x=>x!==target).map(sf).join(" and ")}.`,`${target} has no factors except 1 and ${target}, so it is prime.`],final:`${ans} (${target})`}}},
+ {L:[2,4],f:function(){let top,bot,a,b;do{top=Array.from({length:R(2,4)},()=>pick([2,3,5,5,7]));bot=Array.from({length:R(3,5)},()=>pick([2,2,3,5,5]));top.sort((x,y)=>x-y);bot.sort((x,y)=>x-y);
+   [a,b]=red(top.reduce((x,y)=>x*y,1),bot.reduce((x,y)=>x*y,1))}while(a===b||b===1||top.every(x=>!bot.includes(x)));
+  const t=[...top],bb=[...bot],can=[];for(let i=t.length-1;i>=0;i--){const j=bb.indexOf(t[i]);if(j>=0){can.push(t[i]);t.splice(i,1);bb.splice(j,1)}}
+  return {type:"frac",text:`Reduce: (${top.join(" · ")}) / (${bot.join(" · ")})`,answer:`${a}/${b}`,
+  steps:[`A prime on top cancels the same prime on the bottom.`,`Cancel these pairs: ${can.sort((x,y)=>x-y).join(", ")}.`,`Left on top: ${t.length?t.join(" · ")+" = "+a:"1"}. Left on bottom: ${bb.join(" · ")} = ${b}.`,`Answer: ${F(a,b)}.`],final:F(a,b)}}},
+ {L:[1,2],f:function(){const p=pick([10,20,25,40,50,60,75,80]),u=100/gcd(p,100),tot=u*R(1,Math.max(1,Math.floor(80/u))),ans=p*tot/100;
+  const v=Math.random()<.5;return {type:"num",text:v?`${p} percent of the ${tot} questions on a test are multiple choice. How many questions are multiple choice?`:`${p}% of the ${tot} answers were correct. How many answers were correct?`,answer:String(ans),
+  steps:[`${p}% = ${F(p,100)} = ${mixed(p,100)}.`,`${mixed(p,100)} of ${tot}: ${tot} × ${p} ÷ 100 = ${ans}.`],final:String(ans)}}},
+ {L:[3,4],f:function(){if(Math.random()<.5){const D=2*R(2,15),tax=D*7.5;return {type:"num",text:`7.5% is the same as the decimal 0.075. If the sales-tax rate is 7 ${F(1,2)}%, what is the sales tax on a $${D}.00 purchase?`,answer:(tax/100).toFixed(2),
+   steps:[`Multiply the price by 0.075: $${D}.00 × 0.075.`,`${D} × 75 = ${D*75}, and 0.075 has 3 decimal places, so the tax is $${(tax/100).toFixed(2)}.`,`Mental check: 10% of $${D} is $${(D/10).toFixed(2)}, and 7.5% is a little less.`],final:money(tax)}}
+  const n=pick([12,24,36]),u=pick([25,50,75]),r=pick([4,8]),cost=n*u,tax=cost*r/100,tot=cost+tax;
+  return {type:"num",text:`What is the total cost of ${n===12?"one dozen":n===24?"two dozen":"three dozen"} erasers priced at ${u}¢ each if ${r}% sales tax is added?`,answer:(tot/100).toFixed(2),
+  steps:[`${n} erasers × ${u}¢ = ${cost}¢ = ${money(cost)}.`,`Tax: ${r}% of ${money(cost)} = ${money(cost)} × 0.0${r} = ${money(tax)}.`,`Total: ${money(cost)} + ${money(tax)} = ${money(tot)}.`],final:money(tot)}}},
+ {L:[1,3],f:function(){const s=R(4,15);if(Math.random()<.5)return {type:"num",text:`Simon covered the floor of a square room with ${s*s} square floor tiles. How many floor tiles were along each wall of the room?`,answer:String(s),
+   steps:[`The room is a square, so the tiles make the same number of rows and columns.`,`Find the number that times itself is ${s*s}: ${s} × ${s} = ${s*s}.`],final:`${s} tiles`};
+  return {type:"num",text:`The area of a square is ${s*s} square inches. What is the perimeter of the square, in inches?`,answer:String(4*s),
+   steps:[`Each side: ${s} × ${s} = ${s*s}, so a side is ${s} inches.`,`Perimeter = 4 sides: 4 × ${s} = ${4*s} inches.`],final:`${4*s} inches`}}},
+ {L:[1,2],f:function(){if(Math.random()<.5){const m=R(10,80),S=5*m;return {type:"num",text:`The sum of five numbers is ${S}. What is the average of the numbers?`,answer:String(m),steps:[`Average = sum ÷ how many numbers.`,`${S} ÷ 5 = ${m}.`],final:String(m)}}
+  let a,b,c;do{a=R(8,20);b=R(8,20);c=R(8,20)}while((a+b+c)%3);const [x,y,z]=pick([["Fruit and Flakes","Flakes","Puffed"],["Oat Rings","Corn Puffs","Bran Bits"]]);
+  return {type:"num",text:`Three boxes of cereal weigh ${a} ounces (${x}), ${b} ounces (${y}) and ${c} ounces (${z}). What is the mean weight?`,answer:String((a+b+c)/3),steps:[`Add: ${a} + ${b} + ${c} = ${a+b+c}.`,`Divide by 3: ${a+b+c} ÷ 3 = ${(a+b+c)/3} ounces.`],final:`${(a+b+c)/3} ounces`}}},
+ {L:[2,3],f:function(){const hi=R(3,20),lo=R(2,15);return {type:"num",text:`The temperature dropped from ${hi}°C to −${lo}°C. This was a drop of how many degrees?`,answer:String(hi+lo),
+  steps:[`From ${hi}° down to 0° is ${hi} degrees.`,`From 0° down to −${lo}° is ${lo} more degrees.`,`${hi} + ${lo} = ${hi+lo} degrees.`],final:`${hi+lo} degrees`}}},
+ {L:[2,3],f:function(){const kg=pick([5,10,20,30,40,50,60,70,80,100]);return {type:"num",text:`The weight of a 1-kilogram object is about 2.2 pounds. About how many pounds is ${kg} kilograms?`,answer:dec(kg*22,1),
+  steps:[`Each kilogram is about 2.2 pounds, so multiply: ${kg} × 2.2.`,`${kg} × 22 = ${kg*22}. Move the decimal 1 place: ${dec(kg*22,1)} pounds.`],final:`about ${dec(kg*22,1)} pounds`}}},
+ {L:[2,3],f:function(){const [nm,n]=pick([["equilateral triangle",3],["square",4],["regular pentagon",5],["regular hexagon",6],["regular octagon",8]]),t=R(2,19);
+  return {type:"num",text:`One side of a ${nm} measures ${dec(t,1)} meter. What is the perimeter of the ${nm}, in meters?`,answer:dec(n*t,1),
+  steps:[`A ${nm} has ${n} equal sides.`,`Perimeter = ${n} × ${dec(t,1)} = ${dec(n*t,1)} meters.`],final:`${dec(n*t,1)} meters`}}},
+ {L:[1,2],f:function(){const m=pick([5,10,12,15,20,30,40,45,50]),[a,b]=red(m,60);return {type:"frac",text:`${m} minutes is what fraction of an hour? Reduce your answer.`,answer:`${a}/${b}`,
+  steps:[`An hour has 60 minutes, so the fraction is ${F(m,60)}.`,reduceStep(m,60)||`${F(m,60)} is already reduced.`],final:F(a,b)}}},
+ {L:[1,1],f:function(){const n=pick([10,20,25]),k=R(1,n-1),p=k*100/n;return {type:"num",text:`Jenny shot ${n} free throws and made ${k}. What percent of her shots did she make?`,answer:String(p),
+  steps:[`She made ${F(k,n)} of her shots.`,`Change to hundredths: ${F(k,n)} = ${F(p,100)}.`,`${F(p,100)} = ${p}%.`],final:`${p}%`}}},
+ {L:[2,3],f:function(){const w=R(2,9);return {type:"num",text:`An animal can reach a height of about ${w} ${F(1,2)} feet. How many inches is ${w} ${F(1,2)} feet?`,answer:String(12*w+6),
+  steps:[`1 foot = 12 inches.`,`${w} feet = ${w} × 12 = ${12*w} inches. Half a foot = 6 inches.`,`${12*w} + 6 = ${12*w+6} inches.`],final:`${12*w+6} inches`}}},
+ {L:[1,1],f:function(){const D=R(2,30),q=Math.random()<.6;return {type:"num",text:`The store manager put $${D}.00 worth of ${q?"quarters":"dimes"} in the change drawer. How many ${q?"quarters":"dimes"} are in $${D}.00?`,answer:String((q?4:10)*D),
+  steps:[`There are ${q?4:10} ${q?"quarters":"dimes"} in each dollar.`,`${D} × ${q?4:10} = ${(q?4:10)*D}.`],final:String((q?4:10)*D)}}},
+ {L:[1,2],f:function(){const [nm,F_,E,V]=pick([["a pyramid with a square base",5,8,5],["a triangular prism",5,9,6],["a cube",6,12,8],["a triangular pyramid",4,6,4],["a rectangular prism",6,12,8]]),w=pick(["faces","edges","vertices"]),v={faces:F_,edges:E,vertices:V}[w];
+  return {type:"num",text:`How many ${w} does ${nm} have?`,answer:String(v),steps:[`Faces are the flat sides, edges are where two faces meet, and vertices are the corners.`,`${nm[0].toUpperCase()+nm.slice(1)} has ${F_} faces, ${E} edges and ${V} vertices.`],final:`${v} ${w}`}}},
+ {L:[2,3],f:function(){const t=pick([8,10,12,15,20]),r=R(1,t-1),[a,b]=red(t-r,t);if(b===1)return LESSONS["Lesson 65"][18].f();
+  return {type:"frac",text:`${r} of the ${t} marbles in a bag are red. If one marble is drawn, what is the probability that it will NOT be red? Reduce your answer.`,answer:`${a}/${b}`,
+  steps:[`Marbles that are not red: ${t} − ${r} = ${t-r}.`,`Probability = ${F(t-r,t)}.`,reduceStep(t-r,t)||`${F(t-r,t)} is already reduced.`],final:F(a,b)}}},
+ {L:[3,4],f:function(){let W1,n1,d1,W2,n2,d2,A,B;do{W1=R(8,30);d1=pick([2,4,8]);n1=coprime(d1);W2=R(1,W1-3);d2=pick([4,8]);n2=coprime(d2);A=W1*8+n1*8/d1;B=W2*8+n2*8/d2}while(A-B<=8||(A-B)%8===0);
+  const [a,b]=red(A-B,8);return {type:"frac",text:`Find the unknown number: ${W1} ${F(n1,d1)} − m = ${W2} ${F(n2,d2)}`,answer:`${a}/${b}`,
+  steps:[`To find m, subtract: m = ${W1} ${F(n1,d1)} − ${W2} ${F(n2,d2)}.`,`Use eighths: ${W1} ${F(n1*8/d1,8)} − ${W2} ${F(n2*8/d2,8)}.`,...(n1*8/d1<n2*8/d2?[`${F(n1*8/d1,8)} is smaller than ${F(n2*8/d2,8)}, so regroup: ${W1} ${F(n1*8/d1,8)} = ${W1-1} ${F(n1*8/d1+8,8)}.`]:[]),`m = ${mixed(A-B,8)}.`,`Check: ${W2} ${F(n2,d2)} + ${mixed(A-B,8)} = ${W1} ${F(n1,d1)}.`],final:`m = ${mixed(A-B,8)}`}}},
+ {L:[3,4],f:function(){const a=R(2,12),w=R(1,9),p=pick([2,3,4]);return {type:"num",text:`Find the unknown number: ${a}w = ${dec(a*w,p)}`,answer:dec(w,p),
+  steps:[`Divide both sides by ${a}: w = ${dec(a*w,p)} ÷ ${a}.`,`${a*w} ÷ ${a} = ${w}. Keep the decimal point in the same place: w = ${dec(w,p)}.`,`Check: ${a} × ${dec(w,p)} = ${dec(a*w,p)}.`],final:`w = ${dec(w,p)}`}}},
+ {L:[1,2],f:function(){const d=pick([4,5,20,25,50]),n1=coprime(d),k=100/d;return {type:"num",text:`Find the unknown number: ${F(n1,d)} = ${F("n",100)}`,answer:String(n1*k),
+  steps:[`What times ${d} makes 100? ${d} × ${k} = 100.`,`Multiply the top by the same number: ${n1} × ${k} = ${n1*k}.`],final:`n = ${n1*k}`}}},
+ {L:[2,3],f:function(){const a=R(1,4),b=R(1,49);if(a*10+b>=95)return LESSONS["Lesson 65"][22].f();const s=a*10+b;return {type:"num",text:`Simplify: 1 − (${dec(a,1)} + ${dec(b,2)})`,answer:dec(100-s,2),
+  steps:[`Parentheses first: ${dec(a,1)} + ${dec(b,2)} = ${dec(s,2)}.`,`Then subtract: 1.00 − ${dec(s,2)} = ${dec(100-s,2)}.`],final:dec(100-s,2)}}}
+],
+"Lesson 66":[
+ {L:[1,2],f:function(){const w=R(2,5),d=pick([2,3,4,5]),n=coprime(d),W=R(1,4),im=mixImp(W,n,d),r=mulStep(w,1,im,d),fa=fracAns(w*im,d),first=Math.random()<.5;
+  return {...fa,text:`Multiply: ${first?`${w} × ${W} ${F(n,d)}`:`${W} ${F(n,d)} × ${w}`}. Reduce your answer.`,steps:[`Change the mixed number to an improper fraction: ${W} ${F(n,d)} = ${F(im,d)}.`,`Write the whole number over 1: ${w} = ${F(w,1)}.`,...r.st],final:mixed(r.a,r.b)}}},
+ {L:[1,2],f:function(){const d=pick([2,3,4,5]),n=coprime(d),W=R(1,3),im=mixImp(W,n,d),d2=pick([2,3,4,5,6]),n2=coprime(d2),r=mulStep(im,d,n2,d2),fa=fracAns(im*n2,d*d2);
+  return {...fa,text:`Multiply: ${W} ${F(n,d)} × ${F(n2,d2)}. Reduce your answer.`,steps:[`Change the mixed number to an improper fraction: ${W} ${F(n,d)} = ${F(im,d)}.`,...r.st],final:mixed(r.a,r.b)}}},
+ {L:[2,4],f:function(){const d1=pick([2,3,4,5]),n1=coprime(d1),W1=R(1,3),d2=pick([2,3,4,6]),n2=coprime(d2),W2=R(1,3),i1=mixImp(W1,n1,d1),i2=mixImp(W2,n2,d2),r=mulStep(i1,d1,i2,d2),fa=fracAns(i1*i2,d1*d2);
+  return {...fa,text:`Multiply: ${W1} ${F(n1,d1)} × ${W2} ${F(n2,d2)}. Reduce your answer.`,steps:[`Change both mixed numbers to improper fractions: ${W1} ${F(n1,d1)} = ${F(i1,d1)} and ${W2} ${F(n2,d2)} = ${F(i2,d2)}.`,...r.st],final:mixed(r.a,r.b)}}},
+ {L:[1,1],f:function(){const d=pick([3,4,5,6,7,8]),n=coprime(d),W=R(1,9),im=mixImp(W,n,d);return {type:"frac",form:"improper",text:`Write ${W} ${F(n,d)} as an improper fraction.`,answer:`${im}/${d}`,
+  steps:[`Multiply the whole number by the denominator: ${W} × ${d} = ${W*d}.`,`Add the numerator: ${W*d} + ${n} = ${im}.`,`Keep the same denominator: ${F(im,d)}.`],final:F(im,d)}}},
+ {L:[2,3],f:function(){const d=pick([3,4,5]),n=coprime(d),W=R(1,3),im=mixImp(W,n,d),d2=pick([4,8,5,6]),n2=coprime(d2),r=mulStep(im,d,n2,d2),fa=fracAns(im*n2,d*d2);
+  return {...fa,text:`Write ${W} ${F(n,d)} as an improper fraction. Then multiply the improper fraction by ${F(n2,d2)}. What is the product?`,steps:[`${W} ${F(n,d)} = ${F(im,d)}.`,...r.st],final:mixed(r.a,r.b)}}},
+ {L:[3,4],f:function(){if(Math.random()<.5){const w=5*R(20,36),yd=R(5,15);return {type:"num",text:`Some railroad rails weigh ${w} pounds per yard. How much would a ${3*yd}-foot-long rail weigh, in pounds?`,answer:String(w*yd),
+   steps:[`The weight is given per YARD, so change feet to yards: 3 feet = 1 yard, so ${3*yd} feet ÷ 3 = ${yd} yards.`,`${yd} × ${w} = ${comma(w*yd)} pounds.`],final:`${comma(w*yd)} pounds`}}
+  const d=pick([2,3,4]),n=coprime(d),W=R(1,3),k=R(2,5),im=mixImp(W,n,d),fa=fracAns(im*k,d),[a,b]=red(im*k,d);
+  return {...fa,text:`A recipe uses ${W} ${F(n,d)} cups of flour. How many cups of flour are needed for ${k} batches?`,steps:[`Multiply: ${k} × ${W} ${F(n,d)}.`,`${W} ${F(n,d)} = ${F(im,d)}, and ${k} × ${F(im,d)} = ${F(im*k,d)}.`,`${F(im*k,d)} = ${mixed(a,b)} cups.`],final:`${mixed(a,b)} cups`}}},
+ {L:[1,2],f:function(){let T,B,a,b;do{T=R(20,32);B=R(8,T-8);[a,b]=red(B,T-B)}while(b===1||a===1&&b===1);const G=T-B;
+  if(Math.random()<.5)return {type:"ratio",text:`${B} of the ${T} students in the class are boys. What is the ratio of boys to girls? Write it as a reduced fraction like 2/3.`,answer:`${a}/${b}`,
+   steps:[`Girls: ${T} − ${B} = ${G}.`,`Boys to girls = ${F(B,G)}.`,reduceStep(B,G)||`${F(B,G)} is already reduced.`],final:F(a,b)};
+  const [c,e]=red(G,T);return {type:"frac",text:`${B} of the ${T} students in the class are boys. Each name is put in a hat and one is drawn. What is the probability it is the name of a girl?`,answer:`${c}/${e}`,
+   steps:[`Girls: ${T} − ${B} = ${G}.`,`Probability = girls ÷ all students = ${F(G,T)}.`,reduceStep(G,T)||`${F(G,T)} is already reduced.`],final:F(c,e)}}},
+ {L:[1,2],f:function(){const [a,b]=pick([[100,50],[100,60],[100,75],[100,80],[10,5],[10,6],[10,8],[20,10],[20,12],[20,15],[20,16]]),v=(a+b)/(a-b);
+  return {type:"num",text:`Simplify: (${a} + ${b}) ÷ (${a} − ${b})`,answer:String(v),steps:[`Work the top and bottom first: ${a} + ${b} = ${a+b} and ${a} − ${b} = ${a-b}.`,`Divide: ${a+b} ÷ ${a-b} = ${v}.`],final:String(v)}}},
+ {L:[2,3],f:function(){if(Math.random()<.5){const d1=pick([3,5,4]),d2=pick([2,6]),n1=coprime(d1),n2=coprime(d2),W1=R(1,5),W2=R(1,5),L_=lcm(d1,d2),tot=(W1+W2)*L_+n1*L_/d1+n2*L_/d2,fa=fracAns(tot,L_),[a,b]=red(tot,L_);
+   return {...fa,text:`Add: ${W1} ${F(n1,d1)} + ${W2} ${F(n2,d2)}`,steps:[`Common denominator ${L_}: ${F(n1,d1)} = ${F(n1*L_/d1,L_)} and ${F(n2,d2)} = ${F(n2*L_/d2,L_)}.`,`Add wholes: ${W1+W2}. Add fractions: ${F(n1*L_/d1+n2*L_/d2,L_)}.`,`Answer: ${mixed(a,b)}.`],final:mixed(a,b)}}
+  const set=pick([[3,6,12],[2,4,8],[2,3,6],[2,6,12],[3,4,12],[4,8,16]]),L_=set.reduce(lcm),tot=set.reduce((s,d)=>s+L_/d,0),fa=fracAns(tot,L_),[a,b]=red(tot,L_),sh=[...set].sort(()=>Math.random()-.5);
+  return {...fa,text:`Add: ${sh.map(d=>F(1,d)).join(" + ")}`,steps:[`Use the common denominator ${L_}.`,`${sh.map(d=>`${F(1,d)} = ${F(L_/d,L_)}`).join(", ")}.`,`${sh.map(d=>L_/d).join(" + ")} = ${tot}, so the sum is ${F(tot,L_)}${a!==tot?` = ${mixed(a,b)}`:""}.`],final:mixed(a,b)}}},
+ {L:[3,3],f:function(){const W1=R(20,45),W2=R(5,W1-5),d=4,bh=pick([[1,2],[3,4]]),n1=bh[0]*4/bh[1]===3?1:pick([1,3]),A=W1*4+n1,B=W2*4+bh[0]*4/bh[1],fa=fracAns(A-B,4),[a,b]=red(A-B,4);
+  return {...fa,text:`Subtract: ${W1} ${F(n1,4)} − ${W2} ${F(bh[0],bh[1])}`,steps:[`Use fourths: ${W2} ${F(bh[0],bh[1])} = ${W2} ${F(bh[0]*4/bh[1],4)}.`,...(n1<bh[0]*4/bh[1]?[`${F(n1,4)} is smaller than ${F(bh[0]*4/bh[1],4)}, so regroup: ${W1} ${F(n1,4)} = ${W1-1} ${F(n1+4,4)}.`]:[]),`Answer: ${mixed(a,b)}.`],final:mixed(a,b)}}},
+ {L:[2,3],f:function(){const d1=pick([3,4,5,6]),n1=coprime(d1),d2=pick([2,3,4,5]),n2=coprime(d2),div=Math.random()<.6;
+  if(!div){const r=mulStep(n1,d1,n2,d2),fa=fracAns(n1*n2,d1*d2);return {...fa,text:`Multiply: ${F(n1,d1)} × ${F(n2,d2)}`,steps:r.st,final:mixed(r.a,r.b)}}
+  const r=mulStep(n1,d1,d2,n2),fa=fracAns(n1*d2,d1*n2);return {...fa,text:`Divide: ${F(n1,d1)} ÷ ${F(n2,d2)}`,steps:[`Dividing by ${F(n2,d2)} is the same as multiplying by its reciprocal ${F(d2,n2)}.`,...r.st],final:mixed(r.a,r.b)}}},
+ {L:[3,4],f:function(){const a=pick([25,50,75,20,40]),b=pick([2,4,5]);const k=R(0,2);
+  if(k===0&&(a%b===0)){const q=a/b;return {type:"num",text:`Divide: ${dec(a,2)} ÷ ${b}`,answer:dec(q,2),steps:[`${a} ÷ ${b} = ${q}.`,`Keep the decimal point in the same place: ${dec(a,2)} ÷ ${b} = ${dec(q,2)}.`],final:dec(q,2)}}
+  if(k===1||a%b){const q=b*100/a;if(q===Math.floor(q))return {type:"num",text:`Divide: ${b} ÷ ${dec(a,2)}`,answer:String(q),steps:[`Make the divisor a whole number: multiply both numbers by 100.`,`${b} × 100 = ${b*100} and ${dec(a,2)} × 100 = ${a}.`,`${b*100} ÷ ${a} = ${q}.`],final:String(q)}}
+  const x=25,y=5;return {type:"num",text:`What is the product of ${dec(x,2)} ÷ ${y} and ${y} ÷ ${dec(x,2)}?`,answer:"1",steps:[`${dec(x,2)} ÷ ${y} = 0.05 and ${y} ÷ ${dec(x,2)} = 20.`,`0.05 × 20 = 1.`,`Any division times the "flipped" division equals 1.`],final:"1"}}},
+ {L:[2,3],f:function(){const n=pick([2,3,4,5]),x=F(1,n),want=pick([[0,"0"],[1,"1"]]),exprs=[[`${x} − ${x}`,0],[`(${x})²`,-1],[`${x} ÷ ${x}`,1]].sort(()=>Math.random()-.5),L=["A","B","C"],idx=exprs.findIndex(e=>e[1]===want[0]);
+  return {type:"choice",options:L,text:`Which of these is equal to ${want[1]}?   A  ${exprs[0][0]}    B  ${exprs[1][0]}    C  ${exprs[2][0]}`,answer:L[idx],
+  steps:[`${x} − ${x} = 0.`,`(${x})² = ${x} × ${x} = ${F(1,n*n)}.`,`${x} ÷ ${x} = 1 (any number divided by itself is 1).`,`So the answer is ${L[idx]}.`],final:`${L[idx]}: ${exprs[idx][0]}`}}},
+ {L:[1,1],f:function(){const k=R(2,5),c=k*R(5,30),m=pick([2,3]),item=pick(["pencils","erasers","stickers"]),ans=c*m;return {type:"num",text:`If ${k} ${item} cost a total of ${c}¢, how much would ${k*m} ${item} cost? Give the answer in dollars, like $1.50.`,answer:(ans/100).toFixed(2),
+  steps:[`${k*m} ${item} is ${m} times as many as ${k}.`,`${m} × ${c}¢ = ${ans}¢ = ${money(ans)}.`],final:money(ans)}}},
+ {L:[1,2],f:()=>pfQ(pick([30,50,40,24,36,60,84,90,18,45]),Math.random()<.5)},
+ {L:[1,1],f:function(){const P=[["triangle",3],["quadrilateral",4],["pentagon",5],["hexagon",6],["octagon",8]],[nm,n]=pick(P),opts=[nm,...P.filter(p=>p[0]!==nm).sort(()=>Math.random()-.5).slice(0,2).map(p=>p[0])].sort(()=>Math.random()-.5);
+  return {type:"choice",options:opts,text:`What is the name of a polygon with ${n} sides? (It also has ${n} vertices.)`,answer:nm,steps:[`tri = 3, quad = 4, penta = 5, hexa = 6, octa = 8.`,`A ${n}-sided polygon is a ${nm}. It has ${n} sides and ${n} vertices.`],final:nm}}},
+ {L:[2,2],f:function(){const p=pick([16,24,35,45,64,12,8,75,84,36,15,48]),[a,b]=red(p,100);return {type:"frac",text:`Write ${p}% as a reduced fraction.`,answer:`${a}/${b}`,
+  steps:[`${p}% means ${p} out of 100: ${F(p,100)}.`,reduceStep(p,100)],final:F(a,b)}}},
+ {L:[3,4],f:function(){const r=R(5,30),c=628*r,ans=Math.round(c/100);return {type:"num",whole:true,text:`The radius of a carousel is ${r} feet. If it turns around once, how far does a person riding on the outer edge travel? Use 3.14 for π and round to the nearest foot.`,answer:String(ans),
+  steps:[`Diameter = 2 × radius = ${2*r} feet.`,`Circumference = π × diameter = 3.14 × ${2*r} = ${dec(c,2)} feet.`,`Round to the nearest foot: ${ans} feet.`,`Mental check: π is a little more than 3, and 3 × ${2*r} = ${6*r}, so the answer should be a little more than ${6*r}.`],final:`${ans} feet`}}},
+ {L:[1,1],f:function(){const p=pick([50,80,75,60,90]),u=100/gcd(p,100),n=u*R(2,Math.floor(40/u)),a=p*n/100;return {type:"num",text:`${p} percent of the ${n} answers were correct. How many answers were correct?`,answer:String(a),
+  steps:[`${p}% = ${mixed(p,100)}.`,`${n} × ${p} ÷ 100 = ${a}.`],final:String(a)}}}
+]
+};
+const LESSON_SUB={"Lesson 65":"Prime factorization + review","Lesson 66":"Multiplying mixed numbers + review"};
 const GEN={};
+for(const t of Object.keys(LESSONS))GEN[t]=LESSONS[t];
 for(const t of Object.keys(BASE)){GEN[t]=BASE[t].map((f,i)=>({L:LV[t][i],f})).concat(EXTRA[t]||[])}
 const LEVEL_NAMES=["","Easy","Medium","Hard","Harder (7th grade)"];
 function makeOne(topic,L,avoid){const pool=GEN[topic].filter(g=>L>=g.L[0]&&L<=g.L[1]);let q,t=0;do{q=pick(pool).f();t++}while(avoid&&avoid.has(q.text)&&t<30);
@@ -748,7 +875,7 @@ function header(){
 }
 function home(){
   const cards=TOPICS.map(t=>{const c=counts(byTopic(t)),st=status(t),set=S.sets[t],sc=set?counts(set.list):null,cont=set&&setOpen(set);
-    return `<div class="topic"><div class="row spread"><h3>${esc(t)}</h3><span class="pill ${st.cls}">${st.label}</span></div>${last10(t)}
+    return `<div class="topic"><div class="row spread"><h3>${esc(t)}</h3><span class="pill ${st.cls}">${st.label}</span></div>${LESSON_SUB[t]?`<div class="meta">${LESSON_SUB[t]}</div>`:""}${last10(t)}
     <div class="meta">${st.n?`Last ${st.n}: ${st.ok} right`:"No problems yet"}</div>
     <div class="row"><button class="btn primary" data-practice="${esc(t)}">${cont?`Continue practice (${sc.right+sc.locked}/${setTotal(set)})`:"Practice 10 problems"}</button>
     ${c.total?`<button class="btn" data-topic="${esc(t)}">Homework ${c.right+c.locked}/${c.total}</button>`:""}</div></div>`}).join("");

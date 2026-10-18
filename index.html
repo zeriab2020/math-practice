@@ -826,8 +826,152 @@ const LESSONS={
 ]
 };
 const LESSON_SUB={"Lesson 65":"Prime factorization + review","Lesson 66":"Multiplying mixed numbers + review"};
+/* ===== LESSONS 67-69 and MIXED REVIEW ===== */
+function redPF(N,D){const fN=pfac(N),fD=pfac(D),t=[...fN],b=[...fD],can=[];for(let i=t.length-1;i>=0;i--){const j=b.indexOf(t[i]);if(j>=0){can.push(t[i]);t.splice(i,1);b.splice(j,1)}}
+  const [x,y]=red(N,D);return {type:"frac",text:`Write the prime factorization of the top and the bottom. Then reduce: ${F(N,D)}`,answer:`${x}/${y}`,
+  steps:[`${N} = ${fN.join(" · ")}`,`${D} = ${fD.join(" · ")}`,`Cancel each prime that is on both top and bottom: ${can.sort((p,q)=>p-q).join(", ")}.`,`Multiply what is left. Top: ${t.length?t.join(" · ")+" = "+x:"1"}. Bottom: ${b.join(" · ")} = ${y}.`,`Answer: ${F(x,y)}.`],final:F(x,y)}}
+function redGen(gs,maxD){let a,b,g;do{g=pick(gs);b=R(2,12);a=coprime(b)}while(b*g>maxD||b*g<10);return redPF(a*g,b*g)}
+const hm=t=>{const h=Math.floor(t/60),m=t%60,h12=h%12===0?12:h%12;return `${h12}:${String(m).padStart(2,"0")} ${h<12?"a.m.":"p.m."}`};
+LESSONS["Lesson 67"]=[
+ {L:[1,2],f:()=>redGen([2,3,4,5,6,8,9,10,12],100)},
+ {L:[2,4],f:()=>redGen([25,50,125,8,16,24,40,45,75,20],1000)},
+ {L:[1,2],f:()=>pfQ(pick([24,36,45,48,72,81,96,100,125,175,200,250,400,500]),Math.random()<.4)},
+ {L:[2,3],f:function(){const W=R(1,4),a=pick([1,3]),c=pick([1,2,3]),k=pick([2,3,4]),tot4=W*4+a+c,cost=tot4*k*25;
+  return {type:"num",text:`Allison needs ${W} yard${W>1?"s":""} of blue ribbon, ${F(a,4)} yard of yellow ribbon and ${F(c,4)} yard of green ribbon. Ribbon costs $${k} a yard. How much money will she need for ribbon?`,answer:(cost/100).toFixed(2),
+  steps:[`Add the ribbon: ${W} + ${F(a,4)} + ${F(c,4)} = ${mixed(tot4,4)} yards.`,`Multiply by $${k}: ${mixed(tot4,4)} × ${k} = ${mixed(tot4*k,4)}.`,`${mixed(tot4*k,4)} dollars = ${money(cost)}.`],final:money(cost)}}},
+ {L:[1,2],f:function(){if(Math.random()<.5){const n=R(2,6);return {type:"num",text:`A mile is 5280 feet. How many feet are in ${n} miles?`,answer:String(5280*n),steps:[`Multiply: ${n} × 5280 = ${comma(5280*n)} feet.`],final:`${comma(5280*n)} feet`}}
+  return {type:"num",text:`A mile is 5280 feet. A nautical mile is about 6080 feet. A nautical mile is about how many feet longer than a mile?`,answer:"800",steps:[`Subtract: 6080 − 5280 = 800.`],final:"800 feet"}}},
+ {L:[2,3],f:function(){const d=pick([5,10,25,15,20]),q=R(3,40),n=d*q;return {type:"num",text:`Instead of dividing ${money(n)} by ${money(d)}, Marcus multiplied both numbers by 100 first. What is the quotient?`,answer:String(q),
+  steps:[`Multiply both by 100: ${money(n)} → ${n} and ${money(d)} → ${d}.`,`The new problem is ${n} ÷ ${d}.`,`${n} ÷ ${d} = ${q}.`],final:`${n} ÷ ${d} = ${q}`}}},
+ {L:[1,2],f:function(){const v=R(0,3);
+  if(v===0){const a=R(2,15),k=R(2,15);return {type:"num",text:`Find the unknown number: ${a} cm + k = ${a+k} cm`,answer:String(k),steps:[`Subtract: ${a+k} − ${a} = ${k}.`],final:`k = ${k} cm`}}
+  if(v===1){const g=R(2,9),x=R(11,19);return {type:"num",text:`Find the unknown number: ${g}g = ${dec(g*x,1)}`,answer:dec(x,1),steps:[`Divide both sides by ${g}: ${dec(g*x,1)} ÷ ${g} = ${dec(x,1)}.`],final:`g = ${dec(x,1)}`}}
+  if(v===2){const a=R(6,9),[x,y]=red(a*2-10,20);return {type:"frac",text:`Find the unknown number: ${F(a,10)} − w = ${F(1,2)}`,answer:`${x}/${y}`,steps:[`w = ${F(a,10)} − ${F(1,2)}.`,`${F(1,2)} = ${F(5,10)}, so w = ${F(a-5,10)}.`,reduceStep(a-5,10)||`${F(a-5,10)} is reduced.`],final:F(x,y)}}
+  const d=pick([5,4,20,25]),n=coprime(d);return {type:"num",text:`Find the unknown number: ${F(n,d)} = ${F("n",100)}`,answer:String(n*100/d),steps:[`${d} × ${100/d} = 100, so multiply the top by ${100/d}: ${n} × ${100/d} = ${n*100/d}.`],final:`n = ${n*100/d}`}}},
+ {L:[1,2],f:function(){const s=R(12,60),P=4*s;return {type:"num",text:`The perimeter of a quadrilateral is ${P} inches. What is the average length of each side, in inches?`,answer:String(s),
+  steps:[`A quadrilateral has 4 sides.`,`${P} ÷ 4 = ${s} inches.`,`We can't know the shape for certain: the sides could all be ${s} (a square or rhombus) or have different lengths that average ${s}.`],final:`${s} inches`}}},
+ {L:[2,3],f:function(){const a=R(1500,6000),b=R(300,1500),t=pick([10000,20000]),r=t-a-b;return {type:"num",text:`Simplify: ${money(t)} − (${money(a)} + ${money(b)})`,answer:(r/100).toFixed(2),
+  steps:[`Parentheses first: ${money(a)} + ${money(b)} = ${money(a+b)}.`,`Subtract: ${money(t)} − ${money(a+b)} = ${money(r)}.`],final:money(r)}}},
+ {L:[2,3],f:function(){const a=R(2,5),b=R(2,9),c=R(1,9),v=a*b*10-c*b;return {type:"num",text:`Simplify: (${a} × ${dec(b,1)}) − (${dec(c,1)} × ${dec(b,1)})`,answer:dec(v,2),
+  steps:[`${a} × ${dec(b,1)} = ${dec(a*b,1)}.`,`${dec(c,1)} × ${dec(b,1)} = ${dec(c*b,2)}.`,`${dec(a*b*10,2)} − ${dec(c*b,2)} = ${dec(v,2)}.`],final:dec(v,2)}}},
+ {L:[2,3],f:function(){const W1=R(3,9),W2=R(1,W1-2),A=W1*8+pick([2,4,6]),B=W2*8+pick([5,7]),[x,y]=red(A-B,8),fa=fracAns(A-B,8);
+  return {...fa,text:`Subtract: ${mixed(A,8)} − ${mixed(B,8)}`,steps:[`Write both with eighths: ${W1} ${F(A-W1*8,8)} − ${W2} ${F(B-W2*8,8)}.`,`${F(A-W1*8,8)} is smaller than ${F(B-W2*8,8)}, so regroup: ${W1} ${F(A-W1*8,8)} = ${W1-1} ${F(A-W1*8+8,8)}.`,`Subtract: ${mixed(A-B,8)}.`],final:mixed(x,y)}}},
+ {L:[2,4],f:()=>LESSONS["Lesson 66"][2].f()},
+ {L:[3,4],f:function(){if(Math.random()<.5){const d=pick([5,10,15,20,25]),q=R(8,60),n=d*q;return {type:"num",text:`Divide: ${money(n)} ÷ ${money(d)}`,answer:String(q),steps:[`Multiply both by 100 so you divide by a whole number: ${n} ÷ ${d}.`,`${n} ÷ ${d} = ${q}.`],final:String(q)}}
+  const dv=pick([20,30,40,60]),q=R(2,9)*pick([1,3]),n=dv*q;return {type:"num",text:`Divide: ${dec(n,3)} ÷ ${dv}`,answer:dec(q,3),steps:[`${n} ÷ ${dv} = ${q}.`,`Keep the decimal places: ${dec(n,3)} ÷ ${dv} = ${dec(q,3)}.`],final:dec(q,3)}}},
+ {L:[1,1],f:function(){const D=pick([5,6,9,10,15]),p=pick([4,8]);const c=D*100/p;if(c!==Math.floor(c))return LESSONS["Lesson 67"][13].f();return {type:"num",text:`$${D}.00 was divided evenly among ${p} people. How much money did each person receive?`,answer:(c/100).toFixed(2),
+  steps:[`Divide: $${D}.00 ÷ ${p}.`,`${D*100}¢ ÷ ${p} = ${c}¢ = ${money(c)}.`],final:money(c)}}},
+ {L:[3,4],f:function(){const n=pick([3,4,5]),nums=[1,2,3,4,5].slice(0,n),p=nums.reduce((a,b)=>a*b,1),s=nums.reduce((a,b)=>a+b,0),fa=fracAns(p,s),[x,y]=red(p,s);
+  return {...fa,text:`Simplify: (${nums.join(" × ")}) ÷ (${nums.join(" + ")})`,steps:[`Top: ${nums.join(" × ")} = ${p}.`,`Bottom: ${nums.join(" + ")} = ${s}.`,`${p} ÷ ${s} = ${mixed(x,y)}.`],final:mixed(x,y)}}},
+ {L:[2,3],f:function(){const d=pick([2,3,4,5]),n=coprime(d),W=R(1,4),im=W*d+n;return {type:"frac",form:"improper",text:`What is the reciprocal of ${W} ${F(n,d)}? (Write it as a fraction.)`,answer:`${d}/${im}`,
+  steps:[`First write it as an improper fraction: ${W} ${F(n,d)} = ${F(im,d)}.`,`Flip it: the reciprocal is ${F(d,im)}.`,`Check: ${F(im,d)} × ${F(d,im)} = 1.`],final:F(d,im)}}},
+ {L:[1,2],f:function(){const kg=R(101,999);return {type:"num",text:`There are 1000 grams in 1 kilogram. How many grams are in ${dec(kg,2)} kilograms?`,answer:String(kg*10),steps:[`Multiply by 1000: move the decimal point 3 places right.`,`${dec(kg,2)} × 1000 = ${kg*10} grams.`],final:`${comma(kg*10)} grams`}}},
+ {L:[1,2],f:function(){const s=R(11,49),area=Math.random()<.5;return area?{type:"num",text:`Each side of a square is ${dec(s,1)} m. What is the area of the square, in square meters?`,answer:dec(s*s,2),steps:[`Area = side × side.`,`${dec(s,1)} × ${dec(s,1)} = ${dec(s*s,2)} m².`],final:`${dec(s*s,2)} m²`}
+  :{type:"num",text:`Each side of a square is ${dec(s,1)} m. What is the perimeter of the square, in meters?`,answer:dec(4*s,1),steps:[`Perimeter = 4 × side.`,`4 × ${dec(s,1)} = ${dec(4*s,1)} m.`],final:`${dec(4*s,1)} m`}}},
+ {L:[2,3],f:function(){let b,g;do{b=R(9,18);g=R(9,18)}while(b===g||gcd(b,g)===1);const T=b+g;
+  if(Math.random()<.5){const [x,y]=red(g,T);return {type:"frac",text:`There were ${b} boys and ${g} girls in the class. What fraction of the class was girls?`,answer:`${x}/${y}`,steps:[`Total students: ${b} + ${g} = ${T}.`,`Girls: ${F(g,T)}.`,reduceStep(g,T)||`${F(g,T)} is reduced.`],final:F(x,y)}}
+  const [x,y]=red(b,g);return {type:"ratio",text:`There were ${b} boys and ${g} girls in the class. What was the ratio of boys to girls? Write it as a reduced fraction.`,answer:`${x}/${y}`,steps:[`Boys to girls = ${F(b,g)}.`,reduceStep(b,g)||`${F(b,g)} is reduced.`],final:F(x,y)}}},
+ {L:[2,3],f:function(){const b=pick([1,2,3]),q=R(2,5),a2=(2*b+1)*q;return {type:"num",text:`Instead of dividing ${mixed(a2,2)} by ${mixed(2*b+1,2)}, Carla doubled both numbers first. What is the quotient?`,answer:String(q),
+  steps:[`Double both: ${mixed(a2,2)} × 2 = ${a2} and ${mixed(2*b+1,2)} × 2 = ${2*b+1}.`,`The new problem is ${a2} ÷ ${2*b+1}.`,`${a2} ÷ ${2*b+1} = ${q}.`],final:`${a2} ÷ ${2*b+1} = ${q}`}}},
+ {L:[1,2],f:function(){const a=R(20,70),b=R(15,60);return {type:"num",text:`Points W, X and Y are on a line in that order. Segment WX is ${a} mm long and segment XY is ${b} mm long. How long is segment WY, in mm?`,answer:String(a+b),
+  steps:[`WX + XY = WY.`,`${a} + ${b} = ${a+b} mm.`],final:`${a+b} mm`}}}
+];
+LESSONS["Lesson 68"]=[
+ {L:[1,2],f:function(){const d=pick([2,3,4,5]),n=coprime(d),W=R(1,3),k=R(2,5),im=W*d+n,r=mulStep(im,d,1,k),fa=fracAns(im,d*k);
+  return {...fa,text:`Divide: ${W} ${F(n,d)} ÷ ${k}`,steps:[`Write the mixed number as an improper fraction: ${W} ${F(n,d)} = ${F(im,d)}.`,`Dividing by ${k} is the same as multiplying by ${F(1,k)}.`,...r.st],final:mixed(r.a,r.b)}}},
+ {L:[1,2],f:function(){const d=pick([2,3,5]),n=coprime(d),W=R(1,3),k=pick([2,3,4]),im=W*d+n,r=mulStep(1,k,im,d),fa=fracAns(im,d*k);
+  return {...fa,text:`Find ${F(1,k)} of ${W} ${F(n,d)}.`,steps:[`"Of" means multiply: ${F(1,k)} × ${W} ${F(n,d)}.`,`${W} ${F(n,d)} = ${F(im,d)}.`,...r.st],final:mixed(r.a,r.b)}}},
+ {L:[2,4],f:function(){const d1=pick([2,3,4,5]),n1=coprime(d1),W1=R(1,4),d2=pick([2,3,4]),n2=coprime(d2),W2=R(1,2),i1=W1*d1+n1,i2=W2*d2+n2,r=mulStep(i1,d1,d2,i2),fa=fracAns(i1*d2,d1*i2);
+  return {...fa,text:`Divide: ${W1} ${F(n1,d1)} ÷ ${W2} ${F(n2,d2)}`,steps:[`Write both as improper fractions: ${F(i1,d1)} ÷ ${F(i2,d2)}.`,`Dividing by ${F(i2,d2)} is the same as multiplying by its reciprocal ${F(d2,i2)}.`,...r.st],final:mixed(r.a,r.b)}}},
+ {L:[2,3],f:function(){const d=pick([2,3,4]),n=coprime(d),W=R(1,2),im=W*d+n,k=R(2,6),N=k*im/d;const whole=Math.random()<.5&&N===Math.floor(N);
+  const top=whole?N:R(3,9),r=mulStep(top,1,d,im),fa=fracAns(top*d,im);return {...fa,text:`Divide: ${top} ÷ ${W} ${F(n,d)}`,steps:[`Write both as fractions: ${F(top,1)} ÷ ${F(im,d)}.`,`Multiply by the reciprocal ${F(d,im)}.`,...r.st],final:mixed(r.a,r.b)}}},
+ {L:[3,4],f:function(){if(Math.random()<.5){const d=pick([3,4]),n=coprime(d),W=R(1,3),k=R(2,6),im=W*d+n,[x,y]=red(im,d*k),fa=fracAns(im,d*k);
+   return {...fa,text:`Shawna pours ${W} ${F(n,d)} cups of plant food equally into ${k} plants. How much plant food does each plant get, in cups?`,steps:[`Divide: ${W} ${F(n,d)} ÷ ${k}.`,`${F(im,d)} × ${F(1,k)} = ${F(im,d*k)}.`,reduceStep(im,d*k)||`${F(im,d*k)} is reduced.`],final:`${mixed(x,y)} cup`}}
+  const d=4,n=pick([1,3]),W=R(1,3),k=pick([2,3,5]),im=W*d+n,[x,y]=red(im,d*k),fa=fracAns(im,d*k);
+  return {...fa,text:`Gabriel has ${W} ${F(n,d)} hours to finish ${k} projects. If he divides his time equally, how many hours can he spend on each project?`,steps:[`Divide: ${W} ${F(n,d)} ÷ ${k} = ${F(im,d)} × ${F(1,k)} = ${F(im,d*k)}.`,reduceStep(im,d*k)||`${F(im,d*k)} is reduced.`],final:`${mixed(x,y)} hour`}}},
+ {L:[2,3],f:function(){const a=pick([2,3,4]),b=pick([2,3,4,5,6,8]);const s=[b+a,a*b],p=[1,a*b],L_=a*b,diff=(b+a)-1,fa=fracAns(diff,L_),[x,y]=red(diff,L_);
+  return {...fa,text:`What is the difference between the sum of ${F(1,a)} and ${F(1,b)} and the product of ${F(1,a)} and ${F(1,b)}?`,steps:[`Sum: ${F(1,a)} + ${F(1,b)} = ${F(b,L_)} + ${F(a,L_)} = ${F(a+b,L_)}.`,`Product: ${F(1,a)} × ${F(1,b)} = ${F(1,L_)}.`,`Difference: ${F(a+b,L_)} − ${F(1,L_)} = ${F(diff,L_)}${x!==diff?` = ${F(x,y)}`:""}.`],final:mixed(x,y)}}},
+ {L:[1,2],f:function(){const m=R(1,9),s=R(5,59);return {type:"num",text:`Bill ran a half mile in ${m} minute${m>1?"s":""} ${s} seconds. How many seconds is that?`,answer:String(m*60+s),steps:[`Each minute is 60 seconds: ${m} × 60 = ${m*60}.`,`Add the extra seconds: ${m*60} + ${s} = ${m*60+s} seconds.`],final:`${m*60+s} seconds`}}},
+ {L:[2,3],f:function(){const f=R(2,7),i=R(1,11);return {type:"num",text:`The gauge of a railroad (the distance between the two tracks) is ${f} feet ${i} ${F(1,2)} inches. How many inches is that?`,answer:dec(f*120+i*10+5,1),
+  steps:[`${f} feet = ${f} × 12 = ${f*12} inches.`,`${f*12} + ${i} ${F(1,2)} = ${f*12+i} ${F(1,2)} inches.`],final:`${f*12+i} ${F(1,2)} inches`}}},
+ {L:[1,1],f:function(){const g=R(4,8),a=R(9,30);return {type:"num",text:`In ${g} games Yvonne scored a total of ${g*a} points. How many points per game did she average?`,answer:String(a),steps:[`Average = total ÷ number of games.`,`${g*a} ÷ ${g} = ${a}.`],final:`${a} points`}}},
+ {L:[2,3],f:()=>redGen([4,8,6,12,24,25,40],400)},
+ {L:[3,4],f:function(){if(Math.random()<.5){const W1=R(2,6),a=pick([1,3,5,7]),W2=R(1,3),b=pick([1,3,5,7,9,11,13,15]),A=W1*16+a*2,B=W2*16+b,[x,y]=red(A+B,16),fa=fracAns(A+B,16);
+   return {...fa,text:`Find the unknown number: m − ${W1} ${F(a,8)} = ${W2} ${F(b,16)}`,steps:[`To find m, add: m = ${W1} ${F(a,8)} + ${W2} ${F(b,16)}.`,`Use sixteenths: ${W1} ${F(2*a,16)} + ${W2} ${F(b,16)} = ${mixed(A+B,16)}.`],final:`m = ${mixed(x,y)}`}}
+  const W1=R(1,5),a=pick([1,2,3,4]),W2=R(1,5),b=pick([1,3,7,9]),A=W1*10+a*2,B=W2*10+b,[x,y]=red(A+B,10),fa=fracAns(A+B,10);
+  return {...fa,text:`Find the unknown number: ${W1} ${F(a,5)} + ${W2} ${F(b,10)} = n`,steps:[`Use tenths: ${F(a,5)} = ${F(2*a,10)}.`,`${W1} ${F(2*a,10)} + ${W2} ${F(b,10)} = ${mixed(A+B,10)}.`],final:`n = ${mixed(x,y)}`}}},
+ {L:[2,3],f:function(){const a=pick([25,5,4,8,15]),w=R(1,9)*pick([1,3,5]),p=pick([3,4]);return {type:"num",text:`Find the unknown number: ${a}d = ${dec(a*w,p)}`,answer:dec(w,p),steps:[`Divide both sides by ${a}: d = ${dec(a*w,p)} ÷ ${a}.`,`${a*w} ÷ ${a} = ${w}, so d = ${dec(w,p)}.`],final:`d = ${dec(w,p)}`}}},
+ {L:[2,3],f:function(){const L_=R(2,9),d=pick([2,4]),n=coprime(d),W=R(1,3),im=W*d+n,fa=fracAns(L_*im,d),[x,y]=red(L_*im,d);
+  return {...fa,text:`What is the area of a rectangle that is ${L_} inches long and ${W} ${F(n,d)} inches wide, in square inches?`,steps:[`Area = length × width = ${L_} × ${W} ${F(n,d)}.`,`${L_} × ${F(im,d)} = ${F(L_*im,d)} = ${mixed(x,y)} square inches.`],final:`${mixed(x,y)} in²`}}},
+ {L:[2,3],f:function(){let a,b,c,v;do{a=R(11,59);b=R(1,9);c=R(2,9);v=a*10+100-b*c*10}while(v<0);return {type:"num",text:`Simplify: (${dec(a,1)} + 1) − (${dec(b,1)} × ${c})`,answer:dec(v,2),
+  steps:[`(${dec(a,1)} + 1) = ${dec(a+10,1)}.`,`${dec(b,1)} × ${c} = ${dec(b*c,1)}.`,`${dec(a+10,1)} − ${dec(b*c,1)} = ${dec(v,2)}.`],final:dec(v,2)}}},
+ {L:[3,4],f:function(){const dv=pick([4,5,8,25]),q=R(11,99)*pick([1,5]),n=dv*q;return {type:"num",text:`Divide: ${dec(n,2)} ÷ ${dec(dv,1)}`,answer:dec(q*10,2),
+  steps:[`Make the divisor a whole number: multiply both by 10.`,`${dec(n,2)} × 10 = ${dec(n*10,2)} and ${dec(dv,1)} × 10 = ${dv}.`,`${dec(n*10,2)} ÷ ${dv} = ${dec(q*10,2)}.`],final:dec(q*10,2)}}},
+ {L:[2,3],f:function(){const a=R(11,99),opts=[`${dec(a,0)} ÷ 10`,`${a*10} ÷ 10`,`${dec(a,2)} ÷ 10`].map(s=>s),L=["A","B","C"],order=[0,1,2].sort(()=>Math.random()-.5),ans=L[order.indexOf(1)];
+  return {type:"choice",options:L,text:`The product ${dec(a,1)} × 10 equals which of the following?   A  ${opts[order[0]]}    B  ${opts[order[1]]}    C  ${opts[order[2]]}`,answer:ans,
+  steps:[`${dec(a,1)} × 10 = ${a}.`,`${a*10} ÷ 10 = ${a}, so that one matches.`,`The others are ${dec(a,1)} and ${dec(a,3)}.`],final:`${ans}: ${a*10} ÷ 10`}}},
+ {L:[1,2],f:function(){let a,b,c,r;do{a=R(1100,9400);b=R(1100,9400);c=R(1100,9400);r=x=>Math.round(x/1000)*1000}while(r(a)+r(b)+r(c)!==r(a+b+c)||[a,b,c].some(x=>x%1000===500));
+  const v=r(a)+r(b)+r(c);return {type:"num",text:`Estimate: find the sum of ${a}, ${b} and ${c} to the nearest thousand.`,answer:String(v),steps:[`Round each number to the nearest thousand: ${r(a)}, ${r(b)}, ${r(c)}.`,`Add: ${r(a)} + ${r(b)} + ${r(c)} = ${comma(v)}.`],final:comma(v)}}},
+ {L:[3,4],f:function(){const k=pick([4,8]),dv=pick([3,5,6,7,9]),n=R(50,120)*k,d=dv*k,fa=fracAns(n/k,dv),[x,y]=red(n/k,dv);
+  return {...fa,text:`Instead of dividing ${n} by ${d}, Arturo divided both numbers by ${k} first. What is the quotient? Write it as a mixed number.`,steps:[`Divide both by ${k}: ${n} ÷ ${k} = ${n/k} and ${d} ÷ ${k} = ${dv}.`,`The new problem is ${n/k} ÷ ${dv}.`,`${n/k} ÷ ${dv} = ${mixed(x,y)}.`],final:mixed(x,y)}}},
+ {L:[1,2],f:function(){const v=R(0,2);
+  if(v===0){const a=R(3,9),b=R(12,48);return {type:"num",text:`Mental math: ${a} × ${b}`,answer:String(a*b),steps:[`Break it apart: ${a} × ${Math.floor(b/10)*10} = ${a*Math.floor(b/10)*10} and ${a} × ${b%10} = ${a*(b%10)}.`,`Add: ${a*b}.`],final:String(a*b)}}
+  if(v===1){const k=pick([2,3,4,5]),D=k*R(4,30);return {type:"num",text:`Mental math: ${F(1,k)} of $${D}.00`,answer:(D/k).toFixed(2),steps:[`${F(1,k)} of something means divide by ${k}.`,`$${D} ÷ ${k} = ${money(D*100/k)}.`],final:money(D*100/k)}}
+  const D=10*R(3,50);return {type:"num",text:`Mental math: $${D} ÷ 10`,answer:String(D/10),steps:[`Dividing by 10 removes one zero: $${D/10}.`],final:`$${D/10}`}}},
+ {L:[2,3],f:function(){const s=R(2,9),area=Math.random()<.5;return area?{type:"num",text:`The perimeter of a square is ${dec(4*s,1)} meters. What is the area of the square, in square meters?`,answer:dec(s*s,2),steps:[`Each side: ${dec(4*s,1)} ÷ 4 = ${dec(s,1)} m.`,`Area: ${dec(s,1)} × ${dec(s,1)} = ${dec(s*s,2)} m².`],final:`${dec(s*s,2)} m²`}
+  :{type:"num",text:`The perimeter of a square is ${dec(4*s,1)} meters. How long is each side, in meters?`,answer:dec(s,1),steps:[`A square has 4 equal sides: ${dec(4*s,1)} ÷ 4 = ${dec(s,1)} m.`],final:`${dec(s,1)} m`}}},
+ {L:[2,3],f:function(){const P=1000*R(9,30),r=pick([5,6,7,8]),t=P*r/100;return {type:"num",text:`What is the tax on a $${comma(P)} car if the tax rate is ${r}%?`,answer:String(t),steps:[`${r}% = 0.0${r}.`,`$${comma(P)} × 0.0${r} = $${comma(t)}.`],final:`$${comma(t)}`}}},
+ {L:[2,3],f:function(){const n=pick([10,100,1000,1000000]);return {type:"frac",text:`If the probability of an event occurring is 1 chance in ${comma(n)}, what is the probability of the event NOT occurring?`,answer:`${n-1}/${n}`,
+  steps:[`All the chances add up to 1.`,`1 − ${F(1,n)} = ${F(n-1,n)}.`],final:F(n-1,n)}}},
+ {L:[3,4],f:function(){const k=pick([2,3,4]),W=R(1,6),d=pick([2,3,4]),n=coprime(d);return {type:"choice",options:["<",">","="],text:`Compare. Pick the right sign: ${F(1,k)} × ${W} ${F(n,d)} ◯ ${W} ${F(n,d)} ÷ ${k}`,answer:"=",
+  steps:[`Dividing by ${k} is the same as multiplying by ${F(1,k)}.`,`So both sides are the same number: =.`],final:"="}}},
+ {L:[1,2],f:function(){const p=pick([1,3,7,9,11,13,17]);return {type:"num",text:`Write ${p}% as a fraction, then as a decimal number. What is the decimal?`,answer:dec(p,2),steps:[`${p}% = ${F(p,100)}.`,`${F(p,100)} = ${dec(p,2)}.`],final:`${F(p,100)} = ${dec(p,2)}`}}},
+ {L:[2,3],f:function(){const s=5*R(66,90),e=5*R(198,234),L=e-s,h=Math.floor(L/60),m=L%60;return {type:"list",count:2,text:`From sunrise at ${hm(s)} to sunset at ${hm(e)}, how many hours and minutes are there? Type hours, minutes (like 11, 25).`,answer:[String(h),String(m)],
+  steps:[`From ${hm(s)} to 12:00 p.m. is ${Math.floor((720-s)/60)} h ${(720-s)%60} min.`,`From 12:00 p.m. to ${hm(e)} is ${Math.floor((e-720)/60)} h ${(e-720)%60} min.`,`Add: ${h} hours ${m} minutes.`],final:`${h} hours ${m} minutes`}}},
+ {L:[3,4],f:function(){const rolls=R(1,3),yd=pick([20,25,30]),len=pick([[7,2],[15,2],[9,1],[6,1],[4,1]]),inches=rolls*yd*36,piece=F(1,1),pl=len[1]===2?`${(len[0]-1)/2} ${F(1,2)}`:String(len[0]);
+  const N=Math.floor(inches*len[1]/len[0]);return {type:"num",text:`Taylor has ${rolls} roll${rolls>1?"s":""} of ribbon. Each roll is ${yd} yards long. Each ribbon is cut to ${pl} inches long. How many ribbons can she make? (1 yard = 36 inches)`,answer:String(N),
+  steps:[`Total length: ${rolls} × ${yd} = ${rolls*yd} yards = ${rolls*yd} × 36 = ${comma(inches)} inches.`,`Divide by ${pl}: ${comma(inches)} ÷ ${pl} = ${N}${inches*len[1]%len[0]?" (with some left over)":""}.`],final:`${N} ribbons`}}}
+];
+const ANG=()=>R(2,17)*5+R(0,4);
+LESSONS["Lesson 69"]=[
+ {L:[1,2],f:function(){const [p,q,r]=pick([["L","M","N"],["A","B","C"],["P","Q","R"],["D","E","F"]]),a=R(2,15),b=R(2,15),ask=R(0,2);
+  const T=`Points ${p}, ${q} and ${r} are on a line in that order.`;
+  if(ask===0)return {type:"num",text:`${T} Segment ${p}${q} is ${a} cm and segment ${p}${r} is ${a+b} cm. How long is segment ${q}${r}, in cm?`,answer:String(b),steps:[`${p}${q} + ${q}${r} = ${p}${r}, so ${a} + ? = ${a+b}.`,`${a+b} − ${a} = ${b} cm.`],final:`${b} cm`};
+  if(ask===1)return {type:"num",text:`${T} Segment ${q}${r} is ${b} cm and segment ${p}${r} is ${a+b} cm. How long is segment ${p}${q}, in cm?`,answer:String(a),steps:[`${p}${q} + ${q}${r} = ${p}${r}, so ? + ${b} = ${a+b}.`,`${a+b} − ${b} = ${a} cm.`],final:`${a} cm`};
+  return {type:"num",text:`${T} Segment ${p}${q} is ${a} cm and segment ${q}${r} is ${b} cm. How long is segment ${p}${r}, in cm?`,answer:String(a+b),steps:[`${p}${q} + ${q}${r} = ${p}${r}.`,`${a} + ${b} = ${a+b} cm.`],final:`${a+b} cm`}}},
+ {L:[2,4],f:function(){const a=R(25,80),b=R(20,70),c=R(1,a-5);return {type:"num",text:`Points W, X, Y and Z are on a line in that order. WY is ${a+b} mm, XY is ${b} mm and YZ is ${c} mm. How long is WX, in mm?`,answer:String(a),
+  steps:[`WX + XY = WY. (YZ is extra information.)`,`WX = ${a+b} − ${b} = ${a} mm.`],final:`${a} mm`}}},
+ {L:[1,2],f:function(){const a=R(5,85);return {type:"num",text:`Complementary angles add up to 90°. What is the complement of a ${a}° angle, in degrees?`,answer:String(90-a),steps:[`Complement = 90° − the angle.`,`90 − ${a} = ${90-a}°.`],final:`${90-a}°`}}},
+ {L:[1,2],f:function(){const a=R(5,175);return {type:"num",text:`Supplementary angles add up to 180°. What is the supplement of a ${a}° angle, in degrees?`,answer:String(180-a),steps:[`Supplement = 180° − the angle.`,`180 − ${a} = ${180-a}°.`],final:`${180-a}°`}}},
+ {L:[2,3],f:function(){const k=R(0,2),a=R(10,80),b=k===0?90-a:k===1?180-a:a+pick([5,15,25,35]);if(k===2&&(a+b===90||a+b===180))return LESSONS["Lesson 69"][4].f();
+  const ans=k===0?"Complementary":k===1?"Supplementary":"Neither";return {type:"choice",options:["Complementary","Supplementary","Neither"],text:`Two angles measure ${a}° and ${b}°. Are they complementary, supplementary, or neither?`,answer:ans,
+  steps:[`Add them: ${a} + ${b} = ${a+b}°.`,`Complementary angles add to 90°. Supplementary angles add to 180°.`,`${a+b}° means: ${ans}.`],final:ans}}},
+ {L:[3,4],f:function(){if(Math.random()<.5){const x=pick([15,18,30,20,10]),m=90/x-1;if(m!==Math.floor(m)||m<2)return LESSONS["Lesson 69"][5].f();return {type:"num",text:`Two angles are complementary. One angle is ${m} times as big as the other. What is the smaller angle, in degrees?`,answer:String(x),
+   steps:[`The angles are 1 part and ${m} parts: ${m+1} parts in all.`,`The parts add to 90°: 90 ÷ ${m+1} = ${x}°.`,`Check: ${x} + ${m*x} = 90.`],final:`${x}°`}}
+  const d=pick([20,30,40,50,60,80]),s=(180-d)/2;return {type:"num",text:`Two angles are supplementary. One angle is ${d}° bigger than the other. What is the bigger angle, in degrees?`,answer:String(s+d),
+  steps:[`Take away the extra ${d}°: 180 − ${d} = ${180-d}.`,`Split it equally: ${180-d} ÷ 2 = ${s}°. That is the smaller angle.`,`Bigger angle: ${s} + ${d} = ${s+d}°.`],final:`${s+d}°`}}},
+ {L:[2,4],f:function(){const a=R(50,85);return {type:"num",text:`In a parallelogram, one angle measures ${a}°. The angle next to it (on the same side) is its supplement. What does that angle measure, in degrees?`,answer:String(180-a),
+  steps:[`Neighboring angles in a parallelogram are supplementary (they add to 180°).`,`180 − ${a} = ${180-a}°.`],final:`${180-a}°`}}},
+ {L:[1,2],f:function(){const k=R(0,3),a=[R(10,85),90,R(95,175),180][k],ans=["acute","right","obtuse","straight"][k];return {type:"choice",options:["acute","right","obtuse","straight"],text:`An angle measures ${a}°. What kind of angle is it?`,answer:ans,
+  steps:[`Acute: less than 90°. Right: exactly 90°. Obtuse: more than 90° but less than 180°. Straight: exactly 180°.`,`${a}° is ${ans}.`],final:ans}}},
+ {L:[3,4],f:function(){if(Math.random()<.5){const a=R(15,75);return {type:"num",text:`A right triangle has one acute angle of ${a}°. What is the other acute angle, in degrees?`,answer:String(90-a),
+   steps:[`The angles of a triangle add to 180°, and the right angle is 90°.`,`So the two acute angles add to 90° (they are complementary).`,`90 − ${a} = ${90-a}°.`],final:`${90-a}°`}}
+  const a=R(20,80),b=R(20,150-a);return {type:"num",text:`Two angles of a triangle measure ${a}° and ${b}°. What is the third angle, in degrees?`,answer:String(180-a-b),steps:[`The angles of a triangle add to 180°.`,`180 − ${a} − ${b} = ${180-a-b}°.`],final:`${180-a-b}°`}}},
+ {L:[2,3],f:function(){const qs=[["Can an angle that is complementary be obtuse?","No","Complementary angles add to 90°, so each one must be less than 90°. An obtuse angle is more than 90°."],
+   ["Can the supplement of an acute angle be obtuse?","Yes","180° minus an angle less than 90° gives an angle more than 90°, which is obtuse."],
+   ["Can two right angles be supplementary?","Yes","90° + 90° = 180°, so yes."],
+   ["Can two obtuse angles be supplementary?","No","Two angles over 90° add to more than 180°."]],[t,a,why]=pick(qs);
+  return {type:"choice",options:["Yes","No"],text:t,answer:a,steps:[why],final:a}}},
+ {L:[1,2],f:function(){const a=R(10,80);return {type:"num",text:`Angle RWT is a right angle (90°). Angle RWS is ${a}°, and angle SWT is the rest of the right angle. What is the measure of angle SWT, in degrees?`,answer:String(90-a),
+  steps:[`Angle RWS and angle SWT make the right angle, so they are complementary.`,`90 − ${a} = ${90-a}°.`],final:`${90-a}°`}}}
+];
+LESSONS["Mixed review"]=["Lesson 65","Lesson 66","Lesson 67","Lesson 68","Lesson 69"].flatMap(k=>LESSONS[k]);
+LESSON_SUB["Lesson 67"]="Reducing fractions with prime factorization + review";
+LESSON_SUB["Lesson 68"]="Dividing mixed numbers + review";
+LESSON_SUB["Lesson 69"]="Segments, complementary and supplementary angles + review";
+LESSON_SUB["Mixed review"]="All lessons 65–69 mixed together";
 const GEN={};
-for(const t of Object.keys(LESSONS))GEN[t]=LESSONS[t];
+for(const t of ["Mixed review","Lesson 69","Lesson 68","Lesson 67","Lesson 66","Lesson 65"])GEN[t]=LESSONS[t];
 for(const t of Object.keys(BASE)){GEN[t]=BASE[t].map((f,i)=>({L:LV[t][i],f})).concat(EXTRA[t]||[])}
 const LEVEL_NAMES=["","Easy","Medium","Hard","Harder (7th grade)"];
 function makeOne(topic,L,avoid){const pool=GEN[topic].filter(g=>L>=g.L[0]&&L<=g.L[1]);let q,t=0;do{q=pick(pool).f();t++}while(avoid&&avoid.has(q.text)&&t<30);
@@ -882,7 +1026,7 @@ function home(){
     <div class="row"><button class="btn primary" data-practice="${esc(t)}">${cont?`Continue practice (${sc.right+sc.locked}/${setTotal(set)})`:`Practice ${sizeOf(t)} problems`}</button>
     ${c.total?`<button class="btn" data-topic="${esc(t)}">Homework ${c.right+c.locked}/${c.total}</button>`:""}</div></div>`}).join("");
   return header()+`<section class="panel"><div class="row spread"><h2>Pick a topic</h2><button class="btn" data-all="1">All homework problems</button></div>
-  <p class="sub" style="margin:0"><b>Practice</b> gives you brand-new problems every time (10 per topic, 20 per lesson). <b>Homework</b> has the problems from your book. You get <b>3 tries</b> on each problem. After 3 wrong tries it locks and shows the steps. Stuck? You get <b>3 hints</b> in each practice set and each homework list. The squares show your last 10 problems: green is right, red is locked.</p>
+  <p class="sub" style="margin:0"><b>Practice</b> gives you brand-new problems every time (10 per topic, 20 per lesson or mixed review). <b>Homework</b> has the problems from your book. You get <b>3 tries</b> on each problem. After 3 wrong tries it locks and shows the steps. Stuck? You get <b>3 hints</b> in each practice set and each homework list. The squares show your last 10 problems: green is right, red is locked.</p>
   <div class="grid">${cards}</div></section>`;
 }
 function attemptsHtml(st){const wrong=st.s==="right"?st.a-1:st.a;let d="";for(let k=0;k<3;k++)d+=`<i class="${k<wrong?"used":""}"></i>`;return `<div class="attempts" aria-label="${st.a} of 3 tries used">${d}<span>${st.s==="right"?"Solved":st.s==="locked"?"Locked":`${3-st.a} ${3-st.a===1?"try":"tries"} left`}</span></div>`}

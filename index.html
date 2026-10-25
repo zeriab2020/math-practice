@@ -1125,7 +1125,7 @@ LESSONS["Lesson 72"]=[
 ];
 LESSONS["Mixed review"]=["Lesson 65","Lesson 66","Lesson 67","Lesson 68","Lesson 69","Lesson 70","Investigation 7","Lesson 71","Lesson 72"].flatMap(k=>LESSONS[k]);
 LESSON_SUB["Lesson 70"]="Reducing fractions before multiplying (canceling) + review";
-LESSON_SUB["Investigation 7"]="The coordinate plane: points, quadrants, rectangles";
+LESSON_SUB["Investigation 7"]="Coordinate plane: graphs, points, quadrants, rectangles (20 problems)";
 LESSON_SUB["Lesson 71"]="Parallelograms: area, angles, perimeter + review";
 LESSON_SUB["Lesson 72"]="Multiplying three fractions + review";
 LESSON_SUB["Mixed review"]="All lessons 65–72 mixed together";
@@ -1181,7 +1181,7 @@ const qs=id=>S.q[id]||(S.q[id]={a:0,s:"open",g:[]});
 const TOPICS=Object.keys(GEN);
 const SET_SIZE=10;
 const sizeOf=t=>t==="Mixed review"?40:LESSONS[t]?20:SET_SIZE;
-const VISIBLE=TOPICS.filter(t=>!(LESSONS[t]&&t!=="Mixed review"));
+const VISIBLE=TOPICS.filter(t=>!(LESSONS[t]&&t!=="Mixed review"&&t!=="Investigation 7"));
 function lessonStats(){return LESSON_ORDER.map(k=>{const all=S.log.filter(l=>(l.src||l.t)===k),n=all.length,ok=all.filter(l=>l.ok).length,first=all.filter(l=>l.ok&&l.a===1).length,last=all.slice(-10),lockLast=last.filter(l=>!l.ok).length,p=n?ok/n:0;
   const st=!n?{cls:"new",label:"Not yet"}:(lockLast>=2||p<.7)?{cls:"review",label:"Needs practice"}:(lockLast>=1||p<.9)?{cls:"mid",label:"Getting there"}:{cls:"done",label:"Strong"};return {k,n,ok,first,lock:n-ok,st,p}})}
 const setSize=s=>sizeOf(s.list[0]&&s.list[0].topic);

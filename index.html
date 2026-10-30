@@ -1161,8 +1161,166 @@ LESSONS["Investigation 7"].push(
 const LESSON_ORDER=["Lesson 65","Lesson 66","Lesson 67","Lesson 68","Lesson 69","Lesson 70","Investigation 7","Lesson 71","Lesson 72"];
 LESSONS["Mixed review"]=LESSON_ORDER.flatMap(k=>LESSONS[k].map(g=>({L:g.L,f:()=>{const q=g.f();q.src=k;return q}})));
 LESSON_SUB["Mixed review"]="40 mixed problems from your recent lessons";
+/* ===== LESSONS 80-87, INVESTIGATION 8 + MIXED REVIEW 2 ===== */
+const NW=["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"];
+function coprimePair(lo,hi){let a,b;do{a=R(lo,hi);b=R(lo,hi)}while(a===b||gcd(a,b)!==1);return [a,b]}
+const RATIO_CTX=[["boys","girls","in the cafeteria"],["dogs","cats","in the neighborhood"],["runners","walkers","at the fund-raiser"],["ants","flies","at the picnic"],["flowers","weeds","in the garden"],["red marbles","blue marbles","in the bag"],["hardbacks","paperbacks","in the library"],["dimes","nickels","in the change box"],["cars","trucks","in the parking lot"]];
+const ANG8=m=>m<90?"acute":m===90?"right":m<180?"obtuse":"straight";
+const AREA_U=["in","ft","yd","cm","m","mm"];
+
+LESSONS["Lesson 80"]=[
+ {L:[1,2],f:function(){const [a,b]=coprimePair(2,9),k=R(2,12),[A,B,where]=pick(RATIO_CTX),giveA=Math.random()<.5,g=giveA?a*k:b*k,ans=giveA?b*k:a*k,gn=giveA?A:B,an=giveA?B:A,gr=giveA?a:b,ar=giveA?b:a;
+  return {type:"num",text:`The ratio of ${A} to ${B} ${where} was ${a} to ${b}. If there were ${g} ${gn}, how many ${an} were there?`,answer:String(ans),
+  steps:[`Make a ratio box. Ratio column: ${A} ${a}, ${B} ${b}. Actual count: ${gn} ${g}.`,`Find the constant factor from the row with two numbers: ${g} ÷ ${gr} = ${k}.`,`Multiply the other ratio number by the factor: ${ar} × ${k} = ${ans} ${an}.`],final:`${ans} ${an}`}}},
+ {L:[2,4],f:function(){const [a,b]=coprimePair(2,9),k=R(3,15),[A,B,where]=pick(RATIO_CTX),g=a*k,t=(a+b)*k;
+  return {type:"num",text:`The ratio of ${A} to ${B} ${where} was ${a} to ${b}. If there were ${g} ${A}, how many ${A} and ${B} were there in all?`,answer:String(t),
+  steps:[`Ratio box: ${A} ${a}, ${B} ${b}, total ${a+b}. Actual count of ${A}: ${g}.`,`Constant factor: ${g} ÷ ${a} = ${k}.`,`Total: ${a+b} × ${k} = ${t}.`],final:String(t)}}},
+ {L:[3,4],f:function(){const [a,b]=coprimePair(2,9),k=R(3,15),[A,B,where]=pick(RATIO_CTX),t=(a+b)*k,askA=Math.random()<.5,ans=askA?a*k:b*k;
+  return {type:"num",text:`There were ${t} ${A} and ${B} ${where}. The ratio of ${A} to ${B} was ${a} to ${b}. How many ${askA?A:B} were there?`,answer:String(ans),
+  steps:[`Ratio box: ${A} ${a}, ${B} ${b}, total ${a+b}. Actual total: ${t}.`,`Constant factor: ${t} ÷ ${a+b} = ${k}.`,`${askA?A:B}: ${askA?a:b} × ${k} = ${ans}.`],final:String(ans)}}},
+ {L:[2,4],f:function(){let a,b;do{[a,b]=coprimePair(2,9)}while(a===b);const k=R(2,12),[A,B,where]=pick(RATIO_CTX),g=b*k,d=Math.abs(a-b)*k;
+  return {type:"num",text:`The ratio of ${A} to ${B} ${where} was ${a} to ${b}. There were ${g} ${B}. How many more ${a>b?A:B} than ${a>b?B:A} were there?`,answer:String(d),
+  steps:[`Constant factor: ${g} ÷ ${b} = ${k}.`,`${A}: ${a} × ${k} = ${a*k}. ${B}: ${g}.`,`Difference: ${Math.max(a*k,g)} − ${Math.min(a*k,g)} = ${d}.`],final:String(d)}}},
+ {L:[1,2],f:function(){const n=R(2,6),c=pick([199,299,399,499,599,799,999]),v=n*c;
+  return {type:"num",text:`Mental math: ${n} × ${money(c)}. (Type the dollars, like 11.96)`,answer:dec(v,2),steps:[`Think of ${money(c)} as ${money(c+1)} − $0.01.`,`${n} × ${money(c+1)} = ${money(n*(c+1))}, and ${n} × $0.01 = ${money(n)}.`,`${money(n*(c+1))} − ${money(n)} = ${money(v)}.`],final:money(v)}}},
+ {L:[1,3],f:function(){const d=pick([2,3,4,5]),c=d*R(10,99)*5,v=c/d;
+  return {type:"num",text:`Mental math: ${F(1,d)} of ${money(c)}. (Type the dollars, like 1.20)`,answer:dec(v,2),steps:[`${F(1,d)} of something means divide it by ${d}.`,`${money(c)} ÷ ${d} = ${money(v)}.`],final:money(v)}}},
+ {L:[1,3],f:function(){const k=R(11,999),p=pick([1,2]),op=pick(["×","÷"]),m=pick([10,100]),z=m===10?1:2,v=op==="×"?dec(k*m,p):dec(k,p+z);
+  return {type:"num",text:`Mental math: ${dec(k,p)} ${op} ${m}`,answer:v,steps:[op==="×"?`Multiplying by ${m} moves the decimal point ${z} place${z>1?"s":""} to the right.`:`Dividing by ${m} moves the decimal point ${z} place${z>1?"s":""} to the left.`,`${dec(k,p)} ${op} ${m} = ${v}.`],final:v}}},
+ {L:[1,2],f:function(){const [q,a,per,u1,u2]=pick([["quarts are in","gallon",4,"gallons","quarts"],["milliliters are in","liter",1000,"liters","milliliters"],["pints are in","quart",2,"quarts","pints"],["cups are in","pint",2,"pints","cups"],["ounces are in","cup",8,"cups","ounces"],["ounces are in","pint",16,"pints","ounces"]]),n=R(2,6);
+  return {type:"num",text:`How many ${q} ${n} ${u1}?`,answer:String(n*per),steps:[`1 ${a} = ${per} ${u2}.`,`${n} × ${per} = ${n*per} ${u2}.`],final:`${n*per} ${u2}`}}}
+];
+
+LESSONS["Lesson 81"]=[
+ {L:[1,2],f:function(){const a=R(1,6),b=12*R(1,3);return {type:"num",text:`Simplify: ${a} ft + ${b} in. (Write the sum in inches.)`,answer:String(12*a+b),steps:[`The units are different, so change feet to inches first: ${a} ft = ${a} × 12 = ${12*a} in.`,`${12*a} in. + ${b} in. = ${12*a+b} in.`],final:`${12*a+b} in.`}}},
+ {L:[2,3],f:function(){const a=R(1,6),b=12*R(1,3);return {type:"num",text:`Simplify: ${a} ft + ${b} in. (Write the sum in feet.)`,answer:String(a+b/12),steps:[`Change inches to feet: ${b} in. ÷ 12 = ${b/12} ft.`,`${a} ft + ${b/12} ft = ${a+b/12} ft.`],final:`${a+b/12} ft`}}},
+ {L:[1,2],f:function(){const a=R(2,6),b=12*R(1,a-1);return {type:"num",text:`Simplify: ${a} ft − ${b} in. (Write the difference in inches.)`,answer:String(12*a-b),steps:[`Change feet to inches: ${a} ft = ${12*a} in.`,`${12*a} in. − ${b} in. = ${12*a-b} in.`],final:`${12*a-b} in.`}}},
+ {L:[2,4],f:function(){const a=R(1,5),b=R(1,5);return {...fracAns(3*a+b,3),text:`Simplify: ${a} yd + ${b} ft. (Write the sum in yards.)`,steps:[`1 yard = 3 feet, so ${b} ft = ${mixed(b,3)} yd.`,`${a} yd + ${mixed(b,3)} yd = ${mixed(3*a+b,3)} yd.`],final:`${mixed(3*a+b,3)} yd`}}},
+ {L:[2,4],f:function(){const a=R(1,6),b=R(1,5),inQ=Math.random()<.5;
+  return inQ?{...fracAns(2*a+b,2),text:`Simplify: ${a} quarts + ${b} pints. (Write the sum in quarts.)`,steps:[`1 quart = 2 pints, so ${b} pints = ${mixed(b,2)} quarts.`,`${a} + ${mixed(b,2)} = ${mixed(2*a+b,2)} quarts.`],final:`${mixed(2*a+b,2)} quarts`}
+  :{type:"num",text:`Simplify: ${a} quarts + ${b} pints. (Write the sum in pints.)`,answer:String(2*a+b),steps:[`1 quart = 2 pints, so ${a} quarts = ${2*a} pints.`,`${2*a} + ${b} = ${2*a+b} pints.`],final:`${2*a+b} pints`}}},
+ {L:[3,4],f:function(){const a=R(1,5),b=pick([100,50,25,10,20,75,200,150]);return {type:"num",text:`Simplify: ${a} meters + ${b} centimeters. (Write the answer in meters.)`,answer:dec(100*a+b,2),steps:[`1 meter = 100 cm, so ${b} cm = ${dec(b,2)} m.`,`${a} + ${dec(b,2)} = ${dec(100*a+b,2)} m.`],final:`${dec(100*a+b,2)} m`}}},
+ {L:[1,3],f:function(){const u=pick(AREA_U),a=R(2,12),b=R(2,12);return {type:"num",text:`Simplify: ${a} ${u} × ${b} ${u}. How many square ${u==="in"?"inches":u==="ft"?"feet":u==="yd"?"yards":u==="cm"?"centimeters":u==="m"?"meters":"millimeters"} (${u}²) is that?`,answer:String(a*b),steps:[`Multiply the numbers: ${a} × ${b} = ${a*b}.`,`Multiply the units: ${u} × ${u} = ${u}² (square units).`,`${a} ${u} × ${b} ${u} = ${a*b} ${u}².`],final:`${a*b} ${u}²`}}},
+ {L:[2,4],f:function(){const u=pick(AREA_U),a=R(2,12),b=R(2,12);return {type:"num",text:`Simplify: ${a*b} ${u}² ÷ ${a} ${u}. (The answer is in ${u}.) What is the number?`,answer:String(b),steps:[`Divide the numbers: ${a*b} ÷ ${a} = ${b}.`,`Divide the units: ${u}² ÷ ${u} = ${u} (one ${u} cancels).`,`So ${a*b} ${u}² ÷ ${a} ${u} = ${b} ${u}.`],final:`${b} ${u}`}}},
+ {L:[2,3],f:function(){const u=pick(["ft","cm","m","in"]),opts=[`${u}`,`${u}²`,`${u}³`],c=pick([[`${R(2,9)} ${u} × ${R(2,9)} ${u}`,`${u}²`,`${u} × ${u} = ${u}²`],[`${R(3,9)*6} ${u}² ÷ 6 ${u}`,`${u}`,`${u}² ÷ ${u} = ${u}`],[`${R(2,9)} ${u} + ${R(2,9)} ${u}`,`${u}`,`adding lengths keeps the same unit, ${u}`],[`${R(2,5)} ${u} × ${R(2,5)} ${u} × ${R(2,5)} ${u}`,`${u}³`,`${u} × ${u} × ${u} = ${u}³`]]);
+  return {type:"choice",options:opts,text:`What unit will the answer have? ${c[0]}`,answer:c[1],steps:[`Look at what happens to the units: ${c[2]}.`],final:c[1]}}},
+ {L:[1,3],f:function(){const c=pick([["miles","hours","miles per hour",R(30,70),R(2,8)],["miles","gallons","miles per gallon",R(18,35),R(5,20)],["pages","days","pages per day",R(12,45),R(3,8)],["students","teachers","students per teacher",R(15,30),R(2,12)],["dollars","hours","dollars per hour",R(8,20),R(3,9)]]),[t,b,rate,s,n]=c,tot=s*n;
+  return {type:"num",text:`Simplify: ${tot} ${t} ÷ ${n} ${b}. (The answer is in ${rate}.)`,answer:String(s),steps:[`Divide the numbers: ${tot} ÷ ${n} = ${s}.`,`The units become ${t} per ${b.replace(/s$/,"")}: ${rate}.`,`${s} ${rate}.`],final:`${s} ${rate}`}}},
+ {L:[3,4],f:function(){const s=R(40,75),h=R(3,17),d=s*h;
+  return {type:"num",text:`A family drove ${d} miles in ${h} hours. What was their average speed in miles per hour?`,answer:String(s),steps:[`Average speed = distance ÷ time.`,`${d} mi ÷ ${h} hr = ${s} mi/hr.`],final:`${s} miles per hour`}}}
+];
+
+LESSONS["Lesson 82"]=[
+ {L:[1,2],f:function(){const e=R(2,6),u=pick(["cm","in."]);return {type:"num",text:`How many 1-${u==="cm"?"cm":"inch"} cubes are needed to build a cube ${e} ${u} on each edge?`,answer:String(e*e*e),steps:[`The bottom layer is ${e} × ${e} = ${e*e} cubes.`,`There are ${e} layers: ${e*e} × ${e} = ${e*e*e} cubes.`,`(For a cube, V = e³: ${e}³ = ${e*e*e}.)`],final:`${e*e*e} cubes`}}},
+ {L:[1,3],f:function(){const l=R(2,12),w=R(2,10),h=R(2,10),u=pick(["ft","in.","cm","m"]);return {type:"num",text:`What is the volume of a rectangular box that is ${l} ${u} long, ${w} ${u} wide, and ${h} ${u} tall? (in cubic ${u==="ft"?"feet":u==="in."?"inches":u==="cm"?"centimeters":"meters"})`,answer:String(l*w*h),steps:[`V = l × w × h.`,`${l} × ${w} = ${l*w} (the bottom layer).`,`${l*w} × ${h} = ${l*w*h} cubic units.`],final:`${l*w*h} ${u.replace(".","")}³`}}},
+ {L:[2,3],f:function(){const l=R(3,12),w=R(2,8),h=R(2,8),both=Math.random()<.5;return {type:"num",text:`The inside of a box is ${l} inches by ${w} inches by ${h} inches. It is filled with 1-inch cubes. ${both?"How many cubes can fit in the whole box?":"How many cubes fit on the bottom layer?"}`,answer:String(both?l*w*h:l*w),steps:[`Bottom layer: ${l} × ${w} = ${l*w} cubes.`,...(both?[`There are ${h} layers: ${l*w} × ${h} = ${l*w*h} cubes.`]:[])],final:String(both?l*w*h:l*w)}}},
+ {L:[3,4],f:function(){const l=R(2,10),w=R(2,8),h=R(2,9);return {type:"num",text:`A rectangular prism has a volume of ${l*w*h} cubic feet. It is ${l} ft long and ${w} ft wide. How tall is it, in feet?`,answer:String(h),steps:[`V = l × w × h, so ${l*w*h} = ${l} × ${w} × h.`,`${l} × ${w} = ${l*w}, so ${l*w} × h = ${l*w*h}.`,`h = ${l*w*h} ÷ ${l*w} = ${h} ft.`],final:`${h} ft`}}},
+ {L:[3,4],f:function(){const e=R(2,10);return {type:"num",text:`A cube has a volume of ${e*e*e} cubic centimeters. How long is each edge, in cm?`,answer:String(e),steps:[`For a cube, V = e × e × e.`,`Which number times itself 3 times is ${e*e*e}? ${e} × ${e} × ${e} = ${e*e*e}.`,`Each edge is ${e} cm.`],final:`${e} cm`}}},
+ {L:[2,3],f:function(){const [thing,ans]=pick([["a refrigerator","cubic feet"],["a shoebox","cubic inches"],["a classroom","cubic feet"],["a lake","cubic miles"],["a jewelry box","cubic inches"],["a truck's cargo space","cubic feet"]]);
+  return {type:"choice",options:["cubic inches","cubic feet","cubic miles"],text:`Choose the most appropriate unit to measure the volume of ${thing}.`,answer:ans,steps:[`Small things use small units (cubic inches); room-sized things use cubic feet; huge things like lakes use cubic miles.`,`For ${thing}: ${ans}.`],final:ans}}},
+ {L:[2,4],f:function(){const s=pick([1,2,3]),k=pick([2,3]),E=s*k;return {type:"num",text:`A large cube is built from small ${s}-inch cubes, ${k} small cubes along each edge. What is the volume of the large cube, in cubic inches?`,answer:String(E*E*E),steps:[`Each edge of the large cube is ${k} × ${s} = ${E} in.`,`V = ${E} × ${E} × ${E} = ${E*E*E} cubic inches.`],final:`${E*E*E} in.³`}}},
+ {L:[3,4],f:function(){const n=R(2,5),t=R(1,2),e=`${n}.${t}`,opts=[n*n,n*n*n,3*n,(n+1)*(n+1)*(n+1)].map(String);return {type:"choice",options:[...new Set(opts)],text:`A cube has edges ${e} cm long. Which is a good estimate of its volume, in cubic centimeters?`,answer:String(n*n*n),steps:[`${e} is close to ${n}.`,`Volume ≈ ${n} × ${n} × ${n} = ${n*n*n} cubic cm.`],final:`about ${n*n*n} cm³`}}},
+ {L:[1,2],f:function(){const [d,cnt]=pick([["an even number",3],["a number less than 3",2],["a number greater than 2",4],["a composite number",2],["a prime number",3],["a number greater than 4",2]]);return {...fracAns(cnt,6),text:`What is the probability of rolling ${d} on a number cube (1 to 6)?`,steps:[`There are 6 equally likely outcomes.`,`${cnt} of them are ${d}.`,`Probability = ${F(cnt,6)}${gcd(cnt,6)>1?` = ${mixed(cnt,6)}`:""}.`],final:mixed(cnt,6)}}}
+];
+
+LESSONS["Investigation 8"]=[
+ {L:[1,2],f:function(){const L=R(4,30);return {type:"num",text:`A line bisects segment AB, which is ${L} cm long. How long is each of the two smaller segments, in cm?`,answer:dec(L*5,1),steps:[`"Bisect" means cut into two equal parts.`,`${L} ÷ 2 = ${dec(L*5,1)} cm.`],final:`${dec(L*5,1)} cm`}}},
+ {L:[2,3],f:function(){const t=R(12,95);return {type:"num",text:`Point M bisects segment AB. AM is ${dec(t,1)} cm. How long is AB, in cm?`,answer:dec(2*t,1),steps:[`M is the midpoint, so AM = MB.`,`AB = ${dec(t,1)} + ${dec(t,1)} = ${dec(2*t,1)} cm.`],final:`${dec(2*t,1)} cm`}}},
+ {L:[1,3],f:function(){const m=2*R(10,85);return {type:"num",text:`A ray bisects an angle that measures ${m}°. What is the measure of each smaller angle, in degrees?`,answer:String(m/2),steps:[`An angle bisector cuts the angle into two equal angles.`,`${m}° ÷ 2 = ${m/2}°.`],final:`${m/2}°`}}},
+ {L:[2,3],f:function(){const h=R(10,85);return {type:"num",text:`Ray OB bisects ∠AOC. ∠AOB measures ${h}°. What is the measure of ∠AOC, in degrees?`,answer:String(2*h),steps:[`The bisector makes ∠AOB = ∠BOC = ${h}°.`,`∠AOC = ${h}° + ${h}° = ${2*h}°.`],final:`${2*h}°`}}},
+ {L:[1,3],f:function(){const m=pick([R(10,85),90,R(95,175),180,R(10,85),R(95,175)]);return {type:"choice",options:["acute","right","obtuse","straight"],text:`Classify a ${m}° angle.`,answer:ANG8(m),steps:[`Acute: less than 90°. Right: exactly 90°. Obtuse: between 90° and 180°. Straight: exactly 180°.`,`${m}° is ${ANG8(m)}.`],final:ANG8(m)}}},
+ {L:[1,2],f:function(){const c=pick([["What does the word bisect mean?","cut into two equal parts",["cut into two equal parts","cut into three parts","make a right angle","draw a circle"]],["A perpendicular bisector crosses a segment. What kind of angles does it make with the segment?","right angles",["right angles","acute angles","obtuse angles","straight angles"]],["A perpendicular bisector always passes through which point of the segment?","the midpoint",["the midpoint","an endpoint","the longest end","no point"]],["To bisect a segment, the compass should be set to how much of the segment's length?","more than half",["more than half","exactly half","less than half","exactly one fourth"]],["An angle bisector is drawn from the vertex. It is a…","ray",["ray","circle","segment with no end","triangle"]]]);
+  return {type:"choice",options:c[2],text:c[0],answer:c[1],steps:[`Investigation 8: a bisector cuts a segment or an angle into two equal parts. A perpendicular bisector goes through the midpoint at right angles.`,`Answer: ${c[1]}.`],final:c[1]}}},
+ {L:[2,4],f:function(){const big=2*R(20,85),yes=Math.random()<.5,half=yes?big/2:big/2+pick([-1,1])*R(5,15);return {type:"choice",options:["Yes","No"],text:`∠AOE measures ${big}°. Ray OB is inside it, and ∠AOB measures ${half}°. Does ray OB bisect ∠AOE?`,answer:yes?"Yes":"No",steps:[`If OB bisects ∠AOE, then ∠AOB must be half of ${big}°, which is ${big/2}°.`,`∠AOB is ${half}°, so ${yes?"yes, OB bisects it":"no, the two parts are not equal"}.`],final:yes?"Yes":"No"}}},
+ {L:[3,4],f:function(){const a=R(20,160);return {type:"num",text:`Points A, O, and F are on a straight line. Ray OB makes ∠AOB = ${a}°. What is the measure of ∠BOF, in degrees?`,answer:String(180-a),steps:[`A straight angle measures 180°.`,`∠BOF = 180° − ${a}° = ${180-a}°.`,`(∠BOF is ${ANG8(180-a)}.)`],final:`${180-a}°`}}},
+ {L:[1,3],f:function(){let a,b;do{a=R(-10,8);b=a+2*R(1,9)}while(b>12);return {type:"num",text:`On a number line, segment AB goes from ${a} to ${b}. Its perpendicular bisector crosses at the midpoint. What number is at the midpoint?`,answer:String((a+b)/2),steps:[`The segment is ${b} − (${a}) = ${b-a} units long.`,`Half of that is ${(b-a)/2}.`,`${a} + ${(b-a)/2} = ${(a+b)/2}.`],final:String((a+b)/2)}}}
+];
+
+LESSONS["Lesson 83"]=[
+ {L:[1,2],f:function(){const [a,b]=coprimePair(2,9),k=R(2,5),opts=[`${a*k}/${b*k}`,`${b}/${a}`,`${a+k}/${b+k}`,`${a*k}/${b}`].sort(()=>Math.random()-.5);
+  return {type:"choice",options:opts,text:`Which ratio forms a proportion with ${F(a,b)}?`,answer:`${a*k}/${b*k}`,steps:[`Equal ratios form a proportion. Reduce each choice and compare with ${F(a,b)}.`,`${F(a*k,b*k)} ÷ ${F(k,k)} = ${F(a,b)}. That one matches.`],final:`${a*k}/${b*k}`}}},
+ {L:[1,3],f:function(){const [a,b]=coprimePair(2,9),k=R(2,9);const which=pick([0,1,2]);let txt,ans,st;
+  if(which===0){txt=`Complete this proportion: ${a} is to ${b} as ${a*k} is to what number?`;ans=b*k;st=[`Write it in order: ${F(a,b)} = ${F(a*k,"n")}.`,`Scale factor: ${a} × ${k} = ${a*k}, so k = ${k}.`,`n = ${b} × ${k} = ${b*k}.`]}
+  else if(which===1){txt=`Complete this proportion: ${a} is to ${b} as what number is to ${b*k}?`;ans=a*k;st=[`Write it in order: ${F(a,b)} = ${F("n",b*k)}.`,`Scale factor: ${b} × ${k} = ${b*k}, so k = ${k}.`,`n = ${a} × ${k} = ${a*k}.`]}
+  else{txt=`Solve the proportion: ${F(a,b)} = ${F(a*k,"n")}`;ans=b*k;st=[`Scale factor: ${a} × ${k} = ${a*k}.`,`n = ${b} × ${k} = ${b*k}.`]}
+  return {type:"num",text:txt,answer:String(ans),steps:st,final:String(ans)}}},
+ {L:[2,3],f:function(){let a,b,k;do{[a,b]=coprimePair(2,8);k=R(2,3)}while(a*k>20||b*k>20);const right=`${a}/${b} = ${a*k}/${b*k}`,opts=[right,`${b}/${a} = ${b*k}/${a*k}`,`${a}/${a*k} = ${b*k}/${b}`,`${a}/${b} = ${b*k}/${a*k}`].sort(()=>Math.random()-.5);
+  return {type:"choice",options:opts,text:`Write this proportion with digits: ${NW[a]} is to ${NW[b]} as ${NW[a*k]} is to ${NW[b*k]}.`,answer:right,steps:[`"${NW[a]} is to ${NW[b]}" is the first ratio: ${F(a,b)}.`,`"${NW[a*k]} is to ${NW[b*k]}" is the second ratio: ${F(a*k,b*k)}.`,`Keep the numbers in the order stated: ${right}.`],final:right}}},
+ {L:[2,4],f:function(){const lb=R(2,5),dol=R(2,9),k=R(2,6),[it,u]=pick([["peaches","pounds"],["apples","pounds"],["pencils","packs"],["notebooks","notebooks"]]);
+  return {type:"num",text:`${it[0].toUpperCase()+it.slice(1)} are on sale: ${lb} ${u} for $${dol}. At the same rate, how many dollars do ${lb*k} ${u} cost?`,answer:String(dol*k),steps:[`Write the proportion: ${F(lb,dol)} = ${F(lb*k,"n")}.`,`${lb} × ${k} = ${lb*k}, so the scale factor is ${k}.`,`n = ${dol} × ${k} = ${dol*k} dollars.`],final:`$${dol*k}`}}},
+ {L:[1,2],f:function(){const [a,b]=coprimePair(2,9),k=R(2,5),yes=Math.random()<.5,c=a*k,d=yes?b*k:b*k+pick([-1,1]);
+  return {type:"choice",options:["Yes","No"],text:`Do the ratios ${F(a,b)} and ${F(c,d)} form a proportion?`,answer:yes?"Yes":"No",steps:[`Reduce ${F(c,d)}: ${(()=>{const r=red(c,d);return F(r[0],r[1])})()}.`,yes?`It reduces to ${F(a,b)}, so yes, they form a proportion.`:`It does not reduce to ${F(a,b)}, so no.`],final:yes?"Yes":"No"}}},
+ {L:[3,4],f:function(){let a,b,k,j,x,y;do{[a,b]=coprimePair(2,7);k=R(2,6);j=R(2,6);[x,y]=coprimePair(2,7)}while(k===j||(x*b===a*y));const P=[[a*k,b*k],[a*j,b*j],[x*j,y*j],[y*k,x*k]];const s=P.map(p=>`${p[0]}/${p[1]}`);
+  return {type:"choice",options:[`${s[0]} and ${s[1]}`,`${s[0]} and ${s[2]}`,`${s[1]} and ${s[3]}`,`${s[2]} and ${s[3]}`],text:`Two ratios form a proportion if they reduce to the same fraction. Which two of these form a proportion? ${s.join(",  ")}`,answer:`${s[0]} and ${s[1]}`,steps:[`Reduce each: ${s[0]} → ${F(a,b)}, ${s[1]} → ${F(a,b)}, ${s[2]} → ${F(x,y)}, ${s[3]} → ${F(y,x)}.`,`${s[0]} and ${s[1]} both reduce to ${F(a,b)}.`],final:`${s[0]} and ${s[1]}`}}},
+ {L:[2,3],f:function(){const d=pick([20,25,50]),n=R(1,d-1),p=n*100/d;return {type:"num",text:`${n} of the ${d} students wore a hat. What percent of the students wore a hat?`,answer:String(p),steps:[`Write it as a fraction: ${F(n,d)}.`,`Make the denominator 100: multiply top and bottom by ${100/d}: ${F(n*100/d,100)}.`,`That is ${p}%.`],final:`${p}%`}}}
+];
+
+function chainCalc(){for(let t=0;t<200;t++){let v=R(5,9);const s=v,ops=[`${s} × ${s}`];v=s*s;
+  for(let i=0;i<5;i++){const o=pick(["+","−","÷","×"]);let n;
+    if(o==="÷"){const ds=[2,3,4,5,6,7,8,9].filter(d=>v%d===0&&v/d>=1);if(!ds.length)continue;n=pick(ds);v/=n}
+    else if(o==="×"){if(v>20)continue;n=R(2,5);v*=n}else if(o==="+"){n=R(1,9);v+=n}else{n=R(1,Math.min(9,v-1));if(n<1)continue;v-=n}
+    ops.push(`${o} ${n}`)}
+  if(ops.length>=5&&v>0)return {ops,v}}return {ops:["6 × 6","− 6","÷ 2"],v:15}}
+LESSONS["Lesson 84"]=[
+ {L:[1,2],f:function(){const a=R(2,9),b=R(2,9),c=R(2,9),e=R(2,5),d=e*R(1,5),v=a+b*c-d/e;
+  return {type:"num",text:`Simplify: ${a} + ${b} × ${c} − ${d} ÷ ${e}`,answer:String(v),steps:[`Order of operations: multiply and divide first (left to right), then add and subtract.`,`${b} × ${c} = ${b*c} and ${d} ÷ ${e} = ${d/e}.`,`${a} + ${b*c} − ${d/e} = ${v}.`],final:String(v)}}},
+ {L:[1,3],f:function(){const a=R(2,9),b=R(2,12),c=R(2,12),dist=Math.random()<.5;
+  return dist?{type:"num",text:`Simplify: ${a}(${b}) + ${a}(${c})`,answer:String(a*b+a*c),steps:[`Multiply first: ${a}(${b}) = ${a*b} and ${a}(${c}) = ${a*c}.`,`Then add: ${a*b} + ${a*c} = ${a*b+a*c}.`],final:String(a*b+a*c)}
+  :{type:"num",text:`Simplify: ${a}(${b} + ${c})`,answer:String(a*(b+c)),steps:[`Parentheses first: ${b} + ${c} = ${b+c}.`,`Then multiply: ${a} × ${b+c} = ${a*(b+c)}.`],final:String(a*(b+c))}}},
+ {L:[3,4],f:function(){const k=pick([2,4,5,6]),x=dec(k,1),f=pick([0,1,2]);let txt,v,st;
+  if(f===0){txt=`${x} + ${x} ÷ ${x} − ${x} × ${x}`;v=10*k+100-k*k;st=[`Multiply and divide first: ${x} ÷ ${x} = 1 and ${x} × ${x} = ${dec(k*k,2)}.`,`${x} + 1 − ${dec(k*k,2)} = ${dec(v,2)}.`]}
+  else if(f===1){txt=`${x} × ${x} + (${x} ÷ ${x})`;v=k*k+100;st=[`Parentheses: ${x} ÷ ${x} = 1.`,`${x} × ${x} = ${dec(k*k,2)}.`,`${dec(k*k,2)} + 1 = ${dec(v,2)}.`]}
+  else{txt=`${x} + (${x} ÷ ${x}) + (${x} × ${x})`;v=10*k+100+k*k;st=[`Parentheses: ${x} ÷ ${x} = 1 and ${x} × ${x} = ${dec(k*k,2)}.`,`${x} + 1 + ${dec(k*k,2)} = ${dec(v,2)}.`]}
+  return {type:"num",text:`Simplify: ${txt}`,answer:dec(v,2),steps:st,final:dec(v,2)}}},
+ {L:[2,3],f:function(){const c=5*R(0,20),v=32+9*c/5;return {type:"num",text:`Simplify: 32 + 1.8(${c})`,answer:String(v),steps:[`Multiply first: 1.8 × ${c} = ${dec(18*c,1)}.`,`Then add: 32 + ${dec(18*c,1)} = ${v}.`],final:String(v)}}},
+ {L:[1,2],f:function(){const a=R(3,20),m=R(2,5),b=R(1,a*m-1);return {type:"num",text:`If a equals ${a}, then what does ${m}a − ${b} equal?`,answer:String(m*a-b),steps:[`${m}a means ${m} × a = ${m} × ${a} = ${m*a}.`,`${m*a} − ${b} = ${m*a-b}.`],final:String(m*a-b)}}},
+ {L:[3,4],f:function(){const {ops,v}=chainCalc();return {type:"num",text:`Mental math, left to right: ${ops.join(", ")}`,answer:String(v),steps:[`Do each step in order, keeping the running total.`,`Start: ${ops[0]} = ${(()=>{const s=+ops[0].split(" ")[0];return s*s})()}.`,`After all the steps the answer is ${v}.`],final:String(v)}}},
+ {L:[2,4],f:function(){const a=R(2,9),b=R(2,9),c=R(1,9),d=R(2,6),v=(a+b)*d-c;return {type:"num",text:`Simplify: (${a} + ${b}) × ${d} − ${c}`,answer:String(v),steps:[`Parentheses first: ${a} + ${b} = ${a+b}.`,`Multiply: ${a+b} × ${d} = ${(a+b)*d}.`,`Subtract: ${(a+b)*d} − ${c} = ${v}.`],final:String(v)}}}
+];
+
+LESSONS["Lesson 85"]=[
+ {L:[1,2],f:function(){const [a,b]=coprimePair(2,9),k=R(2,4),yes=Math.random()<.5;let c=a*k,d=b*k;if(!yes){d+=pick([-1,1,2])}
+  return {type:"choice",options:["Yes","No"],text:`Use cross products. Do ${F(a,b)} and ${F(c,d)} form a proportion?`,answer:yes?"Yes":"No",steps:[`Cross products: ${a} × ${d} = ${a*d} and ${b} × ${c} = ${b*c}.`,yes?`They are equal, so the ratios form a proportion.`:`They are not equal, so the ratios do not form a proportion.`],final:yes?"Yes":"No"}}},
+ {L:[2,3],f:function(){let a,b,c,x;do{a=R(2,12);b=R(2,16);x=R(2,20)}while((a*x)%b!==0||a===b);c=a*x/b;
+  return {type:"num",text:`Use cross products to complete the proportion: ${F(a,b)} = ${F(c,"x")}`,answer:String(x),steps:[`Cross products are equal: ${a} · x = ${b} · ${c}.`,`${a}x = ${b*c}.`,`x = ${b*c} ÷ ${a} = ${x}.`],final:String(x)}}},
+ {L:[3,4],f:function(){let a,b,c;do{a=R(3,12);b=R(2,15);c=R(2,15)}while(a===b||(b*c)%a===0);
+  return {...fracAns(b*c,a),text:`Use cross products to solve: ${F(a,b)} = ${F(c,"m")}. (Write a mixed number if needed.)`,steps:[`Cross multiply: ${a} · m = ${b} · ${c} = ${b*c}.`,`m = ${b*c} ÷ ${a} = ${mixed(b*c,a)}.`],final:mixed(b*c,a)}}},
+ {L:[2,4],f:function(){let a,b,w,c;do{a=R(4,20);b=R(4,24);c=R(20,90)}while((a*c)%b!==0||a===b);w=a*c/b;
+  return {type:"num",text:`Use cross products to find the unknown term: ${a} is to ${b} as what number is to ${c}?`,answer:String(w),steps:[`Write it in order: ${F(a,b)} = ${F("w",c)}.`,`Cross products: ${a} · ${c} = ${b} · w, so ${a*c} = ${b}w.`,`w = ${a*c} ÷ ${b} = ${w}.`],final:String(w)}}},
+ {L:[1,3],f:function(){let a,b,c,d;do{[a,b]=[R(1,8),R(2,9)];[c,d]=[R(1,8),R(2,9)]}while(a>=b||c>=d||a*d===b*c);const big=a*d>b*c?`${a}/${b}`:`${c}/${d}`;
+  return {type:"choice",options:[`${a}/${b}`,`${c}/${d}`,"They are equal"],text:`Use cross products to find the greater fraction: ${F(a,b)} or ${F(c,d)}?`,answer:big,steps:[`Cross products: ${a} × ${d} = ${a*d} (goes above ${F(a,b)}), ${c} × ${b} = ${c*b} (goes above ${F(c,d)}).`,`The greater cross product is above the greater fraction: ${big}.`],final:big}}},
+ {L:[2,3],f:function(){let b,d,c,w;do{b=R(3,12);d=R(10,40);c=R(5,40)}while((b*c)%d!==0||b*c/d<1);w=b*c/d;
+  return {type:"num",text:`Solve: ${F("w",b)} = ${F(c,d)}`,answer:String(w),steps:[`Cross products: ${d} · w = ${b} · ${c} = ${b*c}.`,`w = ${b*c} ÷ ${d} = ${w}.`],final:String(w)}}},
+ {L:[2,4],f:function(){const base=pick([1500,2000,2400,800,5000]),r=pick([[15,"1.5%",0.015],[2,"2%",0.02],[1,"1%",0.01]]);const v=base*r[0]/(r[0]===15?1000:100);
+  return {type:"num",text:`A company charges ${r[1]} interest on an unpaid balance each month. If the unpaid balance is $${comma(base)}, how much interest is charged this month? (Type the dollars)`,answer:String(v),steps:[`${r[1]} = ${r[2]}.`,`$${comma(base)} × ${r[2]} = $${v}.`],final:`$${v}`}}}
+];
+
+LESSONS["Lesson 86"]=[
+ {L:[1,2],f:function(){const r=R(1,10),u=pick(["cm","inches","feet","meters"]);return {type:"num",text:`Calculate the area of a circle with a radius of ${r} ${u}. (Use 3.14 for π.)`,answer:dec(314*r*r,2),steps:[`A = π r². First the square on the radius: ${r} × ${r} = ${r*r}.`,`Multiply by 3.14: 3.14 × ${r*r} = ${dec(314*r*r,2)}.`],final:`${dec(314*r*r,2)} square ${u}`}}},
+ {L:[2,3],f:function(){const d=2*R(1,10),r=d/2,u=pick(["cm","inches","feet"]);return {type:"num",text:`Calculate the area of a circle with a diameter of ${d} ${u}. (Use 3.14 for π.)`,answer:dec(314*r*r,2),steps:[`The radius is half the diameter: ${d} ÷ 2 = ${r}.`,`r² = ${r} × ${r} = ${r*r}.`,`A = 3.14 × ${r*r} = ${dec(314*r*r,2)} square units.`],final:dec(314*r*r,2)}}},
+ {L:[3,4],f:function(){const r=R(3,12),v=Math.round(3.14*r*r);return {type:"num",whole:true,text:`The radius of a circle is ${r} cm. What is its area, rounded to the nearest square centimeter? (Use 3.14 for π.)`,answer:String(v),steps:[`r² = ${r} × ${r} = ${r*r} cm².`,`3.14 × ${r*r} = ${dec(314*r*r,2)} cm².`,`Rounded to the nearest whole number: ${v} cm².`],final:`${v} cm²`}}},
+ {L:[1,2],f:function(){const r=R(2,12);return {type:"num",text:`A square is built on the radius of a circle. The radius is ${r} mm. What is the area of that square, in mm²?`,answer:String(r*r),steps:[`The side of the square is the radius, ${r} mm.`,`${r} × ${r} = ${r*r} mm².`,`(The circle's area is about 3.14 of these squares.)`],final:`${r*r} mm²`}}},
+ {L:[2,3],f:function(){const d=R(2,15);return {type:"num",text:`A wheel has a diameter of ${d} inches. How far does it roll in one full turn? (Use 3.14 for π.)`,answer:dec(314*d,2),steps:[`One turn = the circumference = π × d.`,`3.14 × ${d} = ${dec(314*d,2)} inches.`],final:`${dec(314*d,2)} in.`}}},
+ {L:[3,4],f:function(){const s=2*R(2,10),big=Math.random()<.5;return {type:"num",text:`A circle fits exactly inside a large square with sides of ${s} cm. A smaller square fits inside the circle, and its area is half the area of the large square. What is the area of the ${big?"large":"smaller"} square, in cm²?`,answer:String(big?s*s:s*s/2),steps:[`Large square: ${s} × ${s} = ${s*s} cm².`,...(big?[]:[`Smaller square: half of ${s*s} = ${s*s/2} cm².`])],final:`${big?s*s:s*s/2} cm²`}}},
+ {L:[2,3],f:function(){const r=R(2,6),opts=[r*r,3*r*r,6*r*r,2*r].map(String);return {type:"choice",options:[...new Set(opts)],text:`A circle with a radius of ${r} units is drawn on a grid. About how many square units are inside it? Choose the best estimate.`,answer:String(3*r*r),steps:[`The square on the radius has area ${r} × ${r} = ${r*r}.`,`A circle holds a little more than 3 of those squares (π ≈ 3.14).`,`3 × ${r*r} = ${3*r*r} is the best estimate.`],final:String(3*r*r)}}},
+ {L:[3,4],f:function(){const r=R(2,8);return {type:"num",text:`The area of a circle is ${dec(314*r*r,2)} square inches. (π ≈ 3.14) What is its radius, in inches?`,answer:String(r),steps:[`A = 3.14 × r², so r² = ${dec(314*r*r,2)} ÷ 3.14 = ${r*r}.`,`Which number times itself is ${r*r}? ${r} × ${r} = ${r*r}.`,`r = ${r} in.`],final:`${r} in.`}}}
+];
+
+LESSONS["Lesson 87"]=[
+ {L:[1,2],f:function(){let a,b;do{a=R(2,9);b=R(10,60)}while(b%a===0);return {...fracAns(b,a),text:`Solve: ${a}n = ${b}`,steps:[`To find an unknown factor, divide the product by the known factor.`,`${b} ÷ ${a} = ${Math.floor(b/a)} R ${b%a}.`,`The remainder becomes a fraction: n = ${mixed(b,a)}.`],final:mixed(b,a)}}},
+ {L:[1,3],f:function(){let a,b;do{a=R(2,9);b=R(10,80)}while(b%a===0);return {...fracAns(b,a),text:`Solve: ${b} = ${a}x`,steps:[`The equal sign works both ways: ${a}x = ${b}.`,`x = ${b} ÷ ${a} = ${mixed(b,a)}.`],final:mixed(b,a)}}},
+ {L:[2,4],f:function(){const j=R(2,9),k=R(2,19),p=j*k;return {type:"num",text:`Solve: 0.${j}m = ${dec(p,3)}`,answer:dec(k,2),steps:[`There are decimals, so the answer is a decimal.`,`Divide: ${dec(p,3)} ÷ 0.${j}. Move both decimal points one place: ${dec(p,2)} ÷ ${j}.`,`m = ${dec(k,2)}.`],final:dec(k,2)}}},
+ {L:[2,3],f:function(){const a=R(2,12),k=R(1,30),p=a*k;return {type:"num",text:`Solve: ${a}n = ${dec(p,2)}`,answer:dec(k,2),steps:[`Divide the product by the known factor: ${dec(p,2)} ÷ ${a}.`,`n = ${dec(k,2)}.`],final:dec(k,2)}}},
+ {L:[3,4],f:function(){const a=R(2,9),c=R(3,10);return {...fracAns(c*c,a),text:`Solve: ${a}n = ${c}²`,steps:[`First the exponent: ${c}² = ${c*c}.`,`${a}n = ${c*c}, so n = ${c*c} ÷ ${a} = ${mixed(c*c,a)}.`],final:mixed(c*c,a)}}},
+ {L:[3,4],f:function(){const f=R(2,9),k=R(2,30);return {type:"num",text:`Solve: ${dec(f*k,1)} = ${dec(f,1)}y`,answer:String(k),steps:[`${dec(f,1)}y = ${dec(f*k,1)}.`,`y = ${dec(f*k,1)} ÷ ${dec(f,1)}. Move both decimal points one place: ${f*k} ÷ ${f} = ${k}.`],final:String(k)}}},
+ {L:[1,2],f:function(){const d=R(3,15),q=R(5,30);return {type:"num",text:`If the divisor is ${d} and the quotient is ${q}, what is the dividend?`,answer:String(d*q),steps:[`dividend ÷ divisor = quotient, so dividend = divisor × quotient.`,`${d} × ${q} = ${d*q}.`],final:String(d*q)}}}
+];
+
+const LESSON_ORDER2=["Lesson 80","Lesson 81","Lesson 82","Investigation 8","Lesson 83","Lesson 84","Lesson 85","Lesson 86","Lesson 87"];
+LESSONS["Mixed review 2"]=LESSON_ORDER2.flatMap(k=>LESSONS[k].map(g=>({L:g.L,f:()=>{const q=g.f();q.src=k;return q}})));
+LESSON_SUB["Mixed review 2"]="50 mixed problems from your newest lessons";
 const GEN={};
-for(const t of ["Mixed review","Lesson 72","Lesson 71","Investigation 7","Lesson 70","Lesson 69","Lesson 68","Lesson 67","Lesson 66","Lesson 65"])GEN[t]=LESSONS[t];
+for(const t of ["Mixed review 2","Mixed review","Lesson 87","Lesson 86","Lesson 85","Lesson 84","Lesson 83","Investigation 8","Lesson 82","Lesson 81","Lesson 80","Lesson 72","Lesson 71","Investigation 7","Lesson 70","Lesson 69","Lesson 68","Lesson 67","Lesson 66","Lesson 65"])GEN[t]=LESSONS[t];
 for(const t of Object.keys(BASE)){GEN[t]=BASE[t].map((f,i)=>({L:LV[t][i],f})).concat(EXTRA[t]||[])}
 const LEVEL_NAMES=["","Easy","Medium","Hard","Harder (7th grade)"];
 function makeOne(topic,L,avoid){const pool=GEN[topic].filter(g=>L>=g.L[0]&&L<=g.L[1]);let q,t=0;do{q=pick(pool).f();t++}while(avoid&&avoid.has(q.text)&&t<30);
@@ -1180,9 +1338,9 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const qs=id=>S.q[id]||(S.q[id]={a:0,s:"open",g:[]});
 const TOPICS=Object.keys(GEN);
 const SET_SIZE=10;
-const sizeOf=t=>t==="Mixed review"?40:LESSONS[t]?20:SET_SIZE;
-const VISIBLE=TOPICS.filter(t=>!(LESSONS[t]&&t!=="Mixed review"&&t!=="Investigation 7"));
-function lessonStats(){return LESSON_ORDER.map(k=>{const all=S.log.filter(l=>(l.src||l.t)===k),n=all.length,ok=all.filter(l=>l.ok).length,first=all.filter(l=>l.ok&&l.a===1).length,last=all.slice(-10),lockLast=last.filter(l=>!l.ok).length,p=n?ok/n:0;
+const sizeOf=t=>t==="Mixed review 2"?50:t==="Mixed review"?40:LESSONS[t]?20:SET_SIZE;
+const VISIBLE=TOPICS.filter(t=>!(LESSONS[t]&&t!=="Mixed review"&&t!=="Mixed review 2"&&t!=="Investigation 7"));
+function lessonStats(){return [...LESSON_ORDER,...LESSON_ORDER2].map(k=>{const all=S.log.filter(l=>(l.src||l.t)===k),n=all.length,ok=all.filter(l=>l.ok).length,first=all.filter(l=>l.ok&&l.a===1).length,last=all.slice(-10),lockLast=last.filter(l=>!l.ok).length,p=n?ok/n:0;
   const st=!n?{cls:"new",label:"Not yet"}:(lockLast>=2||p<.7)?{cls:"review",label:"Needs practice"}:(lockLast>=1||p<.9)?{cls:"mid",label:"Getting there"}:{cls:"done",label:"Strong"};return {k,n,ok,first,lock:n-ok,st,p}})}
 const setSize=s=>sizeOf(s.list[0]&&s.list[0].topic);
 const HINTS=3;
@@ -1266,7 +1424,7 @@ function report(){
   const lrows=ls.map(x=>`<tr><td>${esc(x.k)}</td><td>${x.n}</td><td>${x.n?x.first:"—"}</td><td>${x.n?x.lock:"—"}</td><td>${x.n?Math.round(x.p*100)+"%":"—"}</td><td><span class="pill ${x.st.cls}">${x.st.label}</span></td></tr>`).join("");
   const misses=S.log.filter(l=>!l.ok).slice(-12).reverse();
   return header()+`<section class="panel"><h2>Topics to review</h2>${weakL.length?`<p style="margin:0">Lessons to practice more: <b>${weakL.map(esc).join(", ")}</b>.</p>`:""}${weak.length?`<p style="margin:0">Practice these topics more: <b>${weak.map(esc).join(", ")}</b>.</p>`:""}${!weak.length&&!weakL.length?`<div class="empty">No weak topics yet. A topic shows up here when fewer than 8 of its last 10 problems are right.</div>`:""}</section>
-  <section class="panel"><h2>By lesson (from Mixed review)</h2><p class="sub" style="margin:0">Every Mixed review problem is tracked by the book lesson it comes from.</p><div class="tablewrap"><table id="lessontable"><thead><tr><th>Lesson</th><th>Done</th><th>Right 1st try</th><th>Locked</th><th>Score</th><th>Status</th></tr></thead><tbody>${lrows}</tbody></table></div></section>
+  <section class="panel"><h2>By lesson (from Mixed reviews)</h2><p class="sub" style="margin:0">Every Mixed review and Mixed review 2 problem is tracked by the book lesson it comes from.</p><div class="tablewrap"><table id="lessontable"><thead><tr><th>Lesson</th><th>Done</th><th>Right 1st try</th><th>Locked</th><th>Score</th><th>Status</th></tr></thead><tbody>${lrows}</tbody></table></div></section>
   <section class="panel"><h2>By topic</h2><div class="tablewrap"><table><thead><tr><th>Topic</th><th>Done</th><th>Score</th><th>Last 10</th><th>Homework</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>
   <section class="panel"><h2>Recent locked problems</h2>${misses.length?misses.map(l=>`<details><summary>${esc(l.src||l.t)}: ${fmt(l.text.length>80?l.text.slice(0,80)+"…":l.text)}</summary><p style="margin:.5em 0 0">Answer: <b>${fmt(l.final)}</b>${l.tries?` · Tries: ${l.tries.map(esc).join(" · ")}`:""}</p></details>`).join(""):`<div class="empty">None yet.</div>`}</section>
   <section class="panel parent"><h2>For parents</h2><p class="sub" style="margin:0">Progress is saved in this browser on this device. Use your parent PIN to reset a topic so homework problems can be tried again.</p>

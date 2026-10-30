@@ -1317,13 +1317,31 @@ LESSONS["Lesson 87"]=[
 ];
 
 const LESSON_ORDER2=["Lesson 80","Lesson 81","Lesson 82","Investigation 8","Lesson 83","Lesson 84","Lesson 85","Lesson 86","Lesson 87"];
-LESSONS["Mixed review 2"]=LESSON_ORDER2.flatMap(k=>LESSONS[k].map(g=>({L:g.L,f:()=>{const q=g.f();q.src=k;return q}})));
+const LEARN={
+ "Lesson 80":"Make a ratio box with two columns: Ratio and Actual Count. Find the row that has both numbers and divide (actual count ÷ ratio number) to get the constant factor. Then multiply the other ratio number, or the ratio total, by that factor.",
+ "Lesson 81":"To add or subtract, first change to the same unit (1 ft = 12 in., 1 yd = 3 ft, 1 qt = 2 pt, 1 m = 100 cm). To multiply, multiply the numbers and the units (ft × ft = ft²). To divide, divide the numbers and the units (cm² ÷ cm = cm, miles ÷ hours = miles per hour).",
+ "Lesson 82":"Volume = length × width × height. First count the cubes on the bottom layer (length × width), then multiply by the number of layers (the height). For a cube, all edges are equal: edge × edge × edge.",
+ "Investigation 8":"Bisect means cut into two equal parts. Each part is half of the whole, and the whole is double one part. Angles: acute is less than 90°, right is exactly 90°, obtuse is between 90° and 180°, straight is exactly 180°.",
+ "Lesson 83":"A proportion says two ratios are equal. Write the ratios in the order the words say. Find the scale factor (what one term is multiplied by to get its partner), then multiply the other term by the same number. To check, reduce both ratios.",
+ "Lesson 84":"Order of operations: 1) work inside parentheses, 2) multiply and divide from left to right, 3) add and subtract from left to right. A number right next to parentheses, like 3(4), means multiply.",
+ "Lesson 85":"Cross products: multiply the top of each ratio by the bottom of the other. Equal cross products mean the ratios form a proportion. To find a missing term, set the cross products equal, then divide by the number next to the letter.",
+ "Lesson 86":"Area of a circle = 3.14 × radius × radius. If you are given the diameter, cut it in half first to get the radius. The distance around (circumference) = 3.14 × diameter.",
+ "Lesson 87":"To find an unknown factor, divide the product by the known factor. If it does not divide evenly, write the remainder as a fraction to make a mixed number. With decimals, move both decimal points the same number of places so you divide by a whole number."};
+const RULE_X={"Lesson 80":{4:"To multiply a price like $4.99, round it up to the next whole dollar, multiply, then subtract the extra cents you added (one cent for each item).",5:"A fraction of an amount, like 1/4 of it, means split it into equal parts: divide the amount by the bottom number.",6:"Multiplying by 10 moves the decimal point 1 place to the right; by 100, 2 places. Dividing moves it to the left the same number of places.",7:"Use the unit facts: 1 gallon = 4 quarts, 1 quart = 2 pints, 1 pint = 2 cups, 1 cup = 8 ounces, 1 liter = 1000 milliliters. Multiply the number of big units by how many small units fit in one."},
+ "Lesson 82":{8:"Probability = the number of outcomes you want ÷ the number of all possible outcomes (a number cube has 6). Then reduce the fraction."},
+ "Lesson 83":{6:"To change a fraction to a percent, make the bottom number 100 by multiplying the top and bottom by the same number. The new top number is the percent."},
+ "Lesson 84":{4:"Put the number in place of the letter. A number touching a letter, like 3a, means multiply.",5:"Do one step at a time from left to right and keep a running total."},
+ "Lesson 85":{6:"Change the percent to a decimal (for example 2% = 0.02), then multiply it by the amount."},
+ "Lesson 86":{4:"One full turn of a wheel covers its circumference: 3.14 × diameter."},
+ "Lesson 87":{6:"Dividend ÷ divisor = quotient, so the dividend = divisor × quotient."}};
+for(const k in RULE_X)for(const i in RULE_X[k])LESSONS[k][i].r=RULE_X[k][i];
+LESSONS["Mixed review 2"]=LESSON_ORDER2.flatMap(k=>LESSONS[k].map(g=>({L:g.L,src:k,f:()=>{const q=g.f();q.src=k;q.learn=1;q.rule=g.r||LEARN[k];let e,t=0;do{e=g.f();t++}while((e.text===q.text||e.final===q.final)&&t<25);q.ex={text:e.text,steps:e.steps,final:e.final,svg:e.svg||"",options:e.options};return q}})));
 LESSON_SUB["Mixed review 2"]="50 mixed problems from your newest lessons";
 const GEN={};
 for(const t of ["Mixed review 2","Mixed review","Lesson 87","Lesson 86","Lesson 85","Lesson 84","Lesson 83","Investigation 8","Lesson 82","Lesson 81","Lesson 80","Lesson 72","Lesson 71","Investigation 7","Lesson 70","Lesson 69","Lesson 68","Lesson 67","Lesson 66","Lesson 65"])GEN[t]=LESSONS[t];
 for(const t of Object.keys(BASE)){GEN[t]=BASE[t].map((f,i)=>({L:LV[t][i],f})).concat(EXTRA[t]||[])}
 const LEVEL_NAMES=["","Easy","Medium","Hard","Harder (7th grade)"];
-function makeOne(topic,L,avoid){const pool=GEN[topic].filter(g=>L>=g.L[0]&&L<=g.L[1]);let q,t=0;do{q=pick(pool).f();t++}while(avoid&&avoid.has(q.text)&&t<30);
+function makeOne(topic,L,avoid,filt){let pool=GEN[topic].filter(g=>L>=g.L[0]&&L<=g.L[1]&&(!filt||filt(g)));if(!pool.length)pool=GEN[topic].filter(g=>L>=g.L[0]&&L<=g.L[1]);let q,t=0;do{q=pick(pool).f();t++}while(avoid&&avoid.has(q.text)&&t<30);
   q.topic=topic;q.lv=L;q.id="x"+Date.now().toString(36)+R(1000,9999)+(avoid?avoid.size:0);return q}
 function makeSet(topic,size=10,L=1){const out=[],seen=new Set();for(let i=0;i<size;i++){const q=makeOne(topic,L,seen);seen.add(q.text);out.push(q)}return out}
 
@@ -1397,10 +1415,15 @@ function practice(){
   let fb="";
   if(flash&&flash.id===q.id){fb=`<div class="fb ${flash.kind}" role="status">${esc(flash.msg)}</div>`}
   if(st.s==="right")fb+=`<details><summary>Show the steps</summary>${stepsHtml(q,"How to solve it")}</details>`;
-  if(st.s==="locked")fb+=stepsHtml(q,"Here is how to solve it")+`<p class="hint" style="margin:0">This problem is locked. It counts as a miss for <b>${esc(q.topic)}</b>.</p>`;
+  const rule=q.learn&&(q.rule||LEARN[q.src])?`<div class="hintbox learn" role="note"><b>How to think about it:</b> ${fmt(q.rule||LEARN[q.src])}</div>`:"";
+  const exH=q.learn&&q.ex?`<div class="steps example"><h3>A similar problem, worked out (different numbers)</h3><p style="margin:0 0 .4em">${fmt(q.ex.text)}</p>${q.ex.svg?`<div class="graph">${q.ex.svg}</div>`:""}${q.ex.options?`<p class="hint" style="margin:0 0 .4em">Choices: ${q.ex.options.map(o=>fmt(o)).join(" · ")}</p>`:""}<ol>${q.ex.steps.map(x=>`<li>${fmt(x)}</li>`).join("")}</ol><div class="final">Answer to this example: ${fmt(q.ex.final)}</div><p class="hint" style="margin:.4em 0 0">Now use the same steps with the numbers in your problem.</p></div>`:"";
+  if(q.learn&&st.s==="open"&&st.g.length)fb+=rule;
+  if(st.s==="locked"&&q.learn)fb+=rule+exH+`<p class="hint" style="margin:0">This problem is locked, and its answer stays hidden so you can learn to solve it yourself. The next problem uses the same skill, so you can try again.</p>`;
+  else if(st.s==="locked")fb+=stepsHtml(q,"Here is how to solve it")+`<p class="hint" style="margin:0">This problem is locked. It counts as a miss for <b>${esc(q.topic)}</b>.</p>`;
   let hint="";
-  if(st.h)hint=`<div class="hintbox" role="note"><b>Hint:</b> ${fmt(q.steps[0])}</div>`;
-  else if(st.s==="open"){const left=hintsLeft();hint=`<div class="row"><button class="btn" data-hint="1" ${left?"":"disabled"}>${left?`Need a hint? (${left} left)`:"No hints left in this set"}</button></div>`;}
+  if(st.h&&q.learn){if(st.s==="open")hint=exH}
+  else if(st.h)hint=`<div class="hintbox" role="note"><b>Hint:</b> ${fmt(q.steps[0])}</div>`;
+  else if(st.s==="open"){const left=hintsLeft();hint=`<div class="row"><button class="btn" data-hint="1" ${left?"":"disabled"}>${left?(q.learn?`Show me a similar example (${left} left)`:`Need a hint? (${left} left)`):"No hints left in this set"}</button></div>`;}
   const tried=st.g.length?`<div class="tried-list">Your tries: ${st.g.map(esc).join(" · ")}</div>`:"";
   const last=view.i===total-1;
   return header()+`<section class="panel"><div class="row spread"><h2>${esc(view.title)}</h2><button class="btn" data-go="home">← Topics</button></div><div class="strip">${strip}</div></section>
@@ -1426,7 +1449,7 @@ function report(){
   return header()+`<section class="panel"><h2>Topics to review</h2>${weakL.length?`<p style="margin:0">Lessons to practice more: <b>${weakL.map(esc).join(", ")}</b>.</p>`:""}${weak.length?`<p style="margin:0">Practice these topics more: <b>${weak.map(esc).join(", ")}</b>.</p>`:""}${!weak.length&&!weakL.length?`<div class="empty">No weak topics yet. A topic shows up here when fewer than 8 of its last 10 problems are right.</div>`:""}</section>
   <section class="panel"><h2>By lesson (from Mixed reviews)</h2><p class="sub" style="margin:0">Every Mixed review and Mixed review 2 problem is tracked by the book lesson it comes from.</p><div class="tablewrap"><table id="lessontable"><thead><tr><th>Lesson</th><th>Done</th><th>Right 1st try</th><th>Locked</th><th>Score</th><th>Status</th></tr></thead><tbody>${lrows}</tbody></table></div></section>
   <section class="panel"><h2>By topic</h2><div class="tablewrap"><table><thead><tr><th>Topic</th><th>Done</th><th>Score</th><th>Last 10</th><th>Homework</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>
-  <section class="panel"><h2>Recent locked problems</h2>${misses.length?misses.map(l=>`<details><summary>${esc(l.src||l.t)}: ${fmt(l.text.length>80?l.text.slice(0,80)+"…":l.text)}</summary><p style="margin:.5em 0 0">Answer: <b>${fmt(l.final)}</b>${l.tries?` · Tries: ${l.tries.map(esc).join(" · ")}`:""}</p></details>`).join(""):`<div class="empty">None yet.</div>`}</section>
+  <section class="panel"><h2>Recent locked problems</h2>${misses.length?misses.map(l=>`<details><summary>${esc(l.src||l.t)}: ${fmt(l.text.length>80?l.text.slice(0,80)+"…":l.text)}</summary><p style="margin:.5em 0 0">${LESSON_ORDER2.includes(l.src)?"Answer hidden (Mixed review 2 teaches without showing answers)":`Answer: <b>${fmt(l.final)}</b>`}${l.tries?` · Tries: ${l.tries.map(esc).join(" · ")}`:""}</p></details>`).join(""):`<div class="empty">None yet.</div>`}</section>
   <section class="panel parent"><h2>For parents</h2><p class="sub" style="margin:0">Progress is saved in this browser on this device. Use your parent PIN to reset a topic so homework problems can be tried again.</p>
   <form id="pf" class="row" autocomplete="off"><label for="pin">${S.pin?"Parent PIN":"Create a 4-digit parent PIN"}</label><input id="pin" type="password" inputmode="numeric" maxlength="8" required><button class="btn" type="submit">${S.pin?"Unlock options":"Save PIN"}</button></form>
   <div id="pa"></div></section>`;
@@ -1443,7 +1466,7 @@ function render(){app.innerHTML=view.name==="practice"?practice():view.name==="r
 /* ===== EVENTS ===== */
 function startList(items,title,topic,total){let first=items.findIndex(x=>!S.q[x.id]||S.q[x.id].s==="open");if(first<0&&total&&items.length<total){items.push(makeOne(topic,lvOf(topic),new Set(items.map(x=>x.text))));save();first=items.length-1}view={name:"practice",items,i:first<0?0:first,title,topic,total};flash=null;render();window.scrollTo(0,0)}
 function newSet(t){if(S.sets[t])S.sets[t].list.forEach(q=>delete S.q[q.id]);delete S.hu["set:"+t];S.sets[t]={list:[makeOne(t,lvOf(t))]};save();startList(S.sets[t].list,t+" · Practice",t,sizeOf(t))}
-function nextPractice(){const t=view.topic,set=t&&S.sets[t];if(!set||set.list!==view.items||set.list.length>=sizeOf(t))return;set.list.push(makeOne(t,lvOf(t),new Set(set.list.map(x=>x.text))))}
+function nextPractice(){const t=view.topic,set=t&&S.sets[t];if(!set||set.list!==view.items||set.list.length>=sizeOf(t))return;const last=set.list[set.list.length-1],again=last&&last.learn&&S.q[last.id]&&S.q[last.id].s==="locked";set.list.push(makeOne(t,lvOf(t),new Set(set.list.map(x=>x.text)),again?(g=>g.src===last.src):null))}
 function submit(value){
   const q=view.items[view.i];const st=qs(q.id);if(st.s!=="open")return;
   const r=check(q,value);

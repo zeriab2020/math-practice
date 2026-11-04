@@ -1538,7 +1538,7 @@ LESSON_SUB["Quiz C1 review"]="Practice for Quiz C1: every lesson on the study gu
 // ===== QUIZ C1 PRACTICE TEST: 1 try per question, graded out of 100, timed =====
 const EXAM_T="Quiz C1 practice test";
 const PH={num:"Type a number",frac:"Type a fraction, like 3/4",exact:"Type a fraction",ratio:"Type a fraction, like 2/3",list:"Type numbers with commas",point:"Type a point, like (3, -2)",time:"Type a time",factors:"Type like 2 · 3 · 3"};
-const EXAM_PER=2;
+const EXAM_PER=3;
 const okR=(E,r)=>r.pts>=100/E.qs.length-1e-9;
 const fmtP=v=>String(Math.round(v*100)/100);
 function fmtT(ms){const s=Math.round((ms||0)/1000);return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`}
@@ -1642,7 +1642,7 @@ function header(){
   <section class="panel" aria-label="Overall progress"><div class="stats"><span>Problems finished <b>${tot}</b></span><span><i class="dot" style="background:var(--good)"></i>Right <b>${ok}</b></span><span><i class="dot" style="background:var(--bad)"></i>Locked <b>${tot-ok}</b></span><span>Score <b>${tot?Math.round(ok/tot*100):0}%</b></span></div></section>`;
 }
 const EXAM_ONLY=true;
-function home(){if(EXAM_ONLY)return header()+`<section class="panel"><h2>Quiz C1 practice</h2><p class="sub" style="margin:0">Practice like the real quiz: 40 questions from the study guide, 1 try each, scored out of 100 and timed. Every test has new numbers. After you turn it in, each missed question shows the answer and how to solve it.</p><div class="grid">${examCard()}</div></section>`;
+function home(){if(EXAM_ONLY)return header()+`<section class="panel"><h2>Quiz C1 practice</h2><p class="sub" style="margin:0">Practice like the real quiz: 60 questions from the study guide, 1 try each, scored out of 100 and timed. Every test has new numbers. After you turn it in, each missed question shows the answer and how to solve it.</p><div class="grid">${examCard()}</div></section>`;
   const cards=VISIBLE.map(t=>{const c=counts(byTopic(t)),st=status(t),set=S.sets[t],sc=set?counts(set.list):null,cont=set&&setOpen(set);
     return `<div class="topic"><div class="row spread"><h3>${esc(t)}</h3><span class="pill ${st.cls}">${st.label}</span></div>${LESSON_SUB[t]?`<div class="meta">${LESSON_SUB[t]}</div>`:""}${last10(t)}
     <div class="meta">${st.n?`Last ${st.n}: ${st.ok} right`:"No problems yet"}</div>

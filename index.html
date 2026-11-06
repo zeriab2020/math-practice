@@ -1535,7 +1535,7 @@ const LEARN_Q={};QUIZ_ORDER.forEach(k=>LEARN_Q[k]=QUIZ[k][0].r);
 const qDot=t=>t.replace(/(?<![.\d])\.\.(?=[\s)]|$)/g,".");const qClean=o=>{o.text=qDot(o.text);o.steps=o.steps.map(qDot);o.final=qDot(o.final);return o};
 LESSONS["Quiz C1 review"]=QUIZ_ORDER.flatMap(k=>QUIZ[k].map(g=>({L:g.L,src:k,f:L=>{const q=qClean(g.f(L));q.src=k;q.learn=1;q.rule=g.r||LEARN_Q[k];let e,t=0;const kq=qKey(q.text);do{e=qClean(g.f(L));t++}while((e.text===q.text||e.final===q.final||(t<40&&qKey(e.text)!==kq))&&t<60);q.ex={text:e.text,steps:e.steps,final:e.final,svg:e.svg||"",options:e.options};return q}})));
 LESSON_SUB["Quiz C1 review"]="Practice for Quiz C1: every lesson on the study guide (40 problems)";
-// ===== QUIZ C1 PRACTICE QUIZZES: 4 quizzes, 20 questions each, 1 try, graded out of 100, timed =====
+// ===== QUIZ C1 PRACTICE QUIZZES: 8 quizzes, 20 questions each, 1 try, checked right away, graded out of 100, timed =====
 const EXAM_T="Quiz C1 practice";
 const QUIZ_COUNT=8;
 const PH={num:"Type a number",frac:"Type a fraction, like 3/4",exact:"Type a fraction",ratio:"Type a fraction, like 2/3",list:"Type numbers with commas",point:"Type a point, like (3, -2)",time:"Type a time",factors:"Type like 2 · 3 · 3"};
@@ -1551,51 +1551,64 @@ function bookHtml(q){const e=q.ex,ol=st=>`<ol>${st.map(x=>`<li>${fmt(x)}</li>`).
   <div class="bex"><b>Your problem</b><p style="margin:.2em 0">${fmt(q.text)}</p><b>Solution</b>${ol(q.steps)}<p style="margin:0" class="bans">Answer: ${fmt(q.final)}</p></div></div>`}
 function exCur(){S.xq=S.xq||{};return view.name==="exam"&&view.qid?S.xq[view.qid]:null}
 function examNew(id){S.xq=S.xq||{};const qs=QUIZ_ORDER.map(k=>{const pool=LESSONS["Quiz C1 review"].filter(g=>g.src===k),L=pick([3,3,4]),fit=pool.filter(g=>L>=g.L[0]&&L<=g.L[1]),q=pick(fit.length?fit:pool).f(L);q.lv=L;return q});
-  S.xq[id]={id,qs,ans:{},used:0,since:null,done:false,res:null,score:0,time:0,qt:{},cur:null,curSince:null};save()}
+  S.xq[id]={id,qs,ans:{},used:0,since:null,done:false,res:Array(qs.length).fill(null),score:0,time:0,qt:{},cur:null,curSince:null};save()}
 function exFocus(i){const E=exCur();if(!E||E.done)return;E.qt=E.qt||{};const now=Date.now();if(E.cur!=null&&E.curSince)E.qt[E.cur]=(E.qt[E.cur]||0)+now-E.curSince;E.cur=i;E.curSince=now}
 function exTime(E){return E?E.used+(E.since?Date.now()-E.since:0):0}
 function exPauseOne(E){if(!E)return;if(E.cur!=null&&E.curSince){E.qt=E.qt||{};E.qt[E.cur]=(E.qt[E.cur]||0)+Date.now()-E.curSince;E.curSince=null}if(E.since){E.used+=Date.now()-E.since;E.since=null}}
 function exSync(){S.xq=S.xq||{};const C=exCur();let ch=0;Object.values(S.xq).forEach(E=>{if(!E||E.done)return;if(E===C&&!document.hidden){if(!E.since){E.since=Date.now();ch=1}if(E.cur!=null&&!E.curSince){E.curSince=Date.now();ch=1}}else if(E.since||E.curSince){exPauseOne(E);ch=1}});if(ch)save()}
-function examCard(id){const E=(S.xq||{})[id],h=(S.exams||[]).filter(x=>x.quiz===id),last=h[h.length-1],best=h.length?Math.max(...h.map(x=>x.score)):0,cont=E&&!E.done,answered=cont?Object.values(E.ans).filter(v=>String(v).trim()).length:0;
+function examCard(id){const E=(S.xq||{})[id],h=(S.exams||[]).filter(x=>x.quiz===id),last=h[h.length-1],best=h.length?Math.max(...h.map(x=>x.score)):0,cont=E&&!E.done,answered=cont?(E.res||[]).filter(Boolean).length:0;
   return `<div class="topic"><div class="row spread"><h3>${qName(id)}</h3><span class="pill ${last?(last.score>=80?"done":last.score>=60?"mid":"review"):"new"}">${last?last.score+" / 100":"New"}</span></div><div class="meta">${QUIZ_ORDER.length} questions · 1 try each · scored out of 100 · timed</div>
   <div class="meta">${last?`Last: ${last.score}/100 in ${fmtT(last.time)}${h.length>1?` · Best: ${best}/100 · Taken ${h.length} times`:""}`:"Not taken yet"}</div>
-  <div class="row"><button class="btn primary" data-exam="go" data-qid="${id}">${cont?`Continue (${answered}/${E.qs.length} answered)`:E&&E.done?"Take it again (new numbers)":"Start quiz"}</button>${E&&E.done?`<button class="btn" data-exam="review" data-qid="${id}">See results</button>`:""}</div></div>`}
+  <div class="row"><button class="btn primary" data-exam="go" data-qid="${id}">${cont?`Continue (${answered}/${E.qs.length} done)`:E&&E.done?"Take it again (new numbers)":"Start quiz"}</button>${E&&E.done?`<button class="btn" data-exam="review" data-qid="${id}">See results</button>`:""}</div></div>`}
 function examCards(){let h="";for(let i=1;i<=QUIZ_COUNT;i++)h+=examCard(i);return h}
-function examView(){const E=exCur(),done=E.done,answered=Object.values(E.ans).filter(v=>String(v).trim()).length,N=E.qs.length,right=done?E.res.filter(r=>okR(E,r)).length:0,T=`${EXAM_T}: ${qName(E.id)}`;
-  const items=E.qs.map((q,i)=>{const a=E.ans[i]??"",r=done?E.res[i]:null;let inp;
-    if(q.type==="choice")inp=`<div class="choices" role="group">${q.options.map(o=>`<button data-exch="${i}" data-v="${esc(o)}" aria-pressed="${a===o}" ${done?"disabled":""}>${fmt(o)}</button>`).join("")}</div>`;
-    else inp=`<input class="exin" id="ex-${i}" data-exin="${i}" value="${esc(a)}" placeholder="${PH[q.type]||"Type your answer"}" ${done?"disabled":""} autocomplete="off" aria-label="Answer to question ${i+1}">`;
-    let res="";if(done){res=okR(E,r)?`<div class="fb ok">✓ Correct: ${fmtP(r.pts)} points</div>`:r.pts>0?`<div class="fb info">½ credit, ${fmtP(r.pts)} points. ${esc(r.msg)}</div>`:`<div class="fb no">✗ ${String(a).trim()?"Not correct":"No answer"}: 0 points.${r.msg?" "+esc(r.msg):""}</div>`;
-      if(!okR(E,r))res+=`${String(a).trim()?`<div class="tried-list">Your answer: ${esc(a)}</div>`:""}${bookHtml(q)}`}
-    return `<article class="qcard exq" id="exq${i}"><span class="qlabel">Question ${i+1} (${lnum(q.src)})${done?" · "+esc(q.src)+((E.qt||{})[i]?" · time "+fmtT(E.qt[i]):""):""}</span><div class="qtext">${fmt(q.text)}</div>${q.svg?`<div class="graph">${q.svg}</div>`:""}${inp}${res}</article>`}).join("");
+function gradeOne(E,i){const q=E.qs[i],P=100/E.qs.length,a=String(E.ans[i]??"").trim();if(!a)return {pts:0,msg:""};const r=check(q,a);if(r.result==="right")return {pts:P};if(r.result==="format")return {fmt:1,pts:0,msg:r.msg};
+  if(q.type==="frac"||q.type==="ratio"||q.type==="exact"){const v=parseNum(a),w=parseNum(q.answer);if(v&&w&&eq(v,w))return {pts:P/2,msg:"The value is right, but it is not written in the form asked for (simplest form)."}}
+  return {pts:0,msg:r.msg||""}}
+function qHtml(E,i){const q=E.qs[i],a=E.ans[i]??"",r=(E.res||[])[i],locked=!!r||E.done;let inp;
+  if(q.type==="choice")inp=`<div class="choices" role="group">${q.options.map(o=>`<button data-exch="${i}" data-v="${esc(o)}" aria-pressed="${a===o}" ${locked?"disabled":""}>${fmt(o)}</button>`).join("")}</div>`;
+  else inp=`<input class="exin" id="ex-${i}" data-exin="${i}" value="${esc(a)}" placeholder="${PH[q.type]||"Type your answer"}" ${locked?"disabled":""} autocomplete="off" aria-label="Answer to question ${i+1}">`;
+  let res="";
+  if(r){res=okR(E,r)?`<div class="fb ok">✓ Correct: ${fmtP(r.pts)} points</div>`:r.pts>0?`<div class="fb info">½ credit, ${fmtP(r.pts)} points. ${esc(r.msg)}</div>`:`<div class="fb no">✗ ${String(a).trim()?"Not correct":"No answer"}: 0 points.${r.msg?" "+esc(r.msg):""}</div>`;
+    if(!okR(E,r))res+=`${String(a).trim()?`<div class="tried-list">Your answer: ${esc(a)}</div>`:""}${bookHtml(q)}`}
+  else if(!E.done)res=`<div id="exmsg${i}"></div><div class="row"><button class="btn primary" data-excheck="${i}">Check my answer</button></div>`;
+  return `<article class="qcard exq" id="exq${i}"><span class="qlabel">Question ${i+1} (${lnum(q.src)})${r?" · "+esc(q.src)+((E.qt||{})[i]?" · time "+fmtT(E.qt[i]):""):""}</span><div class="qtext">${fmt(q.text)}</div>${q.svg?`<div class="graph">${q.svg}</div>`:""}${inp}${res}</article>`}
+function exScore(E){return Math.round((E.res||[]).reduce((s,r)=>s+(r?r.pts:0),0)*10)/10}
+function exCheck(i){const E=exCur();if(!E||E.done)return;E.res=E.res||Array(E.qs.length).fill(null);if(E.res[i])return;const a=String(E.ans[i]??"").trim(),m=document.getElementById("exmsg"+i);
+  if(!a){if(m)m.innerHTML=`<div class="fb info">Answer the question first.</div>`;return}
+  const r=gradeOne(E,i);if(r.fmt){if(m)m.innerHTML=`<div class="fb info">${esc(r.msg)}</div>`;return}
+  exFocus(i);E.qt=E.qt||{};if(E.curSince){E.qt[i]=(E.qt[i]||0)+Date.now()-E.curSince;E.curSince=null;E.cur=null}
+  E.res[i]=r;save();
+  if(E.res.every(Boolean)){exFinish(E);return}
+  const el=document.getElementById("exq"+i);if(el)el.outerHTML=qHtml(E,i);
+  const c=document.getElementById("excount");if(c)c.textContent=E.res.filter(Boolean).length;const sc=document.getElementById("exscore");if(sc)sc.textContent=fmtP(exScore(E))}
+function exFinish(E){exPauseOne(E);E.res=E.qs.map((q,i)=>(E.res||[])[i]||{pts:0,msg:""});E.done=true;E.score=exScore(E);E.time=E.used;const now=Date.now();
+  S.exams=(S.exams||[]).concat({quiz:E.id,at:now,score:E.score,time:E.time,qt:E.qt,missed:[...new Set(E.qs.filter((q,i)=>!okR(E,E.res[i])).map(q=>q.src))]});
+  E.qs.forEach((q,i)=>S.log.push({t:EXAM_T,src:q.src,a:1,ok:okR(E,E.res[i]),at:now,hw:0,text:q.text,final:q.final}));
+  save();render();window.scrollTo(0,0)}
+function examView(){const E=exCur(),done=E.done,N=E.qs.length,checked=(E.res||[]).filter(Boolean).length,right=done?E.res.filter(r=>okR(E,r)).length:0,T=`${EXAM_T}: ${qName(E.id)}`;
+  const items=E.qs.map((q,i)=>qHtml(E,i)).join("");
   const slow=done?Object.entries(E.qt||{}).map(([k,v])=>[+k,v]).sort((a,b)=>b[1]-a[1])[0]:null;
   const missed=done?[...new Set(E.qs.filter((q,i)=>!okR(E,E.res[i])).map(q=>q.src))]:[];
   const top=done?`<section class="panel"><div class="row spread"><h2>${T}: results</h2><button class="btn" data-go="home">← Home</button></div><p class="big-score">${E.score} <span class="sub">/ 100</span></p>
     <p style="margin:0">${right} of ${N} right · Time: <b>${fmtT(E.time)}</b> (about ${fmtT(E.time/N)} per question)</p>${missed.length?`<p style="margin:0">Lessons to review: <b>${missed.map(esc).join(", ")}</b></p>`:`<p style="margin:0">Perfect score!</p>`}
     ${slow?`<p style="margin:0">Most time spent on: <b>Question ${slow[0]+1}</b> (${fmtT(slow[1])}, ${esc(E.qs[slow[0]].src)})</p>`:""}<p class="sub" style="margin:0">Every missed question has a lesson review like your book: the main idea, a worked example, and the solution to your problem. The time on each question is shown next to its number.</p><div class="row"><button class="btn primary" data-exam="new" data-qid="${E.id}">Take ${qName(E.id)} again (new numbers)</button><button class="btn" data-go="home">Pick another quiz</button></div></section>`
-   :`<section class="panel" style="position:sticky;top:0;z-index:5"><div class="row spread"><h2>${T}</h2><button class="btn" data-go="home">← Home (pauses the timer)</button></div><div class="stats"><span>Time <b id="extimer">${fmtT(exTime(E))}</b></span><span>Answered <b id="excount">${answered}</b> / ${N}</span></div><p class="sub" style="margin:0">1 try per question and no hints, like the real quiz. Work on paper, type each answer, then turn in the quiz at the bottom.</p></section>`;
-  return header()+`<style>.exq .choices button[aria-pressed="true"]{box-shadow:0 0 0 3px currentColor inset;font-weight:800}.exin{width:100%;max-width:340px;font:inherit;padding:.55em .7em;border-radius:10px;border:2px solid currentColor;background:transparent;color:inherit}.bookbox{border:2px solid currentColor;border-radius:12px;padding:.8em 1em;margin-top:.6em}.bookbox h4{margin:0 0 .4em;font-size:1.02em}.bookbox .bex{border-left:4px solid currentColor;padding:.4em .8em;margin:.6em 0 0;background:rgba(127,127,127,.09);border-radius:6px}.bookbox ol{margin:.3em 0 .3em 1.3em;padding:0}.bookbox .bans{font-weight:800}</style>`+top+items+(done?"":`<section class="panel"><div id="exconf"></div><div class="row"><button class="btn primary big" data-exturn="1">Turn in my quiz</button></div></section>`)}
-function examTurnIn(force){const E=exCur();if(!E||E.done)return;const blank=[],bad=[];
-  E.qs.forEach((q,i)=>{const a=String(E.ans[i]??"").trim();if(!a){blank.push(i);return}if(q.type!=="choice"){const r=check(q,a);if(r.result==="format")bad.push([i,r.msg])}});
-  if(!force&&(blank.length||bad.length)){document.getElementById("exconf").innerHTML=`<div class="fb info">${blank.length?`<p style="margin:0 0 .4em">Not answered yet: ${blank.map(i=>`<button class="btn" data-exgo="${i}">${i+1}</button>`).join(" ")}</p>`:""}${bad.map(([i,m])=>`<p style="margin:0 0 .4em">Question ${i+1}: ${esc(m)} <button class="btn" data-exgo="${i}">Go to it</button></p>`).join("")}</div><div class="row"><button class="btn" data-exturn="force">Turn it in anyway</button></div>`;return}
-  exPauseOne(E);
-  const P=100/E.qs.length;E.res=E.qs.map((q,i)=>{const a=String(E.ans[i]??"").trim();if(!a)return {pts:0,msg:""};const r=check(q,a);if(r.result==="right")return {pts:P};if(r.result==="format")return {pts:0,msg:r.msg};
-    if(q.type==="frac"||q.type==="ratio"||q.type==="exact"){const v=parseNum(a),w=parseNum(q.answer);if(v&&w&&eq(v,w))return {pts:P/2,msg:"The value is right, but it is not written in the form asked for (simplest form)."}}
-    return {pts:0,msg:r.msg||""}});
-  E.done=true;E.score=Math.round(E.res.reduce((s,r)=>s+r.pts,0)*10)/10;E.time=E.used;const now=Date.now();
-  S.exams=(S.exams||[]).concat({quiz:E.id,at:now,score:E.score,time:E.time,qt:E.qt,missed:[...new Set(E.qs.filter((q,i)=>!okR(E,E.res[i])).map(q=>q.src))]});
-  E.qs.forEach((q,i)=>S.log.push({t:EXAM_T,src:q.src,a:1,ok:okR(E,E.res[i]),at:now,hw:0,text:q.text,final:q.final}));
-  save();render();window.scrollTo(0,0)}
+   :`<section class="panel" style="position:sticky;top:0;z-index:5"><div class="row spread"><h2>${T}</h2><button class="btn" data-go="home">← Home (pauses the timer)</button></div><div class="stats"><span>Time <b id="extimer">${fmtT(exTime(E))}</b></span><span>Checked <b id="excount">${checked}</b> / ${N}</span><span>Score so far <b id="exscore">${fmtP(exScore(E))}</b></span></div><p class="sub" style="margin:0">1 try per question. Press "Check my answer" after each one. If it is wrong, you will see the right answer and how to solve it.</p></section>`;
+  return header()+`<style>.exq .choices button[aria-pressed="true"]{box-shadow:0 0 0 3px currentColor inset;font-weight:800}.exin{width:100%;max-width:340px;font:inherit;padding:.55em .7em;border-radius:10px;border:2px solid currentColor;background:transparent;color:inherit}.bookbox{border:2px solid currentColor;border-radius:12px;padding:.8em 1em;margin-top:.6em}.bookbox h4{margin:0 0 .4em;font-size:1.02em}.bookbox .bex{border-left:4px solid currentColor;padding:.4em .8em;margin:.6em 0 0;background:rgba(127,127,127,.09);border-radius:6px}.bookbox ol{margin:.3em 0 .3em 1.3em;padding:0}.bookbox .bans{font-weight:800}</style>`+top+items+(done?"":`<section class="panel"><div id="exconf"></div><div class="row"><button class="btn" data-exturn="1">Finish the quiz now</button></div></section>`)}
+function examTurnIn(force){const E=exCur();if(!E||E.done)return;const left=E.qs.map((q,i)=>i).filter(i=>!(E.res||[])[i]);
+  if(!force&&left.length){document.getElementById("exconf").innerHTML=`<div class="fb info"><p style="margin:0 0 .4em">Not checked yet: ${left.map(i=>`<button class="btn" data-exgo="${i}">${i+1}</button>`).join(" ")}. Unchecked questions count as 0 points.</p></div><div class="row"><button class="btn" data-exturn="force">Finish anyway</button></div>`;return}
+  exFinish(E)}
 function examHistory(){const xh=(S.exams||[]).slice().reverse();return `<section class="panel"><h2>Quiz C1 practice quizzes</h2>${xh.length?`<div class="tablewrap"><table><thead><tr><th>Date</th><th>Quiz</th><th>Score</th><th>Time</th><th>Missed lessons</th></tr></thead><tbody>${xh.map(x=>`<tr><td>${new Date(x.at).toLocaleDateString()} ${new Date(x.at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}</td><td>${x.quiz?qName(x.quiz):"Practice test"}</td><td>${x.score} / 100</td><td>${fmtT(x.time)}</td><td>${x.missed.length?x.missed.map(esc).join(", "):"None"}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">No practice quizzes yet.</div>`}</section>`}
 setInterval(()=>{const t=document.getElementById("extimer");if(t)t.textContent=fmtT(exTime(exCur()))},1000);
 document.addEventListener("visibilitychange",()=>exSync());
 document.addEventListener("focusin",e=>{const i=e.target.dataset&&e.target.dataset.exin;if(i!==undefined)exFocus(+i)});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("button");if(!b)return;
  if(b.dataset.exam){const id=+b.dataset.qid||1;S.xq=S.xq||{};const E=S.xq[id];if(b.dataset.exam==="new"||(b.dataset.exam==="go"&&(!E||E.done)))examNew(id);view={name:"exam",qid:id};flash=null;render();window.scrollTo(0,0)}
- else if(b.dataset.exch!==undefined){const E=exCur();if(!E||E.done)return;const i=+b.dataset.exch;exFocus(i);E.ans[i]=b.dataset.v;save();b.parentNode.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));const c=document.getElementById("excount");if(c)c.textContent=Object.values(E.ans).filter(v=>String(v).trim()).length}
+ else if(b.dataset.excheck!==undefined){exCheck(+b.dataset.excheck)}
+ else if(b.dataset.exch!==undefined){const E=exCur();const i=+b.dataset.exch;if(!E||E.done||(E.res&&E.res[i]))return;exFocus(i);E.ans[i]=b.dataset.v;save();b.parentNode.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)))}
  else if(b.dataset.exturn){examTurnIn(b.dataset.exturn==="force")}
  else if(b.dataset.exgo!==undefined){const el=document.getElementById("exq"+b.dataset.exgo);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});const inp=el.querySelector("input");if(inp)inp.focus({preventScroll:true})}}});
-document.addEventListener("input",e=>{const i=e.target.dataset&&e.target.dataset.exin;const E=exCur();if(i===undefined||!E||E.done)return;E.ans[+i]=e.target.value;save();const c=document.getElementById("excount");if(c)c.textContent=Object.values(E.ans).filter(v=>String(v).trim()).length});
+document.addEventListener("input",e=>{const i=e.target.dataset&&e.target.dataset.exin;const E=exCur();if(i===undefined||!E||E.done)return;E.ans[+i]=e.target.value;save()});
+document.addEventListener("keydown",e=>{if(e.key!=="Enter")return;const i=e.target.dataset&&e.target.dataset.exin;if(i!==undefined){e.preventDefault();exCheck(+i)}});
 const GEN={};
 for(const t of ["Quiz C1 review","Mixed review 2","Mixed review","Lesson 87","Lesson 86","Lesson 85","Lesson 84","Lesson 83","Investigation 8","Lesson 82","Lesson 81","Lesson 80","Lesson 72","Lesson 71","Investigation 7","Lesson 70","Lesson 69","Lesson 68","Lesson 67","Lesson 66","Lesson 65"])GEN[t]=LESSONS[t];
 for(const t of Object.keys(BASE)){GEN[t]=BASE[t].map((f,i)=>({L:LV[t][i],f})).concat(EXTRA[t]||[])}
@@ -1651,7 +1664,7 @@ function header(){
   <section class="panel" aria-label="Overall progress"><div class="stats"><span>Problems finished <b>${tot}</b></span><span><i class="dot" style="background:var(--good)"></i>Right <b>${ok}</b></span><span><i class="dot" style="background:var(--bad)"></i>Locked <b>${tot-ok}</b></span><span>Score <b>${tot?Math.round(ok/tot*100):0}%</b></span></div></section>`;
 }
 const EXAM_ONLY=true;
-function home(){if(EXAM_ONLY)return header()+`<section class="panel"><h2>Quiz C1 practice</h2><p class="sub" style="margin:0">8 practice quizzes like the real quiz. Each one has 20 questions from the study guide, 1 try per question, and is scored out of 100 and timed. Taking a quiz again gives new numbers. After you turn one in, each missed question shows the answer and how to solve it.</p><div class="grid">${examCards()}</div></section>`;
+function home(){if(EXAM_ONLY)return header()+`<section class="panel"><h2>Quiz C1 practice</h2><p class="sub" style="margin:0">8 practice quizzes like the real quiz. Each one has 20 questions from the study guide, 1 try per question, and is scored out of 100 and timed. Each answer is checked right away: if it is wrong, you see the correct answer with the explanation and solution. Taking a quiz again gives new numbers.</p><div class="grid">${examCards()}</div></section>`;
   const cards=VISIBLE.map(t=>{const c=counts(byTopic(t)),st=status(t),set=S.sets[t],sc=set?counts(set.list):null,cont=set&&setOpen(set);
     return `<div class="topic"><div class="row spread"><h3>${esc(t)}</h3><span class="pill ${st.cls}">${st.label}</span></div>${LESSON_SUB[t]?`<div class="meta">${LESSON_SUB[t]}</div>`:""}${last10(t)}
     <div class="meta">${st.n?`Last ${st.n}: ${st.ok} right`:"No problems yet"}</div>

@@ -1578,8 +1578,20 @@ function prCheck(i){const E=exCur();if(!E||!E.pr||!E.pr[i]||E.pr[i].done)return;
   if(r.result==="format"){if(m)m.innerHTML=`<div class="fb info">${esc(r.msg)}</div>`;return}
   it.ok=r.result==="right";
   if(it.ok){P.done=true;P.fixed=true}else if(P.items.length>=FIX_MAX){P.done=true;P.fixed=false}else P.items.push(newFix(E,i));
+  if(P.done)S.log.push({t:"Fix it",fsrc:E.qs[i].src,a:P.items.length,fixed:P.fixed,ok:true,text:"",at:Date.now()});
   save();if(P.done&&E.res.every(Boolean)){exFinish(E);return}
   const el=document.getElementById("exq"+i);if(el){el.outerHTML=qHtml(E,i);const n=document.getElementById("pr-"+i);if(n)n.focus({preventScroll:true})}}
+function trackerHtml(){const T=new Set(["Quiz C1 practice","Quiz C1 practice test","Quiz C1 review"]),L=S.log||[];
+  const rows=QUIZ_ORDER.map(k=>{const a=L.filter(x=>x.src===k&&T.has(x.t)).sort((p,q)=>p.at-q.at),fx=L.filter(x=>x.t==="Fix it"&&x.fsrc===k),n=a.length,first=a.filter(x=>x.ok&&(x.a||1)===1).length,pct=n?Math.round(100*first/n):null,
+    last3=a.slice(-3),recentOk=last3.length&&last3.every(x=>x.ok&&(x.a||1)===1),earlierMiss=a.slice(0,-3).some(x=>!x.ok||(x.a||1)>1),stuck=fx.filter(x=>!x.fixed).length,fixAvg=fx.length?Math.round(10*fx.reduce((s,x)=>s+x.a,0)/fx.length)/10:0,
+    lastMiss=a.filter(x=>!x.ok).slice(-1)[0];
+    let st,cls,ord;if(!n){st="Not practiced yet";cls="new";ord=3}else if(recentOk&&last3.length>=2&&earlierMiss){st="Improving";cls="mid";ord=2}else if(pct<60||(stuck&&!recentOk)){st="Struggling";cls="review";ord=0}else if(pct>=80){st="Strong";cls="done";ord=4}else{st="Needs practice";cls="mid";ord=1}
+    return {k,n,first,pct,last3,fx,stuck,fixAvg,lastMiss,st,cls,ord}}).sort((p,q)=>p.ord-q.ord||(p.pct??101)-(q.pct??101));
+  const sum=s=>rows.filter(r=>r.st===s).map(r=>esc(r.k)).join(", ");
+  const tr=rows.map(r=>`<tr><td><b>${esc(r.k)}</b><br><span class="sub">${esc(LTITLE[r.k]||"")}</span></td><td><span class="pill ${r.cls}">${r.st}</span></td><td>${r.n?`${r.first} of ${r.n} (${r.pct}%)`:"–"}</td><td>${r.last3.length?r.last3.map(x=>x.ok&&(x.a||1)===1?"✓":"✗").join(" "):"–"}</td><td>${r.fx.length?`${r.fx.length} time${r.fx.length>1?"s":""}, avg ${r.fixAvg} tries${r.stuck?`, stuck ${r.stuck}×`:""}`:"–"}</td><td>${r.lastMiss?`${fmt(r.lastMiss.text)}<br><span class="sub">His answer: ${esc(r.lastMiss.ans||"(not saved)")} · Correct: </span>${fmt(r.lastMiss.final||"")}<br><span class="sub">${new Date(r.lastMiss.at).toLocaleDateString()}</span>`:"–"}</td></tr>`).join("");
+  return `<section class="panel"><h2>Lesson tracker (Quiz C1 lessons)</h2><p class="sub" style="margin:0">Built from every answer in the practice quizzes and review sets. "First try" counts only answers right on the first try. "Fix it" shows how many extra problems he needed after a mistake.</p>
+  ${sum("Struggling")?`<p style="margin:0"><b>Struggling now:</b> ${sum("Struggling")}</p>`:""}${sum("Needs practice")?`<p style="margin:0"><b>Needs practice:</b> ${sum("Needs practice")}</p>`:""}${sum("Improving")?`<p style="margin:0"><b>Improving:</b> ${sum("Improving")}</p>`:""}${sum("Strong")?`<p style="margin:0"><b>Strong:</b> ${sum("Strong")}</p>`:""}
+  <div class="tablewrap"><table><thead><tr><th>Lesson</th><th>Status</th><th>First try</th><th>Last 3</th><th>Fix it</th><th>Latest mistake</th></tr></thead><tbody>${tr}</tbody></table></div></section>`}
 function gradeOne(E,i){const q=E.qs[i],P=100/E.qs.length,a=String(E.ans[i]??"").trim();if(!a)return {pts:0,msg:""};const r=check(q,a);if(r.result==="right")return {pts:P};if(r.result==="format")return {fmt:1,pts:0,msg:r.msg};
   if(q.type==="frac"||q.type==="ratio"||q.type==="exact"){const v=parseNum(a),w=parseNum(q.answer);if(v&&w&&eq(v,w))return {pts:P/2,msg:"The value is right, but it is not written in the form asked for (simplest form)."}}
   return {pts:0,msg:r.msg||""}}
@@ -1597,13 +1609,13 @@ function exCheck(i){const E=exCur();if(!E||E.done)return;E.res=E.res||Array(E.qs
   if(!a){if(m)m.innerHTML=`<div class="fb info">Answer the question first.</div>`;return}
   const r=gradeOne(E,i);if(r.fmt){if(m)m.innerHTML=`<div class="fb info">${esc(r.msg)}</div>`;return}
   exFocus(i);E.qt=E.qt||{};if(E.curSince){E.qt[i]=(E.qt[i]||0)+Date.now()-E.curSince;E.curSince=null;E.cur=null}
-  E.res[i]=r;if(!okR(E,r)){E.pr=E.pr||{};E.pr[i]={items:[newFix(E,i)],done:false,fixed:false}}save();
+  E.res[i]=r;E.lg=E.lg||{};E.lg[i]=1;S.log.push({t:EXAM_T,src:E.qs[i].src,a:1,ok:okR(E,r),at:Date.now(),hw:0,text:E.qs[i].text,final:E.qs[i].final,ans:a});if(!okR(E,r)){E.pr=E.pr||{};E.pr[i]={items:[newFix(E,i)],done:false,fixed:false}}save();
   if(E.res.every(Boolean)&&pendingPr(E)==null){exFinish(E);return}
   const el=document.getElementById("exq"+i);if(el){el.outerHTML=qHtml(E,i);const n=document.getElementById("pr-"+i);if(n)n.focus({preventScroll:true})}
   const c=document.getElementById("excount");if(c)c.textContent=E.res.filter(Boolean).length;const sc=document.getElementById("exscore");if(sc)sc.textContent=fmtP(exScore(E))}
 function exFinish(E){exPauseOne(E);E.res=E.qs.map((q,i)=>(E.res||[])[i]||{pts:0,msg:""});E.done=true;E.score=exScore(E);E.time=E.used;const now=Date.now();
   S.exams=(S.exams||[]).concat({quiz:E.id,at:now,score:E.score,time:E.time,qt:E.qt,missed:[...new Set(E.qs.filter((q,i)=>!okR(E,E.res[i])).map(q=>q.src))]});
-  E.qs.forEach((q,i)=>S.log.push({t:EXAM_T,src:q.src,a:1,ok:okR(E,E.res[i]),at:now,hw:0,text:q.text,final:q.final}));
+  E.qs.forEach((q,i)=>{if(!(E.lg&&E.lg[i]))S.log.push({t:EXAM_T,src:q.src,a:1,ok:okR(E,E.res[i]),at:now,hw:0,text:q.text,final:q.final,ans:String(E.ans[i]??"")})});
   save();render();window.scrollTo(0,0)}
 function examView(){const E=exCur(),done=E.done,N=E.qs.length,checked=(E.res||[]).filter(Boolean).length,right=done?E.res.filter(r=>okR(E,r)).length:0,T=`${EXAM_T}: ${qName(E.id)}`;
   const items=E.qs.map((q,i)=>qHtml(E,i)).join("");
@@ -1744,7 +1756,7 @@ function report(){
   const lrows=ls.map(x=>`<tr><td>${esc(x.k)}</td><td>${x.n}</td><td>${x.n?x.first:"—"}</td><td>${x.n?x.lock:"—"}</td><td>${x.n?Math.round(x.p*100)+"%":"—"}</td><td><span class="pill ${x.st.cls}">${x.st.label}</span></td></tr>`).join("");
   const misses=S.log.filter(l=>!l.ok).slice(-12).reverse();
   return header()+`<section class="panel"><h2>Topics to review</h2>${weakL.length?`<p style="margin:0">Lessons to practice more: <b>${weakL.map(esc).join(", ")}</b>.</p>`:""}${weak.length?`<p style="margin:0">Practice these topics more: <b>${weak.map(esc).join(", ")}</b>.</p>`:""}${!weak.length&&!weakL.length?`<div class="empty">No weak topics yet. A topic shows up here when fewer than 8 of its last 10 problems are right.</div>`:""}</section>
-  ${examHistory()}<section class="panel"><h2>By lesson (from Mixed reviews)</h2><p class="sub" style="margin:0">Every Mixed review, Mixed review 2, Quiz C1 review and Quiz C1 practice quiz problem is tracked by the book lesson it comes from.</p><div class="tablewrap"><table id="lessontable"><thead><tr><th>Lesson</th><th>Done</th><th>Right 1st try</th><th>Locked</th><th>Score</th><th>Status</th></tr></thead><tbody>${lrows}</tbody></table></div></section>
+  ${trackerHtml()}${examHistory()}<section class="panel"><h2>By lesson (from Mixed reviews)</h2><p class="sub" style="margin:0">Every Mixed review, Mixed review 2, Quiz C1 review and Quiz C1 practice quiz problem is tracked by the book lesson it comes from.</p><div class="tablewrap"><table id="lessontable"><thead><tr><th>Lesson</th><th>Done</th><th>Right 1st try</th><th>Locked</th><th>Score</th><th>Status</th></tr></thead><tbody>${lrows}</tbody></table></div></section>
   <section class="panel"><h2>By topic</h2><div class="tablewrap"><table><thead><tr><th>Topic</th><th>Done</th><th>Score</th><th>Last 10</th><th>Homework</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>
   <section class="panel"><h2>Recent locked problems</h2>${misses.length?misses.map(l=>`<details><summary>${esc(l.src||l.t)}: ${fmt(l.text.length>80?l.text.slice(0,80)+"…":l.text)}</summary><p style="margin:.5em 0 0">${LESSON_ORDER2.includes(l.src)||l.t==="Quiz C1 review"?"Answer hidden (this set teaches without showing answers)":`Answer: <b>${fmt(l.final)}</b>`}${l.tries?` · Tries: ${l.tries.map(esc).join(" · ")}`:""}</p></details>`).join(""):`<div class="empty">None yet.</div>`}</section>
   <section class="panel parent"><h2>For parents</h2><p class="sub" style="margin:0">Progress is saved in this browser on this device. Use your parent PIN to reset a topic so homework problems can be tried again.</p>

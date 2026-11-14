@@ -1542,7 +1542,7 @@ function w3(n){const s=[];if(n>=100){s.push(W1[Math.floor(n/100)]+" hundred");n%
 function numWords(n){if(!n)return "zero";const out=[];[[1e12,"trillion"],[1e9,"billion"],[1e6,"million"],[1e3,"thousand"],[1,""]].forEach(([v,nm])=>{const g=Math.floor(n/v)%1000;if(g)out.push(w3(g)+(nm?" "+nm:""))});return out.join(", ")}
 const cm=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");
 const PV=["ones","tens","hundreds","thousands","ten thousands","hundred thousands","millions","ten millions","hundred millions","billions","ten billions","hundred billions","trillions","ten trillions","hundred trillions"];
-const opt4=(right,pool)=>{const o=[right,...pool.filter(x=>x!==right).sort(()=>Math.random()-.5).slice(0,3)];return o.sort(()=>Math.random()-.5)};
+const opt4=(right,pool)=>{const o=[right,...[...new Set(pool)].filter(x=>x!==right).sort(()=>Math.random()-.5).slice(0,3)];return o.sort(()=>Math.random()-.5)};
 C2["C2 Problem Solving"]=[
  {L:[1,4],r:"Use the four steps. Understand: what am I given and what am I asked? Plan: which strategy will I use? Solve: follow the plan and check the math. Check: does my answer answer the question, and is it reasonable?",
   f:function(){const Q=[["What information am I given?","Understand"],["What am I asked to find or do?","Understand"],["What strategy can I use to solve the problem?","Plan"],["How can I use the given information to solve the problem?","Plan"],["Am I following the plan?","Solve"],["Is my math correct?","Solve"],["Does my solution answer the question that was asked?","Check"],["Is my answer reasonable?","Check"]],[qq,a]=pick(Q);
@@ -1821,12 +1821,12 @@ function bar(c){const g=c.total?c.right/c.total*100:0,r=c.total?c.locked/c.total
 function last10(t){const r=recent(t);let h="";for(let k=0;k<10;k++){const l=r[k];h+=`<i class="${l?(l.ok?"ok":"no"):""}"></i>`}return `<div class="ten" role="img" aria-label="Last ${r.length} problems: ${r.filter(l=>l.ok).length} right">${h}</div>`}
 function header(){
   const tot=S.log.length,ok=S.log.filter(l=>l.ok).length;
-  return `<header><div><h1>Math <span class="mark mark-ink">Practice</span></h1><div class="sub">6th grade · Saxon Course 1 topics</div></div>
+  return `<header><div><h1>Math <span class="mark mark-ink">Practice</span></h1><div class="sub">6th grade · Saxon Math Course 2</div></div>
   <nav aria-label="Sections"><button class="tab" data-go="home" ${view.name!=="report"?'aria-current="page"':""}>Practice</button><button class="tab" data-go="report" ${view.name==="report"?'aria-current="page"':""}>My report</button></nav></header>
   <section class="panel" aria-label="Overall progress"><div class="stats"><span>Problems finished <b>${tot}</b></span><span><i class="dot" style="background:var(--good)"></i>Right <b>${ok}</b></span><span><i class="dot" style="background:var(--bad)"></i>Locked <b>${tot-ok}</b></span><span>Score <b>${tot?Math.round(ok/tot*100):0}%</b></span></div></section>`;
 }
 const EXAM_ONLY=true;
-function home(){if(EXAM_ONLY)return header()+`<section class="panel"><p class="big-score" style="margin:0">⭐ ${S.pts||0} <span class="sub">points</span></p><p class="sub" style="margin:0">You get 1 point for every correct answer, including Fix it problems.</p></section><section class="panel"><h2>Course 2: Lessons 1–5</h2><p class="sub" style="margin:0">Problem solving, whole numbers and money, properties of operations, unknown numbers, the number line and sequences, and place value. Each quiz has 20 questions, 1 try per question, scored out of 100 and timed, with the same explanations and Fix it practice.</p><div class="grid">${examCards(100,4)}</div></section><section class="panel"><h2>Quiz C1 practice</h2><p class="sub" style="margin:0">8 practice quizzes like the real quiz. Each one has 20 questions from the study guide, 1 try per question, and is scored out of 100 and timed. Each answer is checked right away: if it is wrong, you see the correct answer with the explanation, then practice the same kind of problem (up to 5) until you get one right. Taking a quiz again gives new numbers.</p><div class="grid">${examCards()}</div></section>`;
+function home(){if(EXAM_ONLY)return header()+`<section class="panel"><p class="big-score" style="margin:0">⭐ ${S.pts||0} <span class="sub">points</span></p><p class="sub" style="margin:0">You get 1 point for every correct answer, including Fix it problems.</p></section>${lmHome()}`;
   const cards=VISIBLE.map(t=>{const c=counts(byTopic(t)),st=status(t),set=S.sets[t],sc=set?counts(set.list):null,cont=set&&setOpen(set);
     return `<div class="topic"><div class="row spread"><h3>${esc(t)}</h3><span class="pill ${st.cls}">${st.label}</span></div>${LESSON_SUB[t]?`<div class="meta">${LESSON_SUB[t]}</div>`:""}${last10(t)}
     <div class="meta">${st.n?`Last ${st.n}: ${st.ok} right`:"No problems yet"}</div>
@@ -1882,12 +1882,12 @@ function report(){
   const weak=VISIBLE.filter(t=>status(t).cls==="review"||(status(t).cls==="mid"));
   const ls=lessonStats(),weakL=ls.filter(x=>x.st.cls==="review"||x.st.cls==="mid").map(x=>x.k);
   const lrows=ls.map(x=>`<tr><td>${esc(x.k)}</td><td>${x.n}</td><td>${x.n?x.first:"—"}</td><td>${x.n?x.lock:"—"}</td><td>${x.n?Math.round(x.p*100)+"%":"—"}</td><td><span class="pill ${x.st.cls}">${x.st.label}</span></td></tr>`).join("");
-  const misses=S.log.filter(l=>!l.ok).slice(-12).reverse();
-  return header()+`<section class="panel"><h2>Topics to review</h2>${weakL.length?`<p style="margin:0">Lessons to practice more: <b>${weakL.map(esc).join(", ")}</b>.</p>`:""}${weak.length?`<p style="margin:0">Practice these topics more: <b>${weak.map(esc).join(", ")}</b>.</p>`:""}${!weak.length&&!weakL.length?`<div class="empty">No weak topics yet. A topic shows up here when fewer than 8 of its last 10 problems are right.</div>`:""}</section>
-  ${trackerHtml(C2_ORDER,"Lesson tracker (Course 2, Lessons 1–5)")}${trackerHtml()}${examHistory()}<section class="panel"><h2>By lesson (from Mixed reviews)</h2><p class="sub" style="margin:0">Every Mixed review, Mixed review 2, Quiz C1 review and Quiz C1 practice quiz problem is tracked by the book lesson it comes from.</p><div class="tablewrap"><table id="lessontable"><thead><tr><th>Lesson</th><th>Done</th><th>Right 1st try</th><th>Locked</th><th>Score</th><th>Status</th></tr></thead><tbody>${lrows}</tbody></table></div></section>
+  const misses=S.log.filter(l=>!l.ok&&l.t!=="Course 2 lesson").slice(-12).reverse();
+  return header()+lmReport()+`<details class="panel"><summary>Course 1 reports (older work)</summary><div style="display:grid;gap:18px"><section class="panel"><h2>Topics to review</h2>${weakL.length?`<p style="margin:0">Lessons to practice more: <b>${weakL.map(esc).join(", ")}</b>.</p>`:""}${weak.length?`<p style="margin:0">Practice these topics more: <b>${weak.map(esc).join(", ")}</b>.</p>`:""}${!weak.length&&!weakL.length?`<div class="empty">No weak topics yet. A topic shows up here when fewer than 8 of its last 10 problems are right.</div>`:""}</section>
+  ${trackerHtml()}${examHistory()}<section class="panel"><h2>By lesson (from Mixed reviews)</h2><p class="sub" style="margin:0">Every Mixed review, Mixed review 2, Quiz C1 review and Quiz C1 practice quiz problem is tracked by the book lesson it comes from.</p><div class="tablewrap"><table id="lessontable"><thead><tr><th>Lesson</th><th>Done</th><th>Right 1st try</th><th>Locked</th><th>Score</th><th>Status</th></tr></thead><tbody>${lrows}</tbody></table></div></section>
   <section class="panel"><h2>By topic</h2><div class="tablewrap"><table><thead><tr><th>Topic</th><th>Done</th><th>Score</th><th>Last 10</th><th>Homework</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>
   <section class="panel"><h2>Recent locked problems</h2>${misses.length?misses.map(l=>`<details><summary>${esc(l.src||l.t)}: ${fmt(l.text.length>80?l.text.slice(0,80)+"…":l.text)}</summary><p style="margin:.5em 0 0">${LESSON_ORDER2.includes(l.src)||l.t==="Quiz C1 review"?"Answer hidden (this set teaches without showing answers)":`Answer: <b>${fmt(l.final)}</b>`}${l.tries?` · Tries: ${l.tries.map(esc).join(" · ")}`:""}</p></details>`).join(""):`<div class="empty">None yet.</div>`}</section>
-  <section class="panel parent"><h2>For parents</h2><p class="sub" style="margin:0">Progress is saved in this browser on this device. Use your parent PIN to reset a topic so homework problems can be tried again.</p>
+  </div></details><section class="panel parent"><h2>For parents</h2><p class="sub" style="margin:0">Progress is saved in this browser on this device. Use your parent PIN to reset a topic so homework problems can be tried again.</p>
   <form id="pf" class="row" autocomplete="off"><label for="pin">${S.pin?"Parent PIN":"Create a 4-digit parent PIN"}</label><input id="pin" type="password" inputmode="numeric" maxlength="8" required><button class="btn" type="submit">${S.pin?"Unlock options":"Save PIN"}</button></form>
   <div id="pa"></div></section>`;
 }
@@ -1898,7 +1898,291 @@ function parentActions(){
   <div class="tablewrap"><table id="lvtable"><thead><tr><th>Topic</th><th>Current level</th></tr></thead><tbody>${lvRows}</tbody></table></div>
   <div class="row">${topicBtns||'<span class="sub">Nothing to reset yet.</span>'}${topicBtns?'<button class="btn" data-reset="*">Reset everything</button>':""}</div>`;
 }
-function render(){exSync();app.innerHTML=view.name==="exam"&&exCur()?examView():view.name==="practice"?practice():view.name==="report"?report():view.name==="summary"?summary():home();const a=document.getElementById("ans");if(a)a.focus({preventScroll:true});}
+function render(){exSync();app.innerHTML=view.name==="lesson"?lessonView():view.name==="exam"&&exCur()?examView():view.name==="practice"?practice():view.name==="report"?report():view.name==="summary"?summary():home();const a=document.getElementById("ans")||document.getElementById("lmans")||document.getElementById("lmnext");if(a)a.focus({preventScroll:true});}
+
+/* ===== COURSE 2: LESSON-BY-LESSON MODE (original practice modeled on the book's lesson structure) ===== */
+const shuf=a=>a.slice().sort(()=>Math.random()-.5);
+const L1G=[
+{c:"Counting numbers and whole numbers",L:[1,4],
+ r:"Counting (natural) numbers are {1, 2, 3, 4, …}. Whole numbers are the counting numbers and zero: {0, 1, 2, 3, …}. Braces { } hold the members of a set, and the ellipsis … means the list goes on without end. Whole numbers have no fractions, decimals or negatives, and there is no whole number between two consecutive counting numbers.",
+ h:"Write out both sets and compare them. Which number is in one set but not the other?",
+ f(L){const k=R(0,5);
+  if(k===0)return {type:"num",text:"Name a whole number that is not a counting number.",answer:"0",steps:["Counting numbers: {1, 2, 3, …}. Whole numbers: {0, 1, 2, 3, …}.","The only whole number missing from the counting numbers is 0."],final:"0"};
+  if(k===1)return {type:"choice",options:["natural numbers","whole numbers","integers","even numbers"],text:"What is another name for the counting numbers?",answer:"natural numbers",steps:["The numbers we say when we count, 1, 2, 3, …, are also called natural numbers."],final:"natural numbers"};
+  if(k===2)return {type:"choice",options:["all of them","none of them","only the even ones","only the number 1"],text:"Which counting numbers are also whole numbers?",answer:"all of them",steps:["Whole numbers = {0, 1, 2, 3, …}.","Every counting number 1, 2, 3, … is in that set."],final:"all of them"};
+  if(k===3){const a=R(2,60);return {type:"choice",options:["No","Yes, one","Yes, two","Yes, ten"],text:`Is there a whole number between ${a} and ${a+1}?`,answer:"No",steps:[`${a} and ${a+1} are consecutive: one comes right after the other.`,"Numbers between them, like halves, are not whole numbers."],final:"No"}}
+  if(k===4){const x=pick(["4.5","−3","[[1/2]]","7.25"]),o=[String(R(10,99)),"0",String(R(100,999)),x];return {type:"choice",options:shuf(o),text:"Which of these is NOT a whole number?",answer:x,steps:["Whole numbers are 0, 1, 2, 3, … with no fractions, decimals or negatives.",`So ${x} is not a whole number.`],final:x}}
+  return {type:"choice",options:["the list goes on without end","the list stops at 4","some numbers are missing","the set is empty"],text:"In {1, 2, 3, 4, …}, what does the … (ellipsis) mean?",answer:"the list goes on without end",steps:["An ellipsis at the end of a list means the pattern keeps going forever."],final:"the list goes on without end"}}},
+{c:"Writing money correctly",L:[1,4],
+ r:"Write money with a dollar sign ($0.50) OR a cent sign (50¢), never both. Never use a decimal point with a cent sign: 0.50¢ means half of ONE cent. With a dollar sign, always write two digits after the decimal point ($0.07, not $0.7).",
+ h:"Ask yourself: how many cents is this? Then write it with $ and two decimal places, or with ¢ and no decimal point.",
+ f(L){const p=R(1,95),pp=String(p).padStart(2,"0"),k=R(0,3);
+  if(k===0){const item=pick(["glass of lemonade","pencil","eraser","apple","cookie"]),right=`$0.${pp} or ${p}¢`;return {type:"choice",options:shuf([right,`$0.${pp}¢ or 0.${pp}`,`0.${pp}¢ or $${p}`,`$${p} or ${p}¢`]),text:`A sign says: "0.${pp}¢ per ${item}." The sign is incorrect. Which shows two correct ways to write the price?`,answer:right,steps:["A decimal point with a cent sign means less than one cent, which is not what the sign means.",`The price is ${p} cents: $0.${pp} with a dollar sign, or ${p}¢ with a cent sign.`],final:right}}
+  if(k===1)return {type:"num",text:`Write ${p} cents using a dollar sign.`,answer:(p/100).toFixed(2),steps:[`${p} cents is less than one dollar, so it goes after the decimal point.`,`Use two digits after the decimal point: $0.${pp}.`],final:`$0.${pp}`};
+  if(k===2)return {type:"num",text:`Write $0.${pp} using a cent sign. (Type just the number of cents.)`,answer:String(p),steps:[`$0.${pp} is ${p} hundredths of a dollar, which is ${p} cents.`,`With a cent sign: ${p}¢, with no decimal point.`],final:`${p}¢`};
+  const z=pick(["0.50","0.25","0.75"]);return {type:"choice",options:["part of one cent","part of one dollar","50 dollars","more than one dollar"],text:`A sign says "${z}¢ each." What does ${z}¢ really mean?`,answer:"part of one cent",steps:["The cent sign means cents, and a number like 0.50 is less than 1.","So it means a part of ONE cent, not a part of a dollar."],final:"part of one cent"}}},
+{c:"Adding whole numbers",L:[1,4],
+ r:"Line up the digits by place value (ones under ones). Add each column starting with the ones, and carry when a column adds up to 10 or more. Look for digits that make 10 to add faster.",
+ h:"Write the numbers in a column with the ones digits lined up. Start adding in the ones column.",
+ f(L){if(Math.random()<.25){const n=L>=3?10:8,ds=Array.from({length:n},()=>R(1,9)),s=ds.reduce((a,b)=>a+b,0);return {type:"num",text:`Add: ${ds.join(" + ")}`,answer:String(s),steps:["Look for pairs that make 10, like 7 + 3 or 6 + 4.",`Add the pairs, then the numbers left over: ${s}.`],final:String(s)}}
+  const n=L>=4?5:L>=3?4:3,rg=L>=3?[[10,99],[100,999],[1000,9999]]:[[10,99],[100,999]],nums=Array.from({length:n},(_,i)=>i===n-1?R(2,9):R(...pick(rg))),s=nums.reduce((a,b)=>a+b,0);
+  return {type:"num",text:`Simplify: ${nums.join(" + ")}`,answer:String(s),steps:["Line up the ones digits and add each column, starting with the ones.","Carry to the next column when a column is 10 or more.",`The sum is ${s}.`],final:String(s)}}},
+{c:"Adding money",L:[1,4],
+ r:"Write every amount in dollar form with two decimal places: $6 → $6.00 and 8¢ → $0.08. Line up the decimal points, add, and write the dollar sign and decimal point in the answer.",
+ h:"First rewrite every amount as dollars with two decimal places. Then stack them with the decimal points lined up.",
+ f(L){const parts=[{c:R(100,4999),s:"$"},{c:R(1,99),s:"¢"},{c:R(1,9)*100,s:"w"}];if(L>=3)parts.push({c:R(100,2999),s:"$"});if(L>=4)parts.push({c:R(5,95),s:"¢"});
+  const sh=shuf(parts),t=sh.reduce((a,p)=>a+p.c,0),show=p=>p.s==="¢"?p.c+"¢":p.s==="w"?"$"+p.c/100:money(p.c);
+  return {type:"num",text:`Simplify: ${sh.map(show).join(" + ")}`,answer:(t/100).toFixed(2),steps:[`Write each in dollar form: ${sh.map(p=>money(p.c)).join(" + ")}.`,"Line up the decimal points and add.",`The sum is ${money(t)}.`],final:money(t)}}},
+{c:"Subtracting whole numbers",L:[1,4],
+ r:"The minuend (first number) goes on top and the subtrahend (second number) goes below it. Line up the ones and subtract column by column from right to left. Borrow (regroup) when the top digit is smaller. When borrowing across zeros, go to the next digit that is not zero.",
+ h:"Write the first number on top. In each column, if the top digit is smaller than the bottom digit, borrow from the column to its left.",
+ f(L){let a,b;const k=L>=3?R(0,2):R(0,1);
+  if(k===0){a=R(L>=2?1000:100,L>=2?9999:999);b=R(Math.floor(a/10),a-1)}
+  else if(k===1){a=R(2,9)*1000+(Math.random()<.5?R(1,9):0);b=R(Math.floor(a/3),a-1)}
+  else{a=R(3000,9000);b=a-R(15,120)}
+  return {type:"num",text:`Simplify: ${a} − ${b}`,answer:String(a-b),steps:[`Write ${a} on top (minuend) and ${b} below it (subtrahend), ones lined up.`,"Subtract each column from right to left, borrowing when needed.",`The difference is ${a-b}. Check: ${a-b} + ${b} = ${a}.`],final:String(a-b)}}},
+{c:"Subtracting money",L:[1,4],
+ r:"Write both amounts in dollar form with two decimal places ($5 → $5.00, 25¢ → $0.25). Put the first amount on top, line up the decimal points, and subtract, borrowing across zeros when needed.",
+ h:"Rewrite both amounts as dollars with two decimal places. Line up the decimal points before you subtract.",
+ f(L){const k=R(0,2);let A,B,ta,tb;
+  if(k===0){A=R(2,L>=3?50:10)*100;B=R(5,95);ta="$"+A/100;tb=B+"¢"}
+  else if(k===1){A=R(L>=3?10:2,L>=3?50:20)*100;B=R(105,A-50);ta="$"+A/100;tb=money(B)}
+  else{A=R(1500,6000);B=R(500,A-100);ta=money(A);tb=money(B)}
+  return {type:"num",text:`Simplify: ${ta} − ${tb}`,answer:((A-B)/100).toFixed(2),steps:[`Dollar form: ${money(A)} − ${money(B)}.`,"Line up the decimal points and subtract.",`The difference is ${money(A-B)}.`],final:money(A-B)}}},
+{c:"Multiplying whole numbers",L:[1,4],
+ r:"Multiplication can be written 4 × 5, 4 · 5, 4(5), (4)(5), or ab for “a times b.” Put the number with more digits on top. Multiply by the ones digit, then by the tens digit, and add the partial products. With zeros at the end, let them “hang out”: multiply the other digits, then attach the zeros. Anything times 0 is 0.",
+ h:"Put the longer number on top. Multiply by each digit of the bottom number, one at a time, then add the partial products.",
+ f(L){const k=R(0,L>=3?4:3);
+  if(k===0){const a=R(102,L>=4?2999:899),b=R(12,L>=3?98:49),s=pick([`${a} · ${b}`,`(${a})(${b})`,`${a} × ${b}`]);return {type:"num",text:`Simplify: ${s}`,answer:String(a*b),steps:[`Multiply ${a} by the ${b%10} in ${b}: ${a*(b%10)}.`,`Multiply ${a} by the ${b-b%10} in ${b}: ${a*(b-b%10)}.`,`Add the partial products: ${a*b}.`],final:String(a*b)}}
+  if(k===1){const x=R(2,9),y=R(2,9),a=x*pick([10,100]),b=y*pick([10,100]),s=pick([`${a} · ${b}`,`${a}(${b})`]);return {type:"num",text:`Simplify: ${s}`,answer:String(a*b),steps:[`Multiply the digits that are not zero: ${x} × ${y} = ${x*y}.`,`Attach all the zeros from both numbers: ${a*b}.`],final:String(a*b)}}
+  if(k===2){const a=R(105,499),b=pick([20,30,40,50,60,80]);return {type:"num",text:`Simplify: ${a} × ${b}`,answer:String(a*b),steps:[`Let the 0 in ${b} hang out to the right.`,`${a} × ${b/10} = ${a*b/10}, then attach the 0: ${a*b}.`],final:String(a*b)}}
+  if(k===3){const a=R(3,15),b=R(3,15);return {type:"num",text:`Simplify: ${a} · ${b} · 0`,answer:"0",steps:["When 0 is one of the factors, the product is 0."],final:"0"}}
+  const a=R(3,9),b=R(11,25),c=R(2,9);return {type:"num",text:`Simplify: ${a} · ${b} · ${c}`,answer:String(a*b*c),steps:[`Multiply two factors first: ${a} · ${b} = ${a*b}.`,`Then ${a*b} · ${c} = ${a*b*c}.`],final:String(a*b*c)}}},
+{c:"Multiplying money",L:[1,4],
+ r:"Multiply as if there were no decimal point. Then place the decimal point so the answer has two digits after it, and write a dollar sign. For cents, like 5(29¢), multiply to get cents, then change to dollars when it is 100¢ or more (145¢ = $1.45).",
+ h:"Ignore the $ and the decimal point while you multiply. Then count two places from the right for the decimal point.",
+ f(L){const k=R(0,2);
+  if(k===0){const c=R(105,L>=3?2999:999),m=pick(L>=3?[20,30,40,60,80,12,15,24]:[20,30,40,50]);return {type:"num",text:`Simplify: ${money(c)} × ${m}`,answer:(c*m/100).toFixed(2),steps:[`Multiply as whole numbers: ${c} × ${m} = ${c*m}.`,`Put two digits after the decimal point and a dollar sign: ${money(c*m)}.`],final:money(c*m)}}
+  if(k===1){const c=R(15,95),m=R(3,L>=3?12:9);return {type:"num",text:`Simplify: ${m}(${c}¢). Write the answer with a dollar sign.`,answer:(c*m/100).toFixed(2),steps:[`${m}(${c}¢) means ${m} × ${c}¢ = ${c*m}¢.`,`${c*m}¢ = ${money(c*m)}.`],final:money(c*m)}}
+  const m=pick([20,30,40,80,12,25]),c=R(1,40)*25+(L>=3?R(0,4):0);return {type:"num",text:`Simplify: ${m}(${money(c)})`,answer:(c*m/100).toFixed(2),steps:[`${m}(${money(c)}) means ${m} × ${money(c)}.`,`${c} × ${m} = ${c*m}, so the product is ${money(c*m)}.`],final:money(c*m)}}},
+{c:"Dividing whole numbers",L:[1,4],
+ r:"dividend ÷ divisor = quotient. Division can be written with ÷, with a division box (divisor outside, dividend inside), or with a division bar (dividend on top, divisor below). Divide, multiply, subtract, bring down, and repeat. What is left at the end is the remainder, and it must be less than the divisor.",
+ h:"Find the divisor (the number you divide by). Ask how many times it fits into the first digits of the dividend. Then multiply, subtract, and bring down the next digit.",
+ f(L){const d=L>=3?R(12,64):R(3,25),q=R(L>=3?21:12,L>=3?99:60),rem=Math.random()<.5?R(1,d-1):0,D=d*q+rem,k=R(0,2),txt=k===0?`${D} ÷ ${d}`:k===1?`[[${D}/${d}]]`:`${D} by ${d}`;
+  return {type:"rem",text:`Divide ${txt}. If there is a remainder, write it like 12 R 3.`,answer:{q,r:rem},steps:[`${D} is the dividend and ${d} is the divisor.`,`${d} fits into ${D} ${q} times: ${d} × ${q} = ${d*q}.`,rem?`${D} − ${d*q} = ${rem} is left over, so the remainder is ${rem} (less than ${d}).`:"Nothing is left over, so there is no remainder."],final:rem?`${q} R ${rem}`:String(q)}}},
+{c:"Dividing money",L:[1,4],
+ r:"Divide as with whole numbers. Put the decimal point in the quotient straight above the decimal point in the dividend, and write the answer with a dollar sign. Write $10 as $10.00 so you can keep dividing.",
+ h:"Write the money amount inside the division box. Put the decimal point in the answer right above the one inside, then divide.",
+ f(L){const d=pick(L>=3?[4,5,6,8,12,15,16,20,25]:[2,3,4,5,8,10,20]),q=R(L>=3?52:25,L>=3?1250:600),D=d*q;
+  return {type:"num",text:`Simplify: ${money(D)} ÷ ${d}`,answer:(q/100).toFixed(2),steps:[`Divide ${money(D)} by ${d}, keeping the decimal point straight above.`,`${D} ÷ ${d} = ${q}, so the quotient is ${money(q)}.`],final:money(q)}}},
+{c:"Names of the parts",L:[1,4],
+ r:"addend + addend = sum · minuend − subtrahend = difference · factor × factor = product · dividend ÷ divisor = quotient. The four fundamental operations of arithmetic are addition, subtraction, multiplication and division.",
+ h:"Say the vocabulary line for this operation, then match each position in the equation to its name.",
+ f(L){const k=R(0,2);
+  if(k===0){const a=R(3,12),b=R(2,9),T=[[`In ${a*b} ÷ ${b} = ${a}, what is ${a*b} called?`,"dividend"],[`In ${a*b} ÷ ${b} = ${a}, what is ${b} called?`,"divisor"],[`In ${a*b} ÷ ${b} = ${a}, what is ${a} called?`,"quotient"],[`In ${a+b+5} − ${b} = ${a+5}, what is ${b} called?`,"subtrahend"],[`In ${a+b+5} − ${b} = ${a+5}, what is ${a+b+5} called?`,"minuend"],[`In ${a+b+5} − ${b} = ${a+5}, what is ${a+5} called?`,"difference"],[`In ${a} × ${b} = ${a*b}, what is ${a*b} called?`,"product"],[`In ${a} × ${b} = ${a*b}, what is ${b} called?`,"factor"],[`In ${a} + ${b} = ${a+b}, what is ${a+b} called?`,"sum"],[`In ${a} + ${b} = ${a+b}, what is ${a} called?`,"addend"]],[t,ans]=pick(T);
+   return {type:"choice",options:opt4(ans,["dividend","divisor","quotient","minuend","subtrahend","difference","product","addend","sum","factor"]),text:t,answer:ans,steps:["Match the operation to its vocabulary line.",`So it is the ${ans}.`],final:ans}}
+  if(k===1){const [op,ans]=pick([["division","quotient"],["subtraction","difference"],["multiplication","product"],["addition","sum"]]);return {type:"choice",options:["sum","difference","product","quotient"],text:`What is the name for the answer to a${op[0]==="a"?"n":""} ${op} problem?`,answer:ans,steps:[`The answer to ${op} is called the ${ans}.`],final:ans}}
+  const odd=pick(["evaluation","estimation","rounding","place value"]);return {type:"choice",options:shuf(["addition","subtraction","multiplication","division",odd]),text:"Which of these is NOT one of the four fundamental operations of arithmetic?",answer:odd,steps:["The four fundamental operations are addition, subtraction, multiplication and division.",`So ${odd} is not one of them.`],final:odd}}},
+{c:"Word problems with sum, difference, product and quotient",L:[1,4],
+ r:"Translate one phrase at a time: “the sum of a and b” means a + b, “the product of a and b” means a × b. Work out each phrase first, then do what the sentence says with the results. “Subtracted from X” means X comes first. “Divided by Y” means Y is the divisor.",
+ h:"Find the two smaller phrases first (a sum, a product, …). Work each one out, then read the sentence again to see which result comes first.",
+ f(L){const k=R(0,L>=3?3:2);
+  if(k===0){let a,b,c,d;do{a=R(2,9);b=R(2,9);c=R(3,12);d=R(3,12)}while(c*d<=a+b);return {type:"num",text:`When the sum of ${a} and ${b} is subtracted from the product of ${c} and ${d}, what is the difference?`,answer:String(c*d-a-b),steps:[`Sum: ${a} + ${b} = ${a+b}. Product: ${c} × ${d} = ${c*d}.`,`“Subtracted from the product” means the product comes first: ${c*d} − ${a+b} = ${c*d-a-b}.`],final:String(c*d-a-b)}}
+  if(k===1){const a=2*R(1,9);return {type:"num",text:`When the product of ${a} and ${a} is divided by the sum of ${a} and ${a}, what is the quotient?`,answer:String(a/2),steps:[`Product: ${a} × ${a} = ${a*a}. Sum: ${a} + ${a} = ${2*a}.`,`${a*a} ÷ ${2*a} = ${a/2}.`],final:String(a/2)}}
+  if(k===2){let a,b,c,d;do{a=R(2,12);b=R(2,12);c=R(1,9);d=R(1,9)}while((a*b)%(c+d));return {type:"num",text:`When the product of ${a} and ${b} is divided by the sum of ${c} and ${d}, what is the quotient?`,answer:String(a*b/(c+d)),steps:[`Product: ${a} × ${b} = ${a*b}. Sum: ${c} + ${d} = ${c+d}.`,`${a*b} ÷ ${c+d} = ${a*b/(c+d)}.`],final:String(a*b/(c+d))}}
+  let a,b,c,d;do{a=R(2,15);b=R(2,15);c=R(5,20);d=R(1,9)}while(c<=d);return {type:"num",text:`When the sum of ${a} and ${b} is multiplied by the difference of ${c} and ${d}, what is the product?`,answer:String((a+b)*(c-d)),steps:[`Sum: ${a} + ${b} = ${a+b}. Difference: ${c} − ${d} = ${c-d}.`,`${a+b} × ${c-d} = ${(a+b)*(c-d)}.`],final:String((a+b)*(c-d))}}},
+{c:"Finding a missing part",L:[1,4],
+ r:"Use the opposite operation. Missing minuend: add the subtrahend and the difference. Missing subtrahend: subtract the difference from the minuend. Missing dividend: multiply the divisor by the quotient. Missing divisor: divide the dividend by the quotient. Missing addend: subtract from the sum. Missing factor: divide the product by the other factor.",
+ h:"Write the vocabulary line (like minuend − subtrahend = difference), fill in the numbers you know, and think about which operation undoes it.",
+ f(L){const big=L>=3,k=R(0,5),a=R(big?12:3,big?120:30),b=R(big?6:2,big?40:12);
+  const T=[[`If the subtrahend is ${a} and the difference is ${b}, what is the minuend?`,a+b,`minuend − ${a} = ${b}, so minuend = ${b} + ${a}`],
+   [`If the minuend is ${a+b} and the difference is ${b}, what is the subtrahend?`,a,`${a+b} − subtrahend = ${b}, so subtrahend = ${a+b} − ${b}`],
+   [`If the divisor is ${b} and the quotient is ${a}, what is the dividend?`,a*b,`dividend ÷ ${b} = ${a}, so dividend = ${a} × ${b}`],
+   [`If the dividend is ${a*b} and the quotient is ${a}, what is the divisor?`,b,`${a*b} ÷ divisor = ${a}, so divisor = ${a*b} ÷ ${a}`],
+   [`If one addend is ${a} and the sum is ${a+b*3}, what is the other addend?`,b*3,`${a} + addend = ${a+b*3}, so addend = ${a+b*3} − ${a}`],
+   [`If one factor is ${b} and the product is ${a*b}, what is the other factor?`,a,`${b} × factor = ${a*b}, so factor = ${a*b} ÷ ${b}`]][k];
+  return {type:"num",text:T[0],answer:String(T[1]),steps:[T[2]+".",`The answer is ${T[1]}.`],final:String(T[1])}}},
+{c:"Writing equations that show each part",L:[1,4],
+ r:"In every equation each number has a job. Look at the operation sign first, then use its vocabulary line: in a − b = c, a is the minuend, b is the subtrahend and c is the difference. The same idea works for +, × and ÷.",
+ h:"For each choice, find where the number sits and name its job with the vocabulary lines. Only one choice gives it the job the question asks for.",
+ f(L){if(Math.random()<.25){const [op,right,w]=pick([["subtraction","minuend − subtrahend = difference",["subtrahend − minuend = difference","difference − subtrahend = minuend","minuend − difference = sum"]],["division","dividend ÷ divisor = quotient",["divisor ÷ dividend = quotient","quotient ÷ divisor = dividend","dividend ÷ quotient = product"]],["multiplication","factor × factor = product",["product × factor = factor","factor × product = sum","factor × factor = quotient"]]]);return {type:"choice",options:shuf([right,...w]),text:`Which equation correctly shows the relationships in ${op}?`,answer:right,steps:["Think of a real example and name each number.",`The correct vocabulary line is ${right}.`],final:right}}
+  const N=pick([12,15,18,20,24,30,36]),dv=N%2===0?2:3,x=R(2,9),
+   roles={addend:`${N} + ${x} = ${N+x}`,sum:`${N-x} + ${x} = ${N}`,minuend:`${N} − ${x} = ${N-x}`,subtrahend:`${N+x} − ${N} = ${x}`,difference:`${N+x+3} − ${x+3} = ${N}`,factor:`${N} × ${dv} = ${N*dv}`,product:`${dv} × ${N/dv} = ${N}`,dividend:`${N} ÷ ${dv} = ${N/dv}`,divisor:`${N*x} ÷ ${N} = ${x}`,quotient:`${N*dv} ÷ ${dv} = ${N}`};
+  const keys=Object.keys(roles),want=pick(keys),others=shuf(keys.filter(k=>k!==want)).slice(0,3),opts=shuf([want,...others].map(k=>roles[k]));
+  return {type:"choice",options:opts,text:`In which equation is ${N} the ${want}?`,answer:roles[want],steps:[`Name the job of ${N} in each equation.`,`In ${roles[want]}, ${N} is the ${want}.`],final:roles[want]}}},
+{c:"Evaluating expressions",L:[1,4],
+ r:"A variable is a letter that stands for a number. To evaluate an expression, replace each letter with its number, then calculate. xy means x times y, and x over y means x divided by y.",
+ h:"Rewrite the expression with the numbers in place of the letters. Then do the arithmetic.",
+ f(L){const [p,q]=pick([["x","y"],["a","b"],["n","m"]]),y=R(2,L>=3?15:9),x=y*R(2,L>=3?25:12),k=R(0,L>=4?5:3),E=[[`${p} + ${q}`,x+y,`${x} + ${y}`],[`${p} − ${q}`,x-y,`${x} − ${y}`],[`${p}${q}`,x*y,`${x} · ${y}`],[`[[${p}/${q}]]`,x/y,`${x} ÷ ${y}`],[`${p}${q} − ${p}`,x*y-x,`${x} · ${y} − ${x}`],[`[[${p}/${q}]] + ${q}`,x/y+y,`${x} ÷ ${y} + ${y}`]][k];
+  return {type:"num",text:`Evaluate ${E[0]} for ${p} = ${x} and ${q} = ${y}.`,answer:String(E[1]),steps:[`Replace ${p} with ${x} and ${q} with ${y}: ${E[2]}.`,k>=4?`Multiply or divide first, then add or subtract: ${E[2]} = ${E[1]}.`:`${E[2]} = ${E[1]}.`],final:String(E[1])}}},
+{c:"Remainders",L:[1,4],
+ r:"After dividing, the remainder is what is left over. It must always be less than the divisor. If it were equal to or greater than the divisor, the divisor could fit one more time.",
+ h:"Compare the leftover with the divisor. Could the divisor still fit into that leftover amount?",
+ f(L){const k=R(0,2);
+  if(k===0){const d=R(4,15),ok=R(1,d-1),bad=[d,d+R(1,5),d+R(6,12)];return {type:"choice",options:shuf([ok,...bad].map(String)),text:`In a division problem the divisor is ${d}. Which number could be the remainder?`,answer:String(ok),steps:[`The remainder must be less than the divisor, ${d}.`,`Only ${ok} is less than ${d}.`],final:String(ok)}}
+  if(k===1)return {type:"choice",options:["less than the divisor","equal to the divisor","greater than the divisor"],text:"Should a remainder be greater than, equal to, or less than the divisor?",answer:"less than the divisor",steps:["If the leftover were as big as the divisor, the divisor could fit one more time.","So the remainder must be less than the divisor."],final:"less than the divisor"};
+  const d=R(3,L>=3?25:9),q=R(4,40),r=R(1,d-1),D=d*q+r;return {type:"num",text:`What is the remainder when ${D} is divided by ${d}?`,answer:String(r),steps:[`${d} × ${q} = ${d*q} is the biggest multiple of ${d} that fits in ${D}.`,`${D} − ${d*q} = ${r}.`],final:String(r)}}},
+{c:"Finding the pattern in a sequence",L:[1,4],
+ r:"A sequence follows a rule. Find the rule by looking at the differences between neighboring terms: they may be the same each time (+5, +5, …), grow by a pattern (+2, +3, +4, …), or the terms may be multiplied (×2, ×2, …). Use the rule to extend the sequence, then check that your answer is reasonable.",
+ h:"Write the difference between each pair of neighboring terms above the sequence. Then look for a pattern in those differences.",
+ f(L){const k=R(0,3);let t=[],rule;
+  if(k===0){const s=R(1,6),d0=R(1,4);t=[s];for(let i=0;i<7;i++)t.push(t[i]+d0+i);rule=`the differences grow by 1 each time (+${d0}, +${d0+1}, +${d0+2}, …)`}
+  else if(k===1){const s=R(1,5),d0=pick([1,3]);t=[s];for(let i=0;i<7;i++)t.push(t[i]+d0+2*i);rule=`the differences grow by 2 each time (+${d0}, +${d0+2}, +${d0+4}, …)`}
+  else if(k===2){const s=R(2,30),d=R(3,15);t=Array.from({length:8},(_,i)=>s+d*i);rule=`add ${d} each time`}
+  else{const s=R(1,5),m=pick([2,3]);t=Array.from({length:8},(_,i)=>s*m**i);rule=`multiply by ${m} each time`}
+  const show=L>=3?4:5,need=L>=3?3:1,next=t.slice(show,show+need);
+  return need>1?{type:"list",count:3,text:`What are the next three terms in this sequence? ${t.slice(0,show).join(", ")}, … Type them separated by commas.`,answer:next.map(String),steps:[`Find the differences: the rule is: ${rule}.`,`Use the rule three more times: ${next.join(", ")}.`],final:next.join(", ")}
+   :{type:"num",text:`What is the next term in this sequence? ${t.slice(0,show).join(", ")}, …`,answer:String(next[0]),steps:[`The rule is: ${rule}.`,`The next term is ${next[0]}.`],final:String(next[0])}}},
+{c:"Two-step money word problems",L:[2,4],
+ r:"Use the four steps. Understand: what do you know and what is asked? Plan: break the problem into smaller steps (for example, find the cost of one item first). Solve each step. Check: does the answer make sense?",
+ h:"Write down what you know. What must you find first before you can answer the question? Do that step, then use its answer for the next step.",
+ f(L){const nm=pick(["Sasha","Omar","Lina","Yusuf","Grace","Leo","Maya","Adam"]),th=pick(["shirts","books","games","hats","notebooks"]),n=R(3,6),each=R(8,45)*100+pick([0,25,50,75]),T=each*n,H=[10000,20000,30000,50000].find(x=>x>T+500),v=R(0,L>=4?3:2);
+  if(v===0)return {type:"num",text:`${nm} bought ${n} ${th} that cost a total of ${money(T)}. Each one cost the same amount. What was the cost of one?`,answer:(each/100).toFixed(2),steps:[`Divide the total by the number of ${th}: ${money(T)} ÷ ${n}.`,`One costs ${money(each)}.`],final:money(each)};
+  if(v===1)return {type:"num",text:`${nm} had ${money(H)} and bought ${n} ${th} that cost a total of ${money(T)}, each the same price. The next day ${nm} returned one of them. How much of the ${money(H)} does ${nm} have now?`,answer:((H-T+each)/100).toFixed(2),steps:[`Cost of one: ${money(T)} ÷ ${n} = ${money(each)}.`,`After buying: ${money(H)} − ${money(T)} = ${money(H-T)}.`,`After returning one: ${money(H-T)} + ${money(each)} = ${money(H-T+each)}.`],final:money(H-T+each)};
+  if(v===2)return {type:"num",text:`${nm} had ${money(H)} and bought ${n} ${th} for ${money(each)} each. How much money did ${nm} have left?`,answer:((H-T)/100).toFixed(2),steps:[`Total cost: ${n} × ${money(each)} = ${money(T)}.`,`Money left: ${money(H)} − ${money(T)} = ${money(H-T)}.`],final:money(H-T)};
+  const m=R(2,4),p2=R(3,15)*100+pick([0,50]),T2=T+m*p2,H2=[10000,20000,30000,50000].find(x=>x>T2+500);
+  return {type:"num",text:`${nm} paid with ${money(H2)} for ${n} ${th} at ${money(each)} each and ${m} posters at ${money(p2)} each. How much change should ${nm} get?`,answer:((H2-T2)/100).toFixed(2),steps:[`${th}: ${n} × ${money(each)} = ${money(T)}. Posters: ${m} × ${money(p2)} = ${money(m*p2)}.`,`Total: ${money(T2)}. Change: ${money(H2)} − ${money(T2)} = ${money(H2-T2)}.`],final:money(H2-T2)}}}
+];
+const PUG=[
+{c:"Power Up: score and dozen",L:[1,4],r:"A score is 20. A dozen is 12. Half a dozen is 6. Change each word to its number, then add.",h:"Replace each word with its number first.",
+ f(){const T=[["3 score",60],["4 score",80],["4 score and 7",87],["half a dozen",6],["2 dozen",24],["4 dozen",48],["5 dozen",60],["a score and a dozen",32],["3 dozen and 4",40],["2 score and 9",49],["6 dozen",72],["half a score",10],["3 score and 10",70]],[w,v]=pick(T);return {type:"num",text:`A score is 20 and a dozen is 12. How many is ${w}?`,answer:String(v),steps:["Replace each word with its number and add.",`${w} = ${v}.`],final:String(v)}}},
+{c:"Power Up: probability",L:[1,4],r:"Probability = number of ways it can happen ÷ number of possible outcomes. A number cube has 6 faces: 1, 2, 3, 4, 5, 6. Write the probability as a fraction in lowest terms.",h:"Count how many faces of the cube match. That count goes over 6.",
+ f(){const T=[["a 3","1/6"],["a 5","1/6"],["an even number","1/2"],["an odd number","1/2"],["a number greater than 4","1/3"],["a number less than 3","1/3"],["a 7","0"],["a number less than 7","1"],["a number greater than 2","2/3"]],[w,v]=pick(T);return {type:"frac",text:`What is the probability of rolling ${w} on a number cube? Write it as a fraction in lowest terms.`,answer:v,steps:["Count the faces that match out of 6 faces.",`The probability is ${v}.`],final:v}}},
+{c:"Power Up: chain calculation",L:[1,4],r:"Do each step in order, one at a time, and keep the running answer in your head. A score is 20 and a dozen is 12.",h:"Write down the answer after each step so you don't lose your place.",
+ f(){const st=pick([[20,"a score"],[12,"a dozen"],[6,"half a dozen"],[24,"2 dozen"],[40,"2 score"]]);let v=st[0];const words=[];
+  for(let i=0;i<4;i++){const o=[];o.push(["add a dozen",x=>x+12]);o.push(["add a score",x=>x+20]);const k=R(2,9);o.push([`add ${k}`,x=>x+k]);if(v>12)o.push([`subtract ${Math.min(k,v-1)}`,x=>x-Math.min(k,v-1)]);if(v<=30)o.push([`multiply by ${pick([2,3])}`,null]);[2,3,4,5,10].forEach(d=>{if(v%d===0&&v/d>1)o.push([`divide by ${d}`,x=>x/d])});
+   let [w,fn]=pick(o);if(!fn){const m=+w.slice(-1);fn=x=>x*m}v=fn(v);words.push(w)}
+  return {type:"num",text:`Start with ${st[1]}. ${words.map((w,i)=>(i===words.length-1?"then ":"")+w).join("; ")}. What is the answer?`.replace(/\. ([a-z])/,(m,c)=>". "+c.toUpperCase()),answer:String(v),steps:[`Start with ${st[0]} and do each step in order.`,`The answer is ${v}.`],final:String(v)}}},
+{c:"Power Up: mental math",L:[1,4],r:"Use place value and friendly numbers. Multiply the digits that are not zero, then attach the zeros. To subtract from $1.00, count up from the price to the next dime, then to the dollar.",h:"Look for the easy part first: the nonzero digits, or how far it is to the next dollar.",
+ f(){const k=R(0,4);
+  if(k===0){const a=R(2,9)*10,b=R(2,9)*pick([10,100]);return {type:"num",text:`${a} × ${b} = ?`,answer:String(a*b),steps:["Multiply the nonzero digits, then attach all the zeros.",`${a*b}.`],final:String(a*b)}}
+  if(k===1){const c=R(5,95);return {type:"num",text:`$1.00 − ${c}¢ = ? (write it with a dollar sign)`,answer:((100-c)/100).toFixed(2),steps:[`Count up from ${c}¢ to 100¢.`,`${100-c}¢ = ${money(100-c)}.`],final:money(100-c)}}
+  if(k===2){const n=R(13,49);return {type:"num",text:`Double ${n}.`,answer:String(2*n),steps:["Double the tens, double the ones, then add.",`${2*n}.`],final:String(2*n)}}
+  if(k===3){const n=2*R(26,99);return {type:"num",text:`What is half of ${n}?`,answer:String(n/2),steps:["Split the number into easy parts and halve each part.",`${n/2}.`],final:String(n/2)}}
+  const d=R(2,9);return {type:"num",text:`How many quarters are in $${d}?`,answer:String(4*d),steps:["There are 4 quarters in each dollar.",`4 × ${d} = ${4*d}.`],final:String(4*d)}}}
+];
+const C2L_DEFAULT_H="Read the Remember rule carefully. Then look at what the problem gives you and what it asks for, and do one step at a time.";
+const mkC=(k,names)=>C2[k].map((g,i)=>({c:names[i],L:g.L,r:g.r,h:C2L_DEFAULT_H,f:g.f}));
+const LSN=[
+ {k:"C2 Problem Solving",n:"PS",g:mkC("C2 Problem Solving",["The four problem-solving steps","Saving-money word problems","Sum of the first numbers (finding a pattern)","Two-step shopping problems"])},
+ {k:"C2 Lesson 1",n:"1",g:L1G,ps:["Finding the pattern in a sequence","Two-step money word problems"]},
+ {k:"C2 Lesson 2",n:"2",g:mkC("C2 Lesson 2",["Naming the properties","Using properties to find unknowns","Parentheses first (subtraction and division are not associative)","Mental math with properties","Identities and inverse operations"])},
+ {k:"C2 Lesson 3",n:"3",g:mkC("C2 Lesson 3",["Unknown addends","Unknown minuend or subtrahend","Unknown factors","Unknown dividend or divisor"])},
+ {k:"C2 Lesson 4",n:"4",g:mkC("C2 Lesson 4",["Comparing numbers on a number line","Ordering integers","Next term of a sequence","Using a sequence rule","Moving on a number line and opposites"])},
+ {k:"C2 Lesson 5",n:"5",g:mkC("C2 Lesson 5",["Digit in a place","Naming the place value","Expanded notation","Writing numbers from words","Writing numbers in words","Big money amounts in digits"])}
+];
+const LSBY=Object.fromEntries(LSN.map(x=>[x.k,x]));
+const lmName=k=>k==="PU"?"Power Up":!LSBY[k]?k:k==="C2 Problem Solving"?"Problem-Solving Overview":"Lesson "+LSBY[k].n;
+const STN={learn:"Learn the lesson",power:"Power Up",practice:"Practice Set",written:"Written Practice",test:"Lesson Test",fix:"Fix-up practice"};
+const STEPS=["learn","power","practice","written","test"];
+const MASTER=90;
+function lmS(k){S.c2l=S.c2l||{};return S.c2l[k]||(S.c2l[k]={learn:0,runs:{},hist:[],best:null,tests:0})}
+function lmG(it){const ls=it.lk==="PU"?{g:PUG}:LSBY[it.lk];return ls.g[it.gi]}
+function lmGen(g,L,avoid){const Lx=Math.min(Math.max(L,g.L[0]),g.L[1]);let q,t=0;do{q=qClean(g.f(Lx));t++}while(t<30&&avoid&&avoid.has(q.text));q.lv=Lx;return q}
+function lmItem(lk,gi,L,avoid){const g=(lk==="PU"?PUG:LSBY[lk].g)[gi],q=lmGen(g,L,avoid);if(avoid)avoid.add(q.text);return {lk,gi,c:g.c,lv:q.lv,q,tries:[],res:null,t:0}}
+function lmCStats(lk,c){const a=(S.log||[]).filter(l=>l.t==="Course 2 lesson"&&l.src===lk&&l.c===c);const first=a.filter(l=>l.ok&&l.a===1).length;return {n:a.length,first,rate:a.length?first/a.length:null,miss:a.filter(l=>!l.ok).length}}
+function lmLevel(lk,c,base){const s=lmCStats(lk,c);return s.n>=4&&s.rate>=.85?Math.max(base,4):base}
+function lmBuild(k,st){const ls=LSBY[k],av=new Set(),it=[];const G=ls.g.map((g,i)=>i);
+ if(st==="power"){[0,1,2,3,0,1,2,3].forEach(i=>it.push(lmItem("PU",i,3,av)));return shuf(it)}
+ if(st==="practice"){const ids=G.filter(i=>!(ls.ps||[]).includes(ls.g[i].c)),reps=Math.ceil(10/ids.length);for(let r=0;r<reps;r++)ids.forEach(i=>it.push(lmItem(k,i,lmLevel(k,ls.g[i].c,3),av)));return it}
+ if(st==="written"){const idx=LSN.findIndex(x=>x.k===k),prev=LSN.slice(0,idx).flatMap(x=>x.g.map((g,i)=>({lk:x.k,i,c:g.c}))),nCur=prev.length?24:40;let cur=shuf(G);
+  if(cur.length>nCur){const must=cur.filter(i=>(ls.ps||[]).includes(ls.g[i].c));cur=must.concat(cur.filter(i=>!must.includes(i))).slice(0,nCur)}while(cur.length<nCur)cur.push(pick(G));cur.forEach(i=>it.push(lmItem(k,i,pick([3,4,4]),av)));
+  if(prev.length){const w=prev.map(p=>{const s=lmCStats(p.lk,p.c);return s.rate==null?2:1+3*(1-s.rate)});for(let j=0;j<16;j++){let tot=w.reduce((a,b)=>a+b,0),x=Math.random()*tot,m=0;while(x>w[m]&&m<w.length-1){x-=w[m];m++}it.push(lmItem(prev[m].lk,prev[m].i,pick([3,4]),av));w[m]*=.4}}
+  return shuf(it)}
+ if(st==="test"){let ids=shuf(G);if(ids.length>10)ids=ids.slice(0,10);while(ids.length<10)ids.push(...shuf(G).slice(0,10-ids.length));ids.forEach(i=>it.push(lmItem(k,i,4,av)));return shuf(it)}
+ return it}
+function lmRun(){const v=view;return v.name==="lesson"&&v.st&&v.st!=="learn"?lmS(v.k).runs[v.st]:null}
+function lmMax(run,q){return run.st==="test"?1:q.type==="choice"?2:3}
+function lmCheck(q,v){if(q.type==="rem"){const s=String(v).trim().toLowerCase().replace(/remainder/g,"r").replace(/\s+/g,"");if(!s)return {result:"format",msg:"Type an answer first."};const m=s.match(/^(\d+)(?:r(\d+))?$/);if(!m)return {result:"format",msg:"Type the answer like 22 R 2, or just 22 if there is no remainder."};const qq=+m[1],r=+(m[2]||0);if(qq===q.answer.q&&r===q.answer.r)return {result:"right"};if(qq===q.answer.q&&q.answer.r&&!m[2])return {result:"wrong",msg:"Check whether anything is left over."};return {result:"wrong"}}return check(q,v)}
+function lmEx(it){if(!it.ex){const g=lmG(it);let e,t=0;const kq=qKey(it.q.text);do{e=lmGen(g,it.lv);t++}while(t<60&&(e.text===it.q.text||e.final===it.q.final||(t<40&&qKey(e.text)!==kq)));it.ex={text:e.text,steps:e.steps,final:e.final,options:e.options}}return it.ex}
+function lmExHtml(ex,title){return `<div class="steps"><h3>${title||"Worked example (different numbers, same steps)"}</h3><div style="font-size:18px">${fmt(ex.text)}</div>${ex.options?`<div class="sub">Choices: ${ex.options.map(fmt).join(" · ")}</div>`:""}<ol>${ex.steps.map(s=>`<li>${fmt(s)}</li>`).join("")}</ol><p class="final" style="margin:0">Answer to the example: ${fmt(ex.final)}</p></div>`}
+function lmHelp(it,full){const g=lmG(it);return `<div class="hintbox"><b>Remember:</b> ${fmt(g.r)}${g.h?`<br><b>How to start:</b> ${fmt(g.h)}`:""}</div>${full?lmExHtml(lmEx(it)):""}`}
+function lmTick(run,it){const now=Date.now(),d=Math.min(now-(view.t0||now),300000);if(it)it.t+=d;run.time=(run.time||0)+d;view.t0=now}
+function lmLog(k,run,it){S.log.push({t:"Course 2 lesson",src:it.lk,c:it.c,st:run.st,les:k,a:it.tries.length,ok:it.res==="right",at:Date.now(),text:it.q.text,final:it.q.final,tries:it.tries.slice(),ms:it.t});if(S.log.length>3000)S.log=S.log.slice(-3000)}
+function lmStart(k,st,again){const ls=lmS(k);let run=ls.runs[st];if(!run||run.done||again){const src=st==="fix"?(ls.runs.test||{}).items||[]:null;
+  const items=st==="fix"?(()=>{const av=new Set();return src.filter(x=>x.res!=="right").map(x=>lmItem(x.lk,x.gi,4,av))})():lmBuild(k,st);
+  run=ls.runs[st]={st,items,i:0,time:0,done:false,at:Date.now()};save()}
+ view={name:"lesson",k,st,t0:Date.now()};render();window.scrollTo(0,0)}
+function lmFinish(k,run){run.done=true;const base=run.items.filter(x=>!x.x),ls=lmS(k);let score;
+ if(run.st==="test"){score=Math.round(100*base.filter(x=>x.res==="right").length/base.length);ls.tests=(ls.tests||0)+1;ls.best=Math.max(ls.best||0,score);if(score>=MASTER&&!ls.mastered)ls.mastered=Date.now()}
+ else score=Math.round(100*base.filter(x=>x.res==="right"&&x.tries.length===1).length/base.length);
+ run.score=score;ls.hist.push({st:run.st,at:Date.now(),score,n:base.length,time:run.time});save()}
+function lmNext(k,run){const n=run.items.findIndex(x=>!x.res);if(n<0){lmFinish(k,run)}else run.i=n;view.msg="";view.t0=Date.now();save();render();window.scrollTo(0,0)}
+function lmSubmit(val){const run=lmRun();if(!run||run.done)return;const it=run.items[run.i];if(!it||it.res)return;const k=view.k,r=lmCheck(it.q,val);
+ if(r.result==="format"){view.msg=r.msg+" (This did not use a try.)";render();return}
+ lmTick(run,it);it.tries.push(String(val).trim());view.msg="";
+ if(run.st==="test"){it.res=r.result==="right"?"right":"missed";if(it.res==="right")S.pts=(S.pts||0)+1;lmLog(k,run,it);lmNext(k,run);return}
+ if(r.result==="right"){it.res="right";S.pts=(S.pts||0)+1}
+ else{view.msg=r.msg||"";if(it.tries.length>=lmMax(run,it.q)){it.res="missed";lmEx(it);const extra=run.items.filter(x=>x.x&&x.c===it.c&&x.lk===it.lk).length;if(extra<2){const av=new Set(run.items.map(x=>x.q.text)),n=lmItem(it.lk,it.gi,it.lv,av);n.x=1;run.items.splice(run.i+1,0,n)}}}
+ if(it.res)lmLog(k,run,it);save();render()}
+function lmStepState(k,st){const ls=lmS(k);if(st==="learn")return ls.learn?{done:1,txt:"Studied ✓"}:{txt:"Start here"};const run=ls.runs[st],h=ls.hist.filter(x=>x.st===st);
+ if(run&&!run.done){const d=run.items.filter(x=>x.res).length;return {prog:1,txt:`In progress: ${d} of ${run.items.length}`}}
+ if(h.length){const last=h[h.length-1];return {done:1,txt:st==="test"?`Best ${ls.best} / 100 · ${h.length} tr${h.length>1?"ies":"y"}`:`Last: ${last.score}% right on the 1st try`}}return {txt:"Not started"}}
+function lmUnlocked(k,st){const i=STEPS.indexOf(st);if(i<=0)return true;const prev=STEPS[i-1];return prev==="learn"?!!lmS(k).learn:lmS(k).hist.some(x=>x.st===prev)}
+function lmStatus(k){const ls=lmS(k);if(ls.mastered&&(ls.best||0)>=MASTER)return {cls:"done",label:"Mastered"};if(ls.tests)return {cls:"review",label:"Needs work"};if(ls.learn||ls.hist.length)return {cls:"mid",label:"In progress"};return {cls:"new",label:"Not started"}}
+function lmStepsDone(k){return STEPS.filter(s=>lmStepState(k,s).done).length}
+function lmHome(){const nextK=(LSN.find(x=>lmStatus(x.k).label!=="Mastered")||{}).k;
+ return `<section class="panel"><h2>Course 2: lesson by lesson</h2><p class="sub" style="margin:0">Each lesson has 5 steps, like the book: Learn the lesson → Power Up → Practice Set → Written Practice → Lesson Test. When an answer is wrong you get the rule, then a worked example with different numbers, then a new problem of the same kind. Score ${MASTER} or more on the Lesson Test to master the lesson.</p><div class="grid">${LSN.map(x=>{const s=lmStatus(x.k),ls=lmS(x.k);return `<div class="topic"${x.k===nextK?' style="border-color:var(--accent);border-width:2.5px"':""}><div class="row spread"><h3>${lmName(x.k)}</h3><span class="pill ${s.cls}">${s.label}</span></div>${x.k==="C2 Problem Solving"?"":`<div class="meta">${esc(LTITLE[x.k]||"")}</div>`}<div class="meta">Steps done: ${lmStepsDone(x.k)} of 5${ls.best!=null?` · Best test: ${ls.best}/100`:""}</div>${x.k===nextK?'<div class="meta"><b>Next up</b></div>':""}<button class="btn ${x.k===nextK?"primary":""}" data-lmopen="${x.k}">Open ${lmName(x.k)}</button></div>`}).join("")}</div></section>`}
+function lmOverview(k){const ls=lmS(k),s=lmStatus(k);
+ return `<section class="panel"><div class="row spread"><h2>${lmName(k)}: ${esc(LTITLE[k]||"")}</h2><button class="btn" data-go="home">← All lessons</button></div><div class="row"><span class="pill ${s.cls}">${s.label}</span>${ls.best!=null?`<span class="sub">Best Lesson Test: <b>${ls.best} / 100</b></span>`:""}<span class="sub">⭐ ${S.pts||0} points</span></div>${ls.tests&&ls.best<MASTER?`<div class="fb info">Not mastered yet: you need ${MASTER} or more on the Lesson Test. Do the Fix-up practice, then take the test again.</div>`:""}</section>
+ <section class="panel"><div class="grid">${STEPS.map((st,i)=>{const ss=lmStepState(k,st),ok=lmUnlocked(k,st),desc={learn:"Read the lesson notes and worked examples. Read the same lesson in your book too.",power:"8 quick mental-math warm-ups: score and dozen, probability, chain calculations.",practice:"Practice each new skill from the lesson, one at a time.",written:k==="C2 Problem Solving"?"40 mixed problems at a higher level.":"40 mixed problems: this lesson at a higher level, plus review of earlier lessons (the skills you miss most come back more).",test:`10 hard problems, 1 try each, no help during the test. ${MASTER}+ = mastered.`}[st];
+  const run=ls.runs[st],cont=run&&!run.done;
+  return `<div class="topic"><h3>${i+1}. ${STN[st]}</h3><div class="meta">${desc}</div><div class="meta"><b>${ss.txt}</b></div>${ok?`<div class="row">${st==="learn"?`<button class="btn ${ss.done?"":"primary"}" data-lmst="learn">${ss.done?"Read again":"Start"}</button>`:cont?`<button class="btn primary" data-lmst="${st}">Continue</button>`:ss.done?`<button class="btn" data-lmst="${st}" data-again="1">Do again (new numbers)</button>${run?`<button class="btn" data-lmst="${st}" data-view="1">See results</button>`:""}`:`<button class="btn primary" data-lmst="${st}">Start</button>`}</div>`:`<div class="meta">🔒 Finish ${STN[STEPS[i-1]]} first.</div>`}</div>`}).join("")}${ls.runs.test&&ls.runs.test.done&&ls.runs.test.items.some(x=>x.res!=="right")?`<div class="topic"><h3>Fix-up practice</h3><div class="meta">New problems like the ones you missed on your last Lesson Test, with help.</div><div class="meta"><b>${lmStepState(k,"fix").txt}</b></div><button class="btn primary" data-lmst="fix" data-again="${ls.runs.fix&&!ls.runs.fix.done?"":"1"}">${ls.runs.fix&&!ls.runs.fix.done?"Continue":"Start Fix-up"}</button></div>`:""}</div></section>`}
+const L1NOTES=`<h3>Counting numbers and whole numbers</h3><p style="margin:0">The numbers we use to count are the <b>counting numbers</b>, also called <b>natural numbers</b>: {1, 2, 3, 4, …}. Put 0 with them and you get the <b>whole numbers</b>: {0, 1, 2, 3, …}. Braces { } show a set, and the ellipsis … means the list never ends. Whole numbers have no fractions, decimals or negatives.</p>
+<h3>The four operations and their vocabulary</h3><div class="tablewrap"><table><tbody><tr><td>Addition</td><td><b>addend + addend = sum</b></td></tr><tr><td>Subtraction</td><td><b>minuend − subtrahend = difference</b></td></tr><tr><td>Multiplication</td><td><b>factor × factor = product</b></td></tr><tr><td>Division</td><td><b>dividend ÷ divisor = quotient</b></td></tr></tbody></table></div><p style="margin:0">Multiplication can be shown as 6 × 7, 6 · 7, 6(7) or ab (“a times b”). The parentheses in 6(7) show it is 6 times 7, not the number 67. Division can be shown with ÷, with a division box (divisor outside, dividend inside), or with a division bar like <span class="frac"><span>42</span><span>7</span></span>.</p>
+<h3>Money</h3><p style="margin:0">Use a dollar sign ($0.35) or a cent sign (35¢), never both, and never a decimal point with ¢ (0.35¢ would mean a part of ONE cent). To add or subtract money, write every amount with $ and two decimal places ($4 → $4.00, 9¢ → $0.09) and line up the decimal points. When you multiply or divide money, write the answer with a dollar sign and two decimal places.</p>
+<h3>Remainders</h3><p style="margin:0">When a division does not come out even, the amount left over is the <b>remainder</b>, written like 17 R 3. The remainder is always less than the divisor.</p>
+<h3>Variables and evaluation</h3><p style="margin:0">A <b>variable</b> is a letter that stands for a number. To <b>evaluate</b> an expression, replace each letter with its number and calculate. For p = 18 and q = 3: p + q = 21, p − q = 15, pq = 54, and <span class="frac"><span>p</span><span>q</span></span> = 6.</p>
+<h3>Problem solving: sequences</h3><p style="margin:0">A <b>sequence</b> is a list of terms that follows a rule. To find the rule, write the differences between neighboring terms. In 2, 4, 7, 11, … the differences are +2, +3, +4, so the next differences are +5, +6, …. Use the four steps: Understand, Plan, Solve, Check.</p>`;
+function lmLearn(k){const ls=LSBY[k];view.ex=view.ex||{};const exs=ls.g.map((g,i)=>view.ex[i]||(view.ex[i]=lmGen(g,3)));
+ return `<section class="panel"><div class="row spread"><h2>${lmName(k)}: ${esc(LTITLE[k]||"")}</h2><button class="btn" data-lmopen="${k}">← Back to the lesson</button></div><p class="sub" style="margin:0">Read this, then read the same lesson in your book. Work each example on paper before you look at the steps.</p>${k==="C2 Lesson 1"?L1NOTES:""}</section>
+ <section class="panel"><h2>${k==="C2 Lesson 1"?"Worked examples":"The skills in this lesson"}</h2>${ls.g.map((g,i)=>`<details ${i<2?"open":""}><summary>${i+1}. ${esc(g.c)}</summary><div class="hintbox" style="margin-top:.5em"><b>Remember:</b> ${fmt(g.r)}</div>${lmExHtml(exs[i],"Example")}</details>`).join("")}<div class="row"><button class="btn primary" data-lmlearned="1">I studied this lesson ✓ Go to Power Up</button></div></section>`}
+const PHL={rem:"like 12 R 3",list:"like 4, 9, 16",frac:"like 1/6",num:"Type your answer"};
+function lmQView(k,run){const it=run.items[run.i],q=it.q,tst=run.st==="test",max=lmMax(run,q),n=it.tries.length,open=!it.res;
+ const strip=`<div class="strip">${run.items.map((x,j)=>`<button tabindex="-1" class="${tst?(x.res?"tried":""):x.res==="right"?(x.tries.length===1?"right":"tried"):x.res==="missed"?"locked":""} ${j===run.i?"cur":""}" aria-label="Problem ${j+1}" disabled>${j+1}</button>`).join("")}</div>`;
+ let inp="";if(open){if(q.type==="choice")inp=`<div class="choices" role="group" aria-label="Choices">${q.options.map(o=>`<button data-lmch="${esc(o)}" style="font-size:18px">${fmt(o)}</button>`).join("")}</div>`;
+  else inp=`<form id="lmf" class="answer" autocomplete="off"><input id="lmans" placeholder="${PHL[q.type]||"Type your answer"}" aria-label="Your answer"><button class="btn primary" type="submit">${tst?"Save answer":"Check"}</button></form>`}
+ let fb="";if(view.msg)fb+=`<div class="fb info">${esc(view.msg)}</div>`;
+ if(it.res==="right")fb+=`<div class="fb ok">✓ Correct! +1 ⭐ point${n>1?" — you fixed it yourself. Great thinking!":""}</div>`;
+ else if(it.res==="missed")fb+=`<div class="fb no">Not this time. Your answers: ${it.tries.map(esc).join(" · ")}. Study the rule and the worked example below. They use different numbers but the same steps. Then you will try a new problem of the same kind.</div>${lmHelp(it,true)}`;
+ else if(n>0)fb+=`<div class="fb no">Not yet. You answered ${esc(it.tries[n-1])}. Try again: ${max-n} ${max-n===1?"try":"tries"} left.</div>${lmHelp(it,n>=2||max===2)}`;
+ const nextBtn=it.res?`<div class="row"><button class="btn primary" id="lmnext" data-lmnext="1">${it.res==="missed"&&run.items[run.i+1]&&run.items[run.i+1].x?"Try a new one →":"Next →"}</button></div>`:"";
+ const lessRef=it.lk==="PU"?"Power Up":it.lk===k?lmName(k):"Review: "+lmName(it.lk);
+ return `<section class="panel" style="position:sticky;top:0;z-index:5"><div class="row spread"><h2>${lmName(k)} · ${STN[run.st]}</h2><button class="btn" data-lmopen="${k}">← Lesson (pauses)</button></div><div class="stats"><span>Problem <b>${run.i+1}</b> of ${run.items.length}</span><span>Time <b id="lmtimer">${fmtT(run.time)}</b></span><span>⭐ <b>${S.pts||0}</b></span></div>${strip}${tst?`<p class="sub" style="margin:0">Lesson Test: 1 try per problem and no help until the end. Work carefully on paper.</p>`:""}</section>
+ <article class="qcard"><span class="qlabel">Problem ${run.i+1} · ${esc(lessRef)}${tst?"":" · "+esc(it.c)}${it.x?" · new try":""}</span><div class="qtext">${fmt(q.text)}</div>${inp}${fb}${nextBtn}</article>`}
+function lmResults(k,run){const base=run.items.filter(x=>!x.x),tst=run.st==="test",ls=lmS(k),miss=run.items.filter(x=>x.res==="missed"),hinted=run.items.filter(x=>x.res==="right"&&x.tries.length>1);
+ const cs=[...new Set(miss.concat(hinted).map(x=>x.c))];const nextSt=STEPS[STEPS.indexOf(run.st)+1];
+ let h=`<section class="panel"><div class="row spread"><h2>${lmName(k)} · ${STN[run.st]}: results</h2><button class="btn" data-lmopen="${k}">← Lesson</button></div><p class="big-score">${run.score}${tst?" / 100":"%"} <span class="sub">${tst?"test score":"right on the first try"}</span></p><p style="margin:0">Time: <b>${fmtT(run.time)}</b> · ${base.length} problems${tst?"":` · ${run.items.length-base.length} extra practice problems`}</p>`;
+ if(tst)h+=run.score>=MASTER?`<div class="fb ok">🎉 Lesson mastered! You scored ${MASTER} or more.</div>`:`<div class="fb info">You need ${MASTER} or more to master this lesson. Study the rules and examples below, do the Fix-up practice, then take the test again with new numbers.</div>`;
+ else if(run.score<80)h+=`<div class="fb info">Under 80% on the first try. Do this step again with new numbers before moving on.</div>`;
+ h+=cs.length?`<p style="margin:0">Skills to work on: <b>${cs.map(esc).join(", ")}</b></p>`:`<p style="margin:0">Every problem right on the first try. Excellent!</p>`;
+ h+=`<div class="row">${tst&&miss.length?`<button class="btn primary" data-lmst="fix" data-again="1">Start Fix-up practice</button>`:""}${tst?`<button class="btn ${miss.length?"":"primary"}" data-lmst="test" data-again="1">Take the test again (new numbers)</button>`:`<button class="btn" data-lmst="${run.st}" data-again="1">Do again (new numbers)</button>${nextSt&&run.st!=="fix"?`<button class="btn primary" data-lmst="${nextSt}">Go to ${STN[nextSt]} →</button>`:""}`}</div></section>`;
+ if(tst)h+=`<section class="panel"><h2>Your test</h2>${run.items.map((x,j)=>`<div class="qcard" style="padding:14px"><span class="qlabel">Problem ${j+1} · ${esc(x.c)} · ${x.res==="right"?"✓ right":"✗ not right"}</span><div>${fmt(x.q.text)}</div><div class="tried-list">Your answer: ${esc(x.tries[0]||"")}</div>${x.res==="right"?"":`<details><summary>How to solve this kind of problem</summary>${lmHelp(x,true)}</details>`}</div>`).join("")}</section>`;
+ return h}
+function lessonView(){const k=view.k;if(!LSBY[k])return home();let body;
+ if(!view.st)body=lmOverview(k);else if(view.st==="learn")body=lmLearn(k);else{const run=lmS(k).runs[view.st];if(!run){view.st=null;body=lmOverview(k)}else body=run.done||view.res?lmResults(k,run):lmQView(k,run)}
+ return header()+body}
+let lmShowAns=false;
+function lmReport(){const rows=LSN.map(x=>{const ls=lmS(x.k),s=lmStatus(x.k),last=st=>{const h=ls.hist.filter(y=>y.st===st);return h.length?`${h[h.length-1].score}%${h.length>1?` (${h.length}×)`:""}`:"–"},tm=ls.hist.reduce((a,y)=>a+(y.time||0),0);
+  return `<tr><td><b>${lmName(x.k)}</b><br><span class="sub">${esc(LTITLE[x.k]||"")}</span></td><td>${ls.learn?"✓":"–"}</td><td>${last("power")}</td><td>${last("practice")}</td><td>${last("written")}</td><td>${ls.best!=null?`${ls.best} (${ls.tests} tr${ls.tests>1?"ies":"y"})`:"–"}</td><td>${tm?fmtT(tm):"–"}</td><td><span class="pill ${s.cls}">${s.label}</span></td></tr>`}).join("");
+ const crow=[];LSN.forEach(x=>x.g.forEach(g=>{const s=lmCStats(x.k,g.c);if(!s.n)return;const p=Math.round(100*s.rate),st=s.n>=4&&p>=85?{c:"done",l:"Strong"}:p>=65?{c:"mid",l:"Getting there"}:{c:"review",l:"Needs practice"};crow.push({x,g,s,p,st})}));
+ const weak=crow.filter(r=>r.st.c==="review").sort((a,b)=>a.p-b.p);
+ const L=(S.log||[]).filter(l=>l.t==="Course 2 lesson"),miss=L.filter(l=>!l.ok||l.a>1).slice(-20).reverse();
+ return `<section class="panel"><h2>Course 2 lesson progress</h2><p class="sub" style="margin:0">Practice Set and Written Practice show the percent right on the first try (last time, and how many times done). Lesson Test shows the best score. Mastered = ${MASTER}+ on the Lesson Test.</p><div class="tablewrap"><table><thead><tr><th>Lesson</th><th>Learn</th><th>Power Up</th><th>Practice Set</th><th>Written</th><th>Test (best)</th><th>Time</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>${weak.length?`<p style="margin:0">Skills that need the most help: <b>${weak.slice(0,6).map(r=>esc(r.g.c)+" ("+lmName(r.x.k)+")").join(", ")}</b></p>`:""}</section>
+ <section class="panel"><h2>Course 2 skills</h2>${crow.length?`<div class="tablewrap"><table><thead><tr><th>Lesson</th><th>Skill</th><th>Problems</th><th>Right 1st try</th><th>Missed</th><th>Status</th></tr></thead><tbody>${crow.map(r=>`<tr><td>${lmName(r.x.k)}</td><td>${esc(r.g.c)}</td><td>${r.s.n}</td><td>${r.s.first} (${r.p}%)</td><td>${r.s.miss}</td><td><span class="pill ${r.st.c}">${r.st.l}</span></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">No Course 2 lesson problems yet.</div>`}</section>
+ <section class="panel"><h2>Course 2: problems he got wrong or needed help on</h2>${lmShowAns?`<p class="sub" style="margin:0">Correct answers are showing (parent view). <button class="btn" data-lmhide="1">Hide answers</button></p>`:`<form id="lmpf" class="row parent" autocomplete="off"><label for="lmpin">Parent PIN to show the correct answers</label><input id="lmpin" type="password" inputmode="numeric" maxlength="8"><button class="btn" type="submit">Show answers</button></form><div id="lmpm"></div>`}
+ ${miss.length?miss.map(l=>`<details><summary>${lmName(l.src)} · ${esc(l.c)} · ${STN[l.st]||l.st} · ${l.ok?`right on try ${l.a}`:"missed"}</summary><p style="margin:.5em 0 0">${fmt(l.text)}</p><p class="sub" style="margin:0">His answers: ${(l.tries||[]).map(esc).join(" · ")} · ${new Date(l.at).toLocaleString()}</p>${lmShowAns?`<p style="margin:0">Correct answer: <b>${fmt(l.final)}</b></p>`:""}</details>`).join(""):`<div class="empty">None yet.</div>`}</section>`}
+app.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+ if(d.lmopen){view={name:"lesson",k:d.lmopen,st:null};render();window.scrollTo(0,0)}
+ else if(d.lmst){const k=view.k;if(d.lmst==="learn"){view={name:"lesson",k,st:"learn"};render();window.scrollTo(0,0)}else if(d.view){view={name:"lesson",k,st:d.lmst,res:1};render();window.scrollTo(0,0)}else lmStart(k,d.lmst,!!d.again)}
+ else if(d.lmlearned){const ls=lmS(view.k);ls.learn=Date.now();save();lmStart(view.k,"power")}
+ else if(d.lmch!==undefined){lmSubmit(d.lmch)}
+ else if(d.lmnext){const run=lmRun();if(run)lmNext(view.k,run)}
+ else if(d.lmhide){lmShowAns=false;render()}
+});
+app.addEventListener("submit",e=>{if(e.target.id==="lmf"||e.target.id==="lmpf")e.preventDefault();if(e.target.id==="lmf"){lmSubmit(document.getElementById("lmans").value)}
+ else if(e.target.id==="lmpf"){const v=document.getElementById("lmpin").value.trim(),m=document.getElementById("lmpm");if(!S.pin){m.innerHTML='<p class="fb info">Create a parent PIN first in “For parents” at the bottom of this page.</p>';return}if(v===S.pin){lmShowAns=true;render()}else m.innerHTML='<p class="fb no">Wrong PIN.</p>'}});
+setInterval(()=>{const el=document.getElementById("lmtimer"),run=lmRun();if(el&&run&&!run.done)el.textContent=fmtT((run.time||0)+Math.min(Date.now()-(view.t0||Date.now()),300000))},1000);
 
 /* ===== EVENTS ===== */
 function startList(items,title,topic,total){let first=items.findIndex(x=>!S.q[x.id]||S.q[x.id].s==="open");if(first<0&&total&&items.length<total){items.push(makeOne(topic,lvOf(topic),new Set(items.map(x=>x.text))));save();first=items.length-1}view={name:"practice",items,i:first<0?0:first,title,topic,total};flash=null;render();window.scrollTo(0,0)}
@@ -1939,7 +2223,7 @@ app.addEventListener("click",e=>{
   else if(b.dataset.hint){const q=view.items[view.i],st=qs(q.id);if(st.s==="open"&&!st.h&&hintsLeft()>0){st.h=1;const k=hintKey();S.hu[k]=(S.hu[k]||0)+1;save();}render();}
   else if(b.dataset.reset){const t=b.dataset.reset;QUESTIONS.forEach(q=>{if(t==="*"||q.topic===t)delete S.q[q.id]});
     Object.keys(S.sets).forEach(k=>{if(t==="*"||k===t){S.sets[k].list.forEach(q=>delete S.q[q.id]);delete S.sets[k]}});
-    S.log=t==="*"?[]:S.log.filter(l=>l.t!==t);if(t==="*"){S.lv={};S.hu={};S.q={};S.exams=[];S.exam=null;S.xq={};S.pts=0}else{delete S.lv[t];delete S.hu["set:"+t];delete S.hu["hw:"+t+" · Homework"]}save();render();}
+    S.log=t==="*"?[]:S.log.filter(l=>l.t!==t);if(t==="*"){S.lv={};S.hu={};S.q={};S.exams=[];S.exam=null;S.xq={};S.pts=0;S.c2l={}}else{delete S.lv[t];delete S.hu["set:"+t];delete S.hu["hw:"+t+" · Homework"]}save();render();}
 });
 render();
 </script>

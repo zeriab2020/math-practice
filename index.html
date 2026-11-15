@@ -2253,7 +2253,7 @@ function lmSubmit(val){const run=lmRun();if(!run||run.done)return;const it=run.i
 function lmStepState(k,st){const ls=lmS(k);if(st==="learn")return ls.learn?{done:1,txt:"Studied ✓"}:{txt:"Start here"};const run=ls.runs[st],h=ls.hist.filter(x=>x.st===st);
  if(run&&!run.done&&!(st!=="power"&&run.items.some(x=>x.lk!==k))){const d=run.items.filter(x=>x.res).length;return {prog:1,txt:`In progress: ${d} of ${run.items.length}`}}
  if(h.length){const last=h[h.length-1];return {done:1,txt:st==="test"?`Best ${ls.best} / 100 · ${h.length} tr${h.length>1?"ies":"y"}`:`Last: ${last.score}% right on the 1st try`}}return {txt:"Not started"}}
-function lmUnlocked(k,st){const i=STEPS.indexOf(st);if(i<=0)return true;const prev=STEPS[i-1];return prev==="learn"?!!lmS(k).learn:lmS(k).hist.some(x=>x.st===prev)}
+function lmUnlocked(k,st){const i=STEPS.indexOf(st);if(i<=0||st==="written")return true;const prev=STEPS[i-1];return prev==="learn"?!!lmS(k).learn:lmS(k).hist.some(x=>x.st===prev)}
 function lmStatus(k){const ls=lmS(k);if(ls.mastered&&(ls.best||0)>=MASTER)return {cls:"done",label:"Mastered"};if(ls.tests)return {cls:"review",label:"Needs work"};if(ls.learn||ls.hist.length)return {cls:"mid",label:"In progress"};return {cls:"new",label:"Not started"}}
 function lmStepsDone(k){return STEPS.filter(s=>lmStepState(k,s).done).length}
 function lmHome(){const nextK=(LSN.find(x=>lmStatus(x.k).label!=="Mastered")||{}).k;

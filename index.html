@@ -2099,7 +2099,7 @@ function lmExHtml(ex,title){return `<div class="steps"><h3>${title||"Worked exam
 function lmHelp(it,full){const g=lmG(it);return `<div class="hintbox"><b>Remember:</b> ${fmt(g.r)}${g.h?`<br><b>How to start:</b> ${fmt(g.h)}`:""}</div>${full?lmExHtml(lmEx(it)):""}`}
 function lmTick(run,it){const now=Date.now(),d=Math.min(now-(view.t0||now),300000);if(it)it.t+=d;run.time=(run.time||0)+d;view.t0=now}
 function lmLog(k,run,it){S.log.push({t:"Course 2 lesson",src:it.lk,c:it.c,st:run.st,les:k,a:it.tries.length,ok:it.res==="right",at:Date.now(),text:it.q.text,final:it.q.final,tries:it.tries.slice(),ms:it.t});if(S.log.length>3000)S.log=S.log.slice(-3000)}
-function lmStart(k,st,again){const ls=lmS(k);let run=ls.runs[st];if(!run||run.done||again){const src=st==="fix"?(ls.runs.test||{}).items||[]:null;
+function lmStart(k,st,again){const ls=lmS(k);let run=ls.runs[st];if(!run||run.done||again||(st!=="power"&&run.items.some(x=>x.lk!==k))){const src=st==="fix"?(ls.runs.test||{}).items||[]:null;
   const items=st==="fix"?(()=>{const av=new Set();return src.filter(x=>x.res!=="right").map(x=>lmItem(x.lk,x.gi,4,av))})():lmBuild(k,st);
   run=ls.runs[st]={st,items,i:0,time:0,done:false,at:Date.now()};save()}
  view={name:"lesson",k,st,t0:Date.now()};render();window.scrollTo(0,0)}
@@ -2116,7 +2116,7 @@ function lmSubmit(val){const run=lmRun();if(!run||run.done)return;const it=run.i
  else{view.msg=r.msg||"";if(it.tries.length>=lmMax(run,it.q)){it.res="missed";lmEx(it);const extra=run.items.filter(x=>x.x&&x.c===it.c&&x.lk===it.lk).length;if(extra<2){const av=new Set(run.items.map(x=>x.q.text)),n=lmItem(it.lk,it.gi,it.lv,av);n.x=1;run.items.splice(run.i+1,0,n)}}}
  if(it.res)lmLog(k,run,it);save();render()}
 function lmStepState(k,st){const ls=lmS(k);if(st==="learn")return ls.learn?{done:1,txt:"Studied ✓"}:{txt:"Start here"};const run=ls.runs[st],h=ls.hist.filter(x=>x.st===st);
- if(run&&!run.done){const d=run.items.filter(x=>x.res).length;return {prog:1,txt:`In progress: ${d} of ${run.items.length}`}}
+ if(run&&!run.done&&!(st!=="power"&&run.items.some(x=>x.lk!==k))){const d=run.items.filter(x=>x.res).length;return {prog:1,txt:`In progress: ${d} of ${run.items.length}`}}
  if(h.length){const last=h[h.length-1];return {done:1,txt:st==="test"?`Best ${ls.best} / 100 · ${h.length} tr${h.length>1?"ies":"y"}`:`Last: ${last.score}% right on the 1st try`}}return {txt:"Not started"}}
 function lmUnlocked(k,st){const i=STEPS.indexOf(st);if(i<=0)return true;const prev=STEPS[i-1];return prev==="learn"?!!lmS(k).learn:lmS(k).hist.some(x=>x.st===prev)}
 function lmStatus(k){const ls=lmS(k);if(ls.mastered&&(ls.best||0)>=MASTER)return {cls:"done",label:"Mastered"};if(ls.tests)return {cls:"review",label:"Needs work"};if(ls.learn||ls.hist.length)return {cls:"mid",label:"In progress"};return {cls:"new",label:"Not started"}}

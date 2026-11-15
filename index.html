@@ -2061,6 +2061,138 @@ const PUG=[
   if(k===3){const n=2*R(26,99);return {type:"num",text:`What is half of ${n}?`,answer:String(n/2),steps:["Split the number into easy parts and halve each part.",`${n/2}.`],final:String(n/2)}}
   const d=R(2,9);return {type:"num",text:`How many quarters are in $${d}?`,answer:String(4*d),steps:["There are 4 quarters in each dollar.",`4 × ${d} = ${4*d}.`],final:String(4*d)}}}
 ];
+/* ===== COURSE 2: LESSONS 6, 7, 9 (original practice) ===== */
+const facs=n=>{const a=[];for(let i=1;i<=n;i++)if(n%i===0)a.push(i);return a};
+const fA=(n,d)=>{const [a,b]=red(n,d);return b===1?{type:"num",answer:String(a)}:{type:"frac",answer:`${a}/${b}`}};
+function lineSVG(P,ends){const w=80+80*(P.length-1)+40,arr=ends?"":`<polygon points="${w-6},30 ${w-18},24 ${w-18},36" fill="currentColor"/><polygon points="6,30 18,24 18,36" fill="currentColor"/>`;
+ return `<svg viewBox="0 0 ${w} 56" width="${w}" height="56" role="img" aria-label="Points ${P.join(", ")} on a line"><line x1="${ends?60:10}" y1="30" x2="${ends?60+80*(P.length-1):w-10}" y2="30" stroke="currentColor" stroke-width="2"/>${arr}${P.map((p,i)=>`<circle cx="${60+80*i}" cy="30" r="4.5" fill="currentColor"/><text x="${60+80*i}" y="16" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">${p}</text>`).join("")}</svg>`}
+function angleSVG(m){const r=m*Math.PI/180,x=110+95*Math.cos(r),y=115-95*Math.sin(r);return `<svg viewBox="0 0 230 130" width="230" height="130" role="img" aria-label="An angle"><line x1="110" y1="115" x2="215" y2="115" stroke="currentColor" stroke-width="2.5"/><line x1="110" y1="115" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="currentColor" stroke-width="2.5"/><circle cx="110" cy="115" r="4" fill="currentColor"/></svg>`}
+const L6G=[
+{c:"Listing all the factors",L:[1,4],
+ r:"A factor is a whole number that divides another number with no remainder. To find all the factors, test 1, 2, 3, … and write each factor pair (for 18: 1 × 18, 2 × 9, 3 × 6). Stop when the pairs start to repeat. Then list the factors from least to greatest.",
+ h:"Start with 1 and the number itself. Then test 2, 3, 4, … and write the partner of each factor you find.",
+ f(L){const n=pick(L>=3?[36,48,60,72,84,90,96,100]:[12,15,16,18,20,24,28,30,32,40]),f=facs(n);return {type:"list",count:f.length,text:`List all the factors of ${n} from least to greatest. (There are ${f.length} of them.) Type them separated by commas.`,answer:f.map(String),steps:[`Find the factor pairs: ${f.filter(x=>x*x<=n).map(x=>`${x} × ${n/x}`).join(", ")}.`,`In order: ${f.join(", ")}.`],final:f.join(", ")}}},
+{c:"Factor pairs",L:[1,4],
+ r:"A factor pair is two whole numbers whose product is the number. Since 6 × 8 = 48, 6 and 8 are a factor pair of 48. Count 6 × 8 and 8 × 6 as the same pair.",
+ h:"Multiply each pair and compare the product with the number.",
+ f(L){const n=pick([24,30,36,40,42,48,50,54,56,60,64,72]),pairs=facs(n).filter(x=>x*x<=n).map(x=>[x,n/x]);
+  if(Math.random()<.5)return {type:"num",text:`How many different factor pairs does ${n} have? (2 × 3 and 3 × 2 count as the same pair.)`,answer:String(pairs.length),steps:[`List them: ${pairs.map(p=>p.join(" × ")).join(", ")}.`,`That is ${pairs.length} pairs.`],final:String(pairs.length)};
+  const good=pick(pairs.slice(1)),bads=[];let t=0;while(bads.length<3&&t<200){t++;const a=R(2,12),b=Math.round(n/a)+pick([-1,1,2]);if(a*b!==n&&b>1&&!bads.some(x=>x[0]===a)&&a!==good[0])bads.push([a,b])}
+  const s=p=>`${p[0]} × ${p[1]}`;return {type:"choice",options:shuf([good,...bads].map(s)),text:`Which is a factor pair of ${n}?`,answer:s(good),steps:[`Multiply each pair and compare with ${n}.`,`${s(good)} = ${n}.`],final:s(good)}}},
+{c:"Divisibility tests",L:[1,4],
+ r:"Divisible by 2: the last digit is even. By 5: it ends in 0 or 5. By 10: it ends in 0. By 3: the sum of the digits is divisible by 3. By 9: the sum of the digits is divisible by 9. By 6: divisible by both 2 and 3. By 4: the last two digits make a number divisible by 4.",
+ h:"Use the test for that divisor: look at the last digit (or last two digits), or add up all the digits.",
+ f(L){const d=pick(L>=3?[3,4,6,9]:[2,3,5,9,10]),sum=n=>String(n).split("").reduce((a,b)=>a+ +b,0),why=n=>d===3||d===9?`Add the digits: ${String(n).split("").join(" + ")} = ${sum(n)}.`:d===4?`Look at the last two digits: ${String(n).slice(-2)}.`:d===6?`Check 2 (last digit ${String(n).slice(-1)}) and 3 (digit sum ${sum(n)}).`:`Look at the last digit: ${String(n).slice(-1)}.`;
+  if(Math.random()<.5){const yes=Math.random()<.5;let n;do{n=R(100,L>=3?99999:9999)}while((n%d===0)!==yes);return {type:"choice",options:["Yes","No"],text:`Is ${n} divisible by ${d}?`,answer:yes?"Yes":"No",steps:[why(n),`So ${n} ${yes?"is":"is not"} divisible by ${d}.`],final:yes?"Yes":"No"}}
+  let right;do{right=R(100,9999)}while(right%d);const o=[right];while(o.length<4){const x=R(100,9999);if(x%d&&!o.includes(x))o.push(x)}
+  return {type:"choice",options:shuf(o.map(String)),text:`Which number is divisible by ${d}?`,answer:String(right),steps:[`Use the divisibility test for ${d} on each number.`,why(right),`Only ${right} passes the test.`],final:String(right)}}},
+{c:"Remainders without dividing",L:[2,4],
+ r:"You can tell whether a division has a remainder without dividing: use the divisibility test for the divisor. If the dividend passes the test, there is no remainder. If it fails, there is a remainder.",
+ h:"Which divisibility test goes with this divisor? Try that test on the dividend.",
+ f(L){const d=pick([2,3,5,9,10]),has=Math.random()<.5;let n;do{n=R(1000,L>=4?99999:9999)}while((n%d===0)===has);const Y="Yes, there is a remainder",N="No, there is no remainder";
+  return {type:"choice",options:[Y,N],text:`Without dividing, tell whether ${n} ÷ ${d} has a remainder.`,answer:has?Y:N,steps:[d===3||d===9?`Add the digits of ${n}: ${String(n).split("").reduce((a,b)=>a+ +b,0)}. Is that divisible by ${d}?`:`Look at the last digit of ${n}: ${String(n).slice(-1)}.`,has?`${n} fails the test for ${d}, so there is a remainder.`:`${n} passes the test for ${d}, so there is no remainder.`],final:has?Y:N}}},
+{c:"Single-digit factors",L:[2,4],
+ r:"To list the single-digit factors of a number, test each of 1 through 9. Use the divisibility tests for 2, 3, 4, 5, 6 and 9, and divide to test 7 and 8. 1 is always a factor.",
+ h:"Check 1, 2, 3, 4, 5, 6, 7, 8 and 9 one at a time, and write down each one that works.",
+ f(L){let n,f;do{n=R(100,L>=3?9999:999);f=[1,2,3,4,5,6,7,8,9].filter(d=>n%d===0)}while(f.length<3);return {type:"list",count:f.length,text:`List the single-digit factors of ${n}, from least to greatest. (There are ${f.length}.) Type them separated by commas.`,answer:f.map(String),steps:[`Test each digit 1 through 9 on ${n}.`,`The ones that divide evenly: ${f.join(", ")}.`],final:f.join(", ")}}},
+{c:"Greatest common factor (GCF)",L:[1,4],
+ r:"Common factors are factors that two numbers share. The greatest common factor (GCF) is the largest one. List the factors of each number, find the numbers in both lists, and choose the greatest.",
+ h:"List the factors of the first number, then of the second number. Which numbers are in both lists?",
+ f(L){const g=pick(L>=3?[6,8,9,12,14,15,16,18]:[2,3,4,5,6,8]);let a,b;do{a=g*R(2,L>=3?9:6);b=g*R(2,L>=3?9:6)}while(a===b||gcd(a,b)!==g);
+  if(Math.random()<.35){const c=facs(g);return {type:"list",count:c.length,text:`List the common factors of ${a} and ${b}, from least to greatest. (There are ${c.length}.) Type them separated by commas.`,answer:c.map(String),steps:[`Factors of ${a}: ${facs(a).join(", ")}.`,`Factors of ${b}: ${facs(b).join(", ")}.`,`In both lists: ${c.join(", ")}.`],final:c.join(", ")}}
+  return {type:"num",text:`Find the greatest common factor (GCF) of ${a} and ${b}.`,answer:String(g),steps:[`Factors of ${a}: ${facs(a).join(", ")}.`,`Factors of ${b}: ${facs(b).join(", ")}.`,`The greatest factor in both lists is ${g}.`],final:String(g)}}},
+{c:"Using factors to solve problems",L:[1,4],
+ r:"When a problem says two numbers multiply to a product, list the factor pairs of the product and pick the pair that fits the clue (for example, both numbers are one digit). Then answer what is asked.",
+ h:"List the factor pairs of the product. Which pair fits the clue?",
+ f(L){let p,pr;do{p=R(6,81);pr=[];for(let a=1;a<=9;a++)for(let b=a;b<=9;b++)if(a*b===p)pr.push([a,b])}while(pr.length!==1||pr[0][0]===pr[0][1]);const [a,b]=pr[0],sum=Math.random()<.6;
+  return {type:"num",text:`The product of two different one-digit whole numbers is ${p}. What is the ${sum?"sum":"difference"} of the same two numbers?`,answer:String(sum?a+b:b-a),steps:[`Factor pairs of ${p}: ${facs(p).filter(x=>x*x<=p).map(x=>`${x} × ${p/x}`).join(", ")}.`,`The only pair of one-digit numbers is ${a} and ${b}.`,`${sum?`${a} + ${b} = ${a+b}`:`${b} − ${a} = ${b-a}`}.`],final:String(sum?a+b:b-a)}}}
+];
+const L7G=[
+{c:"Finding segment lengths",L:[1,4],
+ r:"If point Y is between X and Z on a line, the two short segments add up to the long one: XY + YZ = XZ. To find a part, subtract. To find the whole, add.",
+ h:"Write each length you know above its segment in the figure. Is the length you need a part or the whole?",
+ f(L){const P=pick([["X","Y","Z"],["A","B","C"],["P","Q","R"],["L","M","N"]]),u=pick(["cm","mm","in."]),a=R(2,L>=3?45:15),b=R(2,L>=3?45:15),k=R(0,L>=3?2:1);
+  if(k===2){const Q=["A","B","C","D"],c=R(2,30);return {type:"num",svg:lineSVG(Q,1),text:`In the figure, AD is ${a+b+c} ${u}, AB is ${a} ${u}, and CD is ${c} ${u}. Find BC.`,answer:String(b),steps:[`AB + BC + CD = AD, so ${a} + BC + ${c} = ${a+b+c}.`,`BC = ${a+b+c} − ${a} − ${c} = ${b} ${u}.`],final:`${b} ${u}`}}
+  const [X,Y,Z]=P;if(k===0)return {type:"num",svg:lineSVG(P,1),text:`In the figure, ${X}${Z} is ${a+b} ${u} and ${Y}${Z} is ${b} ${u}. Find ${X}${Y}.`,answer:String(a),steps:[`${X}${Y} + ${Y}${Z} = ${X}${Z}, so ${X}${Y} + ${b} = ${a+b}.`,`${X}${Y} = ${a+b} − ${b} = ${a} ${u}.`],final:`${a} ${u}`};
+  return {type:"num",svg:lineSVG(P,1),text:`In the figure, ${X}${Y} is ${a} ${u} and ${Y}${Z} is ${b} ${u}. Find ${X}${Z}.`,answer:String(a+b),steps:[`${X}${Z} is the whole segment, so add the parts.`,`${a} + ${b} = ${a+b} ${u}.`],final:`${a+b} ${u}`}}},
+{c:"Classifying angles",L:[1,4],
+ r:"An acute angle is smaller than a right angle (less than 90°). A right angle is a square corner (exactly 90°). An obtuse angle is larger than a right angle but smaller than a straight angle (between 90° and 180°). A straight angle makes a straight line (exactly 180°). Perpendicular lines form right angles.",
+ h:"Compare the angle with a square corner (90°) and with a straight line (180°).",
+ f(L){const k=R(0,2),O=["acute","right","obtuse","straight"],kind=m=>m<90?"acute":m===90?"right":m<180?"obtuse":"straight";
+  if(k===0){const m=pick([R(10,80),90,R(100,170),R(100,170),R(10,80)]);return {type:"choice",svg:angleSVG(m),options:O,text:"What kind of angle is shown in the figure?",answer:kind(m),steps:["Compare the opening with a square corner.",`It is ${m<90?"smaller than":m===90?"exactly":"larger than"} a square corner, so it is ${kind(m)==="acute"?"an acute":kind(m)==="obtuse"?"an obtuse":"a right"} angle.`],final:kind(m)}}
+  if(k===1){const m=pick([R(5,89),90,R(91,179),180]);return {type:"choice",options:O,text:`An angle measures ${m}°. What kind of angle is it?`,answer:kind(m),steps:["Acute < 90°, right = 90°, obtuse between 90° and 180°, straight = 180°.",`${m}° is ${kind(m)}.`],final:kind(m)}}
+  const T=[["What type of angle is formed by perpendicular lines?","right"],["What type of angle is smaller than a right angle?","acute"],["What type of angle is larger than a right angle but smaller than a straight angle?","obtuse"],["What type of angle forms a straight line?","straight"],["The corner of a sheet of paper forms what type of angle?","right"]],[t,a]=pick(T);
+  return {type:"choice",options:O,text:t,answer:a,steps:["Acute < 90°, right = 90°, obtuse between 90° and 180°, straight = 180°.",`The answer is ${a}.`],final:a}}},
+{c:"Parallel, perpendicular, intersecting and skew lines",L:[1,4],
+ r:"Parallel lines are in the same plane and never meet. Intersecting lines cross at one point. Perpendicular lines intersect and form right angles. Skew lines are in different planes: they never meet and are not parallel.",
+ h:"Ask: do the lines meet? If they meet, do they make square corners? If they never meet, are they on the same flat surface?",
+ f(){const O=["parallel","perpendicular","intersecting","skew"],T=[["Lines in the same plane that never intersect are called ___ lines.","parallel"],["Two lines that intersect and form right angles are called ___ lines.","perpendicular"],["Lines that lie in different planes and do not intersect are called ___ lines.","skew"],["Two lines cross but do not form right angles. Which word best describes them?","intersecting"],["The two rails of a straight railroad track are like ___ lines.","parallel"],["On the board, one segment is vertical and the other is horizontal, and they cross. Which word best describes them?","perpendicular"],["One line is drawn on the floor and another line is drawn on the ceiling going a different direction. They never meet. Which word best describes them?","skew"],["The lines on notebook paper are like ___ lines.","parallel"]],[t,a]=pick(T);
+  return {type:"choice",options:O,text:t,answer:a,steps:["Do they meet? Do they make right angles? Are they in the same plane?",`So the best word is ${a}.`],final:a}}},
+{c:"Points, lines, rays, segments and planes",L:[1,4],
+ r:"A line goes on forever in both directions. A ray has one endpoint and goes on forever in one direction. A segment is part of a line with two endpoints. A plane is a flat surface that goes on forever. Two lines intersect at a point, and two planes intersect in a line.",
+ h:"Picture each figure. How many endpoints does it have? Does it go on forever?",
+ f(){const O=["point","line","ray","segment","plane"],T=[["Two lines intersect at a ___.","point"],["Two planes intersect in a ___.","line"],["A ___ is part of a line with two endpoints.","segment"],["A ___ has one endpoint and goes on forever in one direction.","ray"],["A ___ goes on forever in both directions and has no endpoints.","line"],["A flat surface that goes on forever is a ___.","plane"],["Two walls of a room meet along an edge. That edge is part of a ___.","line"],["The top of a desk is a model of part of a ___.","plane"]],[t,a]=pick(T);
+  return {type:"choice",options:O,text:t,answer:a,steps:["Think about endpoints and whether the figure goes on forever.",`The answer is ${a}.`],final:a}}},
+{c:"Naming points on rays",L:[2,4],
+ r:"Ray BC starts at endpoint B and goes through C and on forever in that direction. The first letter is always the endpoint. Points on the other side of B are NOT on ray BC.",
+ h:"Put your finger on the first letter of the ray. Slide it toward the second letter and keep going. Which points does your finger pass?",
+ f(L){const Q=["A","B","C","D"],k=R(0,L>=4?2:1);
+  if(k===0)return {type:"choice",svg:lineSVG(Q,0),options:Q,text:"Which point in the figure is NOT on ray BC?",answer:"A",steps:["Ray BC starts at B and goes through C toward D.","B, C and D are on it. A is on the other side of B."],final:"A"};
+  if(k===1)return {type:"choice",svg:lineSVG(Q,0),options:Q,text:"Which point in the figure is NOT on ray CB?",answer:"D",steps:["Ray CB starts at C and goes through B toward A.","A, B and C are on it. D is on the other side of C."],final:"D"};
+  return {type:"choice",svg:lineSVG(Q,0),options:Q,text:"Which point is on ray CB but NOT on ray BC?",answer:"A",steps:["Ray CB has A, B and C. Ray BC has B, C and D.","Only A is on ray CB and not on ray BC."],final:"A"}}},
+{c:"Counting segments",L:[2,4],
+ r:"Any two points on a line name a segment. To count all the segments, start at the first point and pair it with every point after it, then do the same for the next point, and add up the counts.",
+ h:"Make an organized list: all the segments that start with the first letter, then the second letter, and so on.",
+ f(L){const n=L>=3?R(4,6):R(3,4),Q=["A","B","C","D","E","F"].slice(0,n),c=n*(n-1)/2;return {type:"num",svg:lineSVG(Q,0),text:`How many different segments can be named using the points in the figure?`,answer:String(c),steps:[`From ${Q[0]}: ${n-1}, from ${Q[1]}: ${n-2}, … down to 1.`,`${Array.from({length:n-1},(_,i)=>n-1-i).join(" + ")} = ${c}.`],final:String(c)}}}
+];
+const L9G=[
+{c:"Adding fractions",L:[1,4],
+ r:"To add fractions with the same denominator, add the numerators and keep the denominator. Then reduce, and write an improper fraction as a mixed number. When the numerator equals the denominator, the fraction equals 1.",
+ h:"Are the denominators the same? Add only the numerators, then check whether the answer can be reduced.",
+ f(L){const d=pick(L>=3?[6,8,9,10,12,15]:[4,5,6,7,8,9]),n=L>=3?3:2,ns=Array.from({length:n},()=>R(1,d-1)),s=ns.reduce((a,b)=>a+b,0);
+  return {...fA(s,d),text:`Simplify: ${ns.map(x=>F(x,d)).join(" + ")}`,steps:["The denominators are the same, so add the numerators.",`${ns.join(" + ")} = ${s}, so the sum is ${F(s,d)}.`,`Reduce or change to a mixed number: ${mixed(s,d)}.`],final:mixed(s,d)}}},
+{c:"Subtracting fractions and mixed numbers",L:[1,4],
+ r:"To subtract fractions with the same denominator, subtract the numerators and keep the denominator. With mixed numbers, subtract the fraction parts, then subtract the whole numbers. Reduce your answer.",
+ h:"Subtract the fraction parts first (numerators only), then the whole numbers.",
+ f(L){const d=pick([5,6,7,8,9,10,12]),b=R(1,d-2),a=R(b+1,d-1);
+  if(L>=2&&Math.random()<.6){const w1=R(2,L>=3?15:6),w2=R(1,w1-1),n=(w1-w2)*d+(a-b);return {...fA(n,d),text:`Simplify: ${w1} ${F(a,d)} − ${w2} ${F(b,d)}`,steps:[`Fractions: ${F(a,d)} − ${F(b,d)} = ${F(a-b,d)}.`,`Whole numbers: ${w1} − ${w2} = ${w1-w2}.`,`Answer: ${mixed(n,d)}.`],final:mixed(n,d)}}
+  return {...fA(a-b,d),text:`Simplify: ${F(a,d)} − ${F(b,d)}`,steps:[`Subtract the numerators: ${a} − ${b} = ${a-b}.`,`${F(a-b,d)}${gcd(a-b,d)>1?` reduces to ${mixed(a-b,d)}`:""}.`],final:mixed(a-b,d)}}},
+{c:"Multiplying fractions",L:[1,4],
+ r:"To multiply fractions, multiply the numerators to get the new numerator and multiply the denominators to get the new denominator. Then reduce. The word “of” means multiply: 1/2 of 1/3 = 1/2 × 1/3. The product of two fractions less than 1 is less than either fraction.",
+ h:"Multiply straight across: top times top, bottom times bottom. Then reduce.",
+ f(L){const n=L>=3?3:2,fr=Array.from({length:n},()=>{const d=R(2,9);return [R(1,d-1),d]}),N=fr.reduce((a,f)=>a*f[0],1),D=fr.reduce((a,f)=>a*f[1],1),of=n===2&&Math.random()<.35;
+  return {...fA(N,D),text:of?`Find ${F(...fr[0])} of ${F(...fr[1])}.`:`Simplify: ${fr.map(f=>F(...f)).join(" × ")}`,steps:[of?`“Of” means multiply: ${F(...fr[0])} × ${F(...fr[1])}.`:"Multiply the numerators and multiply the denominators.",`${fr.map(f=>f[0]).join(" × ")} = ${N} and ${fr.map(f=>f[1]).join(" × ")} = ${D}, so the product is ${F(N,D)}.`,`Reduce: ${mixed(N,D)}.`],final:mixed(N,D)}}},
+{c:"Reciprocals",L:[1,4],
+ r:"To find the reciprocal of a fraction, switch the numerator and the denominator: the reciprocal of 3/4 is 4/3. A whole number like 5 is 5/1, so its reciprocal is 1/5. The product of a number and its reciprocal is 1.",
+ h:"Flip the fraction upside down. For a whole number, first write it over 1.",
+ f(L){if(Math.random()<.35){const w=R(2,L>=3?25:12);return {type:"frac",answer:`1/${w}`,text:`What is the reciprocal of ${w}?`,steps:[`${w} = ${F(w,1)}.`,`Flip it: ${F(1,w)}.`],final:F(1,w)}}
+  let a,b;do{b=R(2,12);a=R(1,12)}while(a===b||gcd(a,b)!==1);return {...fA(b,a),text:`What is the reciprocal of ${F(a,b)}?`,steps:["Switch the numerator and the denominator.",`The reciprocal is ${F(b,a)}${b>a?` (which is ${mixed(b,a)})`:""}.`],final:F(b,a)}}},
+{c:"Missing factors that make 1",L:[1,4],
+ r:"If a number times an unknown equals 1, the unknown is the reciprocal of the number (Inverse Property of Multiplication: a × 1/a = 1). Example: 3/4 n = 1, so n = 4/3.",
+ h:"What number times this one gives exactly 1? Think of flipping it.",
+ f(L){const v=pick(["n","a","m","x"]);if(Math.random()<.35){const w=R(2,15);return {type:"frac",answer:`1/${w}`,text:`Find the unknown number: ${w}${v} = 1`,steps:[`${w}${v} means ${w} × ${v}. The product must be 1.`,`${v} is the reciprocal of ${w}: ${F(1,w)}.`],final:F(1,w)}}
+  let a,b;do{b=R(2,12);a=R(1,12)}while(a===b||gcd(a,b)!==1);return {...fA(b,a),text:`Find the unknown number: ${F(a,b)}${v} = 1`,steps:[`${F(a,b)}${v} means ${F(a,b)} × ${v}, and the product is 1.`,`So ${v} is the reciprocal of ${F(a,b)}: ${F(b,a)}.`],final:F(b,a)}}},
+{c:"How many fractions are in 1",L:[2,4],
+ r:"To find how many of a fraction are in 1, find its reciprocal. How many 3/4s are in 1? The answer is 4/3, which is 1 1/3. Division is not commutative, so 1 ÷ 3/4 is the reciprocal of 3/4 ÷ 1.",
+ h:"The answer is the reciprocal of the fraction. Then change it to a mixed number if you can.",
+ f(L){let a,b;do{b=R(2,10);a=R(2,9)}while(a>=b||gcd(a,b)!==1);return {...fA(b,a),text:`How many ${F(a,b)}s are in 1?`,steps:[`The answer is the reciprocal of ${F(a,b)}.`,`${F(b,a)} = ${mixed(b,a)}.`],final:mixed(b,a)}}},
+{c:"Inverse Property of Multiplication",L:[1,4],
+ r:"Inverse Property of Multiplication: a number times its reciprocal equals 1 (a × 1/a = 1, if a is not 0). Do not mix it up with the Identity Property (a × 1 = a), the Commutative Property (order changes) or the Property of Zero (a × 0 = 0).",
+ h:"Look at the answer. Is it 1 because a number was multiplied by its flipped fraction?",
+ f(){let a,b;do{b=R(2,12);a=R(1,12)}while(a===b||gcd(a,b)!==1);const O=["Inverse Property of Multiplication","Identity Property of Multiplication","Commutative Property of Multiplication","Property of Zero for Multiplication"],T=[[`${F(a,b)} × ${F(b,a)} = 1`,O[0]],[`${F(a,b)} × 1 = ${F(a,b)}`,O[1]],[`${F(a,b)} × ${F(b,a+1)} = ${F(b,a+1)} × ${F(a,b)}`,O[2]],[`${F(a,b)} × 0 = 0`,O[3]]],[t,ans]=Math.random()<.55?T[0]:pick(T);
+  return {type:"choice",options:O,text:`What property of multiplication is shown? ${t}`,answer:ans,steps:["Check: is the product 1 from a reciprocal, the same number, the order switched, or 0?",`This is the ${ans}.`],final:ans}}},
+{c:"Fractions in percents and money",L:[2,4],
+ r:"Percents can have fraction parts, like 14 2/7%. Add or subtract them the same way as mixed numbers, then write the % sign. Fractions of a dollar add the same way: 1/4 of a dollar plus 3/4 of a dollar is 4/4, which is one whole dollar.",
+ h:"Ignore the % sign while you add or subtract the mixed numbers. Put it back at the end.",
+ f(L){const d=pick([3,5,7,9]),a=R(1,d-1),b=R(1,d-1),w1=R(10,60),w2=R(5,w1-1);
+  if(Math.random()<.5&&a+b<d){const n=(w1+w2)*d+a+b;return {...fA(n,d),text:`Simplify: ${w1} ${F(a,d)}% + ${w2} ${F(b,d)}%. (Type the number without the % sign.)`,steps:[`Fractions: ${F(a,d)} + ${F(b,d)} = ${F(a+b,d)}. Whole numbers: ${w1} + ${w2} = ${w1+w2}.`,`Answer: ${mixed(n,d)}%.`],final:mixed(n,d)+"%"}}
+  const hi=Math.max(a,b),lo=Math.min(a,b),n=(w1-w2)*d+hi-lo;return {...fA(n,d),text:`Simplify: ${w1} ${F(hi,d)}% − ${w2} ${F(lo,d)}%. (Type the number without the % sign.)`,steps:[`Fractions: ${F(hi,d)} − ${F(lo,d)} = ${F(hi-lo,d)}. Whole numbers: ${w1} − ${w2} = ${w1-w2}.`,`Answer: ${mixed(n,d)}%.`],final:mixed(n,d)+"%"}}},
+{c:"Fraction sequences",L:[2,4],
+ r:"In a sequence of fractions, look at how each term changes. In 1/2, 1/4, 1/8, … each term is multiplied by 1/2 (the denominator doubles), so the next term is 1/16.",
+ h:"Compare the denominators. What are they multiplied by each time?",
+ f(){const m=pick([2,3]),t=[1,2,3,4].map(i=>m**i);return {type:"frac",answer:`1/${m**5}`,text:`What is the next number in this sequence? ${t.map(x=>F(1,x)).join(", ")}, …`,steps:[`Each term is multiplied by ${F(1,m)}: the denominator is multiplied by ${m}.`,`${m**4} × ${m} = ${m**5}, so the next term is ${F(1,m**5)}.`],final:F(1,m**5)}}}
+];
+Object.assign(LTITLE,{"C2 Lesson 6":"Factors and Divisibility","C2 Lesson 7":"Lines, Angles, and Planes","C2 Lesson 9":"Adding, Subtracting, and Multiplying Fractions; Reciprocals"});
 const C2L_DEFAULT_H="Read the Remember rule carefully. Then look at what the problem gives you and what it asks for, and do one step at a time.";
 const mkC=(k,names)=>C2[k].map((g,i)=>({c:names[i],L:g.L,r:g.r,h:C2L_DEFAULT_H,f:g.f}));
 const LSN=[
@@ -2069,7 +2201,10 @@ const LSN=[
  {k:"C2 Lesson 2",n:"2",g:mkC("C2 Lesson 2",["Naming the properties","Using properties to find unknowns","Parentheses first (subtraction and division are not associative)","Mental math with properties","Identities and inverse operations"])},
  {k:"C2 Lesson 3",n:"3",g:mkC("C2 Lesson 3",["Unknown addends","Unknown minuend or subtrahend","Unknown factors","Unknown dividend or divisor"])},
  {k:"C2 Lesson 4",n:"4",g:mkC("C2 Lesson 4",["Comparing numbers on a number line","Ordering integers","Next term of a sequence","Using a sequence rule","Moving on a number line and opposites"])},
- {k:"C2 Lesson 5",n:"5",g:mkC("C2 Lesson 5",["Digit in a place","Naming the place value","Expanded notation","Writing numbers from words","Writing numbers in words","Big money amounts in digits"])}
+ {k:"C2 Lesson 5",n:"5",g:mkC("C2 Lesson 5",["Digit in a place","Naming the place value","Expanded notation","Writing numbers from words","Writing numbers in words","Big money amounts in digits"])},
+ {k:"C2 Lesson 6",n:"6",g:L6G},
+ {k:"C2 Lesson 7",n:"7",g:L7G},
+ {k:"C2 Lesson 9",n:"9",g:L9G}
 ];
 const LSBY=Object.fromEntries(LSN.map(x=>[x.k,x]));
 const lmName=k=>k==="PU"?"Power Up":!LSBY[k]?k:k==="C2 Problem Solving"?"Problem-Solving Overview":"Lesson "+LSBY[k].n;
@@ -2094,8 +2229,8 @@ function lmBuild(k,st){const ls=LSBY[k],av=new Set(),it=[];const G=ls.g.map((g,i
 function lmRun(){const v=view;return v.name==="lesson"&&v.st&&v.st!=="learn"?lmS(v.k).runs[v.st]:null}
 function lmMax(run,q){return run.st==="test"?1:q.type==="choice"?2:3}
 function lmCheck(q,v){if(q.type==="rem"){const s=String(v).trim().toLowerCase().replace(/remainder/g,"r").replace(/\s+/g,"");if(!s)return {result:"format",msg:"Type an answer first."};const m=s.match(/^(\d+)(?:r(\d+))?$/);if(!m)return {result:"format",msg:"Type the answer like 22 R 2, or just 22 if there is no remainder."};const qq=+m[1],r=+(m[2]||0);if(qq===q.answer.q&&r===q.answer.r)return {result:"right"};if(qq===q.answer.q&&q.answer.r&&!m[2])return {result:"wrong",msg:"Check whether anything is left over."};return {result:"wrong"}}return check(q,v)}
-function lmEx(it){if(!it.ex){const g=lmG(it);let e,t=0;const kq=qKey(it.q.text);do{e=lmGen(g,it.lv);t++}while(t<60&&(e.text===it.q.text||e.final===it.q.final||(t<40&&qKey(e.text)!==kq)));it.ex={text:e.text,steps:e.steps,final:e.final,options:e.options}}return it.ex}
-function lmExHtml(ex,title){return `<div class="steps"><h3>${title||"Worked example (different numbers, same steps)"}</h3><div style="font-size:18px">${fmt(ex.text)}</div>${ex.options?`<div class="sub">Choices: ${ex.options.map(fmt).join(" · ")}</div>`:""}<ol>${ex.steps.map(s=>`<li>${fmt(s)}</li>`).join("")}</ol><p class="final" style="margin:0">Answer to the example: ${fmt(ex.final)}</p></div>`}
+function lmEx(it){if(!it.ex){const g=lmG(it);let e,t=0;const kq=qKey(it.q.text);do{e=lmGen(g,it.lv);t++}while(t<60&&(e.text===it.q.text||e.final===it.q.final||(t<40&&qKey(e.text)!==kq)));it.ex={text:e.text,steps:e.steps,final:e.final,options:e.options,svg:e.svg}}return it.ex}
+function lmExHtml(ex,title){return `<div class="steps"><h3>${title||"Worked example (different numbers, same steps)"}</h3><div style="font-size:18px">${fmt(ex.text)}</div>${ex.svg?`<div class="graph">${ex.svg}</div>`:""}${ex.options?`<div class="sub">Choices: ${ex.options.map(fmt).join(" · ")}</div>`:""}<ol>${ex.steps.map(s=>`<li>${fmt(s)}</li>`).join("")}</ol><p class="final" style="margin:0">Answer to the example: ${fmt(ex.final)}</p></div>`}
 function lmHelp(it,full){const g=lmG(it);return `<div class="hintbox"><b>Remember:</b> ${fmt(g.r)}${g.h?`<br><b>How to start:</b> ${fmt(g.h)}`:""}</div>${full?lmExHtml(lmEx(it)):""}`}
 function lmTick(run,it){const now=Date.now(),d=Math.min(now-(view.t0||now),300000);if(it)it.t+=d;run.time=(run.time||0)+d;view.t0=now}
 function lmLog(k,run,it){S.log.push({t:"Course 2 lesson",src:it.lk,c:it.c,st:run.st,les:k,a:it.tries.length,ok:it.res==="right",at:Date.now(),text:it.q.text,final:it.q.final,tries:it.tries.slice(),ms:it.t});if(S.log.length>3000)S.log=S.log.slice(-3000)}
@@ -2149,7 +2284,7 @@ function lmQView(k,run){const it=run.items[run.i],q=it.q,tst=run.st==="test",max
  const nextBtn=it.res?`<div class="row"><button class="btn primary" id="lmnext" data-lmnext="1">${it.res==="missed"&&run.items[run.i+1]&&run.items[run.i+1].x?"Try a new one →":"Next →"}</button></div>`:"";
  const lessRef=it.lk==="PU"?"Power Up":it.lk===k?lmName(k):"Review: "+lmName(it.lk);
  return `<section class="panel" style="position:sticky;top:0;z-index:5"><div class="row spread"><h2>${lmName(k)} · ${STN[run.st]}</h2><button class="btn" data-lmopen="${k}">← Lesson (pauses)</button></div><div class="stats"><span>Problem <b>${run.i+1}</b> of ${run.items.length}</span><span>Time <b id="lmtimer">${fmtT(run.time)}</b></span><span>⭐ <b>${S.pts||0}</b></span></div>${strip}${tst?`<p class="sub" style="margin:0">Lesson Test: 1 try per problem and no help until the end. Work carefully on paper.</p>`:""}</section>
- <article class="qcard"><span class="qlabel">Problem ${run.i+1} · ${esc(lessRef)}${tst?"":" · "+esc(it.c)}${it.x?" · new try":""}</span><div class="qtext">${fmt(q.text)}</div>${inp}${fb}${nextBtn}</article>`}
+ <article class="qcard"><span class="qlabel">Problem ${run.i+1} · ${esc(lessRef)}${tst?"":" · "+esc(it.c)}${it.x?" · new try":""}</span><div class="qtext">${fmt(q.text)}</div>${q.svg?`<div class="graph">${q.svg}</div>`:""}${inp}${fb}${nextBtn}</article>`}
 function lmResults(k,run){const base=run.items.filter(x=>!x.x),tst=run.st==="test",ls=lmS(k),miss=run.items.filter(x=>x.res==="missed"),hinted=run.items.filter(x=>x.res==="right"&&x.tries.length>1);
  const cs=[...new Set(miss.concat(hinted).map(x=>x.c))];const nextSt=STEPS[STEPS.indexOf(run.st)+1];
  let h=`<section class="panel"><div class="row spread"><h2>${lmName(k)} · ${STN[run.st]}: results</h2><button class="btn" data-lmopen="${k}">← Lesson</button></div><p class="big-score">${run.score}${tst?" / 100":"%"} <span class="sub">${tst?"test score":"right on the first try"}</span></p><p style="margin:0">Time: <b>${fmtT(run.time)}</b> · ${base.length} problems${tst?"":` · ${run.items.length-base.length} extra practice problems`}</p>`;
@@ -2157,7 +2292,7 @@ function lmResults(k,run){const base=run.items.filter(x=>!x.x),tst=run.st==="tes
  else if(run.score<80)h+=`<div class="fb info">Under 80% on the first try. Do this step again with new numbers before moving on.</div>`;
  h+=cs.length?`<p style="margin:0">Skills to work on: <b>${cs.map(esc).join(", ")}</b></p>`:`<p style="margin:0">Every problem right on the first try. Excellent!</p>`;
  h+=`<div class="row">${tst&&miss.length?`<button class="btn primary" data-lmst="fix" data-again="1">Start Fix-up practice</button>`:""}${tst?`<button class="btn ${miss.length?"":"primary"}" data-lmst="test" data-again="1">Take the test again (new numbers)</button>`:`<button class="btn" data-lmst="${run.st}" data-again="1">Do again (new numbers)</button>${nextSt&&run.st!=="fix"?`<button class="btn primary" data-lmst="${nextSt}">Go to ${STN[nextSt]} →</button>`:""}`}</div></section>`;
- if(tst)h+=`<section class="panel"><h2>Your test</h2>${run.items.map((x,j)=>`<div class="qcard" style="padding:14px"><span class="qlabel">Problem ${j+1} · ${esc(x.c)} · ${x.res==="right"?"✓ right":"✗ not right"}</span><div>${fmt(x.q.text)}</div><div class="tried-list">Your answer: ${esc(x.tries[0]||"")}</div>${x.res==="right"?"":`<details><summary>How to solve this kind of problem</summary>${lmHelp(x,true)}</details>`}</div>`).join("")}</section>`;
+ if(tst)h+=`<section class="panel"><h2>Your test</h2>${run.items.map((x,j)=>`<div class="qcard" style="padding:14px"><span class="qlabel">Problem ${j+1} · ${esc(x.c)} · ${x.res==="right"?"✓ right":"✗ not right"}</span><div>${fmt(x.q.text)}</div>${x.q.svg?`<div class="graph">${x.q.svg}</div>`:""}<div class="tried-list">Your answer: ${esc(x.tries[0]||"")}</div>${x.res==="right"?"":`<details><summary>How to solve this kind of problem</summary>${lmHelp(x,true)}</details>`}</div>`).join("")}</section>`;
  return h}
 function lessonView(){const k=view.k;if(!LSBY[k])return home();let body;
  if(!view.st)body=lmOverview(k);else if(view.st==="learn")body=lmLearn(k);else{const run=lmS(k).runs[view.st];if(!run){view.st=null;body=lmOverview(k)}else body=run.done||view.res?lmResults(k,run):lmQView(k,run)}

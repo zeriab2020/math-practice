@@ -2257,16 +2257,30 @@ const gImp={L:[1,4],r:"To change an improper fraction to a mixed number, divide 
   if(k===1){let w,n,d;do{d=R(2,9);n=R(d+1,2*d+3);w=R(1,6)}while(n%d===0);const N=w*d+n;return {...fA(N,d),form:"mixed",text:`Write ${w} ${F(n,d)} as a mixed number with a proper fraction.`,steps:[`${F(n,d)} = ${mixed(n,d)}.`,`${w} + ${mixed(n,d)} = ${mixed(N,d)}.`],final:mixed(N,d)}}
   if(k===2){let w,n,d;do{d=R(3,9);n=R(1,d-1);w=R(1,6)}while(2*n<=d||gcd(n,d)!==1);const N=2*(w*d+n);return {...fA(N,d),form:"mixed",text:`Simplify: ${w} ${F(n,d)} + ${w} ${F(n,d)}`,steps:[`Add the fractions: ${F(2*n,d)} = ${mixed(2*n,d)}. Add the whole numbers: ${2*w}.`,`${2*w} + ${mixed(2*n,d)} = ${mixed(N,d)}.`],final:mixed(N,d)}}
   const nm=pick(["Alexis","Omar","Lina","Yusuf"]),L0=R(13,49),p=pick([2,3,4,5,6,8]);if(L0%p===0)return gImp.f(L);return {...fA(L0,p),form:"mixed",text:`${nm} cut a ${L0}-inch ribbon into ${p} equal lengths. How long was each piece? (Write the answer as a mixed number.)`,steps:[`${L0} ÷ ${p} = ${Math.floor(L0/p)} R ${L0%p}.`,`The remainder goes over the divisor: ${mixed(L0,p)} inches.`],final:mixed(L0,p)+" in."}}};
+const gL1HW={L:[1,4],r:"Multiplying by a number that ends in zero: let the zeros “hang out,” multiply the other digits, then attach the zeros (365 × 20: 365 × 2 = 730, then 7300). Dividing money: divide as with whole numbers and put the decimal point in the answer straight above the decimal point in the money; a fraction bar also means divide.",
+ h:"Look for zeros at the end of the numbers, and for money. Multiply or divide the other digits first, then place the zeros or the decimal point.",
+ f(L){const k=R(0,3);
+  if(k===0){const d=pick([20,40,50,25]),q=R(L>=3?105:55,L>=3?495:250),D=d*q;return {type:"num",text:`Simplify: ${money(D)} ÷ ${d}`,answer:(q/100).toFixed(2),steps:[`Divide ${D} ÷ ${d} = ${q}, as if there were no decimal point.`,`Put the decimal point straight above: ${money(q)}.`],final:money(q)}}
+  if(k===1){const a=R(105,L>=3?975:499),b=pick([20,30,40,60,80]);return {type:"num",text:`Simplify: ${a} × ${b}`,answer:String(a*b),steps:[`Let the 0 hang out: ${a} × ${b/10} = ${a*b/10}.`,`Attach the 0: ${a*b}.`],final:String(a*b)}}
+  if(k===2){const a=R(2,9)*10,b=R(2,9)*pick([10,10,100]);return {type:"num",text:`Simplify: ${a}(${b})`,answer:String(a*b),steps:[`${a}(${b}) means ${a} × ${b}. Multiply ${a/10} × ${b/(b>=100?100:10)} = ${a/10*b/(b>=100?100:10)}.`,`Attach all the zeros: ${a*b}.`],final:String(a*b)}}
+  const d=pick([4,5,8,16,25]),q=R(L>=3?60:20,L>=3?400:200)*(d===8||d===16?25:5)/5,D=d*q;return {type:"num",text:`Simplify: [[${money(D)}/${d}]]`,answer:(q/100).toFixed(2),steps:[`The fraction bar means divide: ${money(D)} ÷ ${d}.`,`${D} ÷ ${d} = ${q}, so the answer is ${money(q)}.`],final:money(q)}}};
+const gL2HW={L:[1,4],r:"Money times a whole number: multiply, then write two decimal places and a dollar sign ((10)($3.75) = $37.50). Cents times a whole number: multiply to get cents, then change to dollars (30 × 45¢ = 1350¢ = $13.50). Long division: divide, multiply, subtract, bring down, and repeat.",
+ h:"First decide: is it money × number, cents × number, or long division? Do the arithmetic, then write the answer in dollar form if it is money.",
+ f(L){const k=R(0,3);
+  if(k===0){const d=pick([4,5,8]),q=R(L>=3?160:60,L>=3?900:400)*(d===8?25:5)/5,D=d*q;return {type:"num",text:`Simplify: [[${money(D).replace(/\.00$/,".00")}/${d}]]`,answer:(q/100).toFixed(2),steps:[`Divide ${money(D)} ÷ ${d}.`,`${D} ÷ ${d} = ${q}, so the answer is ${money(q)}.`],final:money(q)}}
+  if(k===1){const d=R(12,L>=3?48:25),q=R(L>=3?105:55,L>=3?399:250);return {type:"num",text:`Simplify: ${d*q} ÷ ${d}`,answer:String(q),steps:[`Divide step by step: how many ${d}s fit, multiply, subtract, bring down.`,`${d*q} ÷ ${d} = ${q}. Check: ${q} × ${d} = ${d*q}.`],final:String(q)}}
+  if(k===2){const m=pick([10,12,20,15]),c=R(105,L>=3?1995:799);return {type:"num",text:`Simplify: (${m})(${money(c)})`,answer:(m*c/100).toFixed(2),steps:[`Multiply: ${m} × ${c} = ${m*c}.`,`Two decimal places and a dollar sign: ${money(m*c)}.`],final:money(m*c)}}
+  const m=pick([20,30,40,25,12]),c=R(15,95);return {type:"num",text:`Simplify: ${m} × ${c}¢. Write the answer with a dollar sign.`,answer:(m*c/100).toFixed(2),steps:[`${m} × ${c}¢ = ${m*c}¢.`,`${m*c}¢ = ${money(m*c)}.`],final:money(m*c)}}};
 const QZ=(c,gs,o)=>Object.assign({c,L:[1,4],r:gs[0].r,h:gs[0].h||C2L_DEFAULT_H,gs,f(L){const g=pick(gs),Lx=Math.min(Math.max(L,g.L[0]),g.L[1]);const q=g.f(Lx);q._r=g.r;q._h=g.h;q._k=gs.indexOf(g);return q}},o||{});
 const C2g=(k,i)=>Object.assign({h:"Read the Remember rule. Then look at what the problem gives you and what it asks for."},C2[k][i]);
 const QG=[
- QZ("Lesson 1 · Notes Ex 3–4: money × and ÷",[L1G[7],L1G[9]]),
- QZ("Lesson 1 · HW #13, 17, 19, 25: whole numbers and money",[L1G[2],L1G[4],L1G[6],L1G[8],L1G[3],L1G[5]]),
- QZ("Lesson 1 · Lesson 2 HW #10, 14, 18, 26: arithmetic review",[L1G[11],L1G[8],L1G[7],L1G[5],L1G[12]]),
+ QZ("Lesson 1 · Notes Ex 3–4: multiplying and dividing (whole numbers and money)",[L1G[6],L1G[7],L1G[8],L1G[9]]),
+ QZ("Lesson 1 · HW #13, 17, 19, 25: money ÷, × with zeros, money over a number",[gL1HW]),
+ QZ("Lesson 1 · Lesson 2 HW #10, 14, 18, 26: money and cents × and ÷, long division",[gL2HW]),
  QZ("Lesson 2 · Notes Ex 1: Associative Property",[gAssoc,C2g("C2 Lesson 2",0),C2g("C2 Lesson 2",2),C2g("C2 Lesson 2",3)]),
  QZ("Lesson 3 · Notes Ex 1–4: unknown numbers",[C2g("C2 Lesson 3",0),C2g("C2 Lesson 3",1),C2g("C2 Lesson 3",2),C2g("C2 Lesson 3",3)]),
- QZ("Lesson 3 · HW (L3 #7, 9, 11 · L5 #11, 13, 15 · L10 #10, 12, 14): big numbers and money unknowns",[gBig]),
- QZ("Lesson 4 · Notes Ex 1: integers",[gInt]),
+ QZ("Lesson 3 · HW (L3 #7, 9, 11 · L5 #11, 13, 15 · L10 #10, 12, 14): find the value of each variable",[C2g("C2 Lesson 3",0),C2g("C2 Lesson 3",1),C2g("C2 Lesson 3",2),gBig,gBig]),
+ QZ("Lesson 4 · Notes Ex 1: integers in order",[gInt,C2g("C2 Lesson 4",1)]),
  QZ("Lesson 4 · Lesson 11 HW #5: number line and comparing",[C2g("C2 Lesson 4",0),C2g("C2 Lesson 4",4),C2g("C2 Lesson 4",1)]),
  QZ("Lesson 5 · Notes Ex 3–5: reading and writing whole numbers",[C2g("C2 Lesson 5",3),C2g("C2 Lesson 5",4),C2g("C2 Lesson 5",2)]),
  QZ("Lesson 5 · HW (L5 #3, 5 · L6 #4): digits, words and expanded notation",[C2g("C2 Lesson 5",3),C2g("C2 Lesson 5",2),C2g("C2 Lesson 5",5),C2g("C2 Lesson 5",0)]),

@@ -1826,7 +1826,7 @@ function header(){
   <section class="panel" aria-label="Overall progress"><div class="stats"><span>Problems finished <b>${tot}</b></span><span><i class="dot" style="background:var(--good)"></i>Right <b>${ok}</b></span><span><i class="dot" style="background:var(--bad)"></i>Locked <b>${tot-ok}</b></span><span>Score <b>${tot?Math.round(ok/tot*100):0}%</b></span></div></section>`;
 }
 const EXAM_ONLY=true;
-function home(){if(EXAM_ONLY)return header()+`<section class="panel"><p class="big-score" style="margin:0">⭐ ${S.pts||0} <span class="sub">points</span></p><p class="sub" style="margin:0">You get 1 point for every correct answer, including Fix it problems.</p></section>${lmHome()}`;
+function home(){if(EXAM_ONLY)return header()+`<section class="panel"><p class="big-score" style="margin:0">⭐ ${S.pts||0} <span class="sub">points</span></p><p class="sub" style="margin:0">You get 1 point for every correct answer.</p></section>${dpHome()}<details class="panel"><summary><b>Saxon Course 2: lessons and Test C2 practice</b></summary><div style="display:grid;gap:18px;margin-top:12px">${lmHome()}</div></details>`;
   const cards=VISIBLE.map(t=>{const c=counts(byTopic(t)),st=status(t),set=S.sets[t],sc=set?counts(set.list):null,cont=set&&setOpen(set);
     return `<div class="topic"><div class="row spread"><h3>${esc(t)}</h3><span class="pill ${st.cls}">${st.label}</span></div>${LESSON_SUB[t]?`<div class="meta">${LESSON_SUB[t]}</div>`:""}${last10(t)}
     <div class="meta">${st.n?`Last ${st.n}: ${st.ok} right`:"No problems yet"}</div>
@@ -1882,8 +1882,8 @@ function report(){
   const weak=VISIBLE.filter(t=>status(t).cls==="review"||(status(t).cls==="mid"));
   const ls=lessonStats(),weakL=ls.filter(x=>x.st.cls==="review"||x.st.cls==="mid").map(x=>x.k);
   const lrows=ls.map(x=>`<tr><td>${esc(x.k)}</td><td>${x.n}</td><td>${x.n?x.first:"—"}</td><td>${x.n?x.lock:"—"}</td><td>${x.n?Math.round(x.p*100)+"%":"—"}</td><td><span class="pill ${x.st.cls}">${x.st.label}</span></td></tr>`).join("");
-  const misses=S.log.filter(l=>!l.ok&&l.t!=="Course 2 lesson").slice(-12).reverse();
-  return header()+lmReport()+`<details class="panel"><summary>Course 1 reports (older work)</summary><div style="display:grid;gap:18px"><section class="panel"><h2>Topics to review</h2>${weakL.length?`<p style="margin:0">Lessons to practice more: <b>${weakL.map(esc).join(", ")}</b>.</p>`:""}${weak.length?`<p style="margin:0">Practice these topics more: <b>${weak.map(esc).join(", ")}</b>.</p>`:""}${!weak.length&&!weakL.length?`<div class="empty">No weak topics yet. A topic shows up here when fewer than 8 of its last 10 problems are right.</div>`:""}</section>
+  const misses=S.log.filter(l=>!l.ok&&l.t!=="Course 2 lesson"&&l.t!=="Daily").slice(-12).reverse();
+  return header()+dpReport()+`<details class="panel"><summary><b>Saxon Course 2 lesson reports</b></summary><div style="display:grid;gap:18px;margin-top:12px">${lmReport()}</div></details><details class="panel"><summary>Course 1 reports (older work)</summary><div style="display:grid;gap:18px"><section class="panel"><h2>Topics to review</h2>${weakL.length?`<p style="margin:0">Lessons to practice more: <b>${weakL.map(esc).join(", ")}</b>.</p>`:""}${weak.length?`<p style="margin:0">Practice these topics more: <b>${weak.map(esc).join(", ")}</b>.</p>`:""}${!weak.length&&!weakL.length?`<div class="empty">No weak topics yet. A topic shows up here when fewer than 8 of its last 10 problems are right.</div>`:""}</section>
   ${trackerHtml()}${examHistory()}<section class="panel"><h2>By lesson (from Mixed reviews)</h2><p class="sub" style="margin:0">Every Mixed review, Mixed review 2, Quiz C1 review and Quiz C1 practice quiz problem is tracked by the book lesson it comes from.</p><div class="tablewrap"><table id="lessontable"><thead><tr><th>Lesson</th><th>Done</th><th>Right 1st try</th><th>Locked</th><th>Score</th><th>Status</th></tr></thead><tbody>${lrows}</tbody></table></div></section>
   <section class="panel"><h2>By topic</h2><div class="tablewrap"><table><thead><tr><th>Topic</th><th>Done</th><th>Score</th><th>Last 10</th><th>Homework</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>
   <section class="panel"><h2>Recent locked problems</h2>${misses.length?misses.map(l=>`<details><summary>${esc(l.src||l.t)}: ${fmt(l.text.length>80?l.text.slice(0,80)+"…":l.text)}</summary><p style="margin:.5em 0 0">${LESSON_ORDER2.includes(l.src)||l.t==="Quiz C1 review"?"Answer hidden (this set teaches without showing answers)":`Answer: <b>${fmt(l.final)}</b>`}${l.tries?` · Tries: ${l.tries.map(esc).join(" · ")}`:""}</p></details>`).join(""):`<div class="empty">None yet.</div>`}</section>
@@ -1898,7 +1898,7 @@ function parentActions(){
   <div class="tablewrap"><table id="lvtable"><thead><tr><th>Topic</th><th>Current level</th></tr></thead><tbody>${lvRows}</tbody></table></div>
   <div class="row">${topicBtns||'<span class="sub">Nothing to reset yet.</span>'}${topicBtns?'<button class="btn" data-reset="*">Reset everything</button>':""}</div>`;
 }
-function render(){exSync();app.innerHTML=view.name==="lesson"?lessonView():view.name==="exam"&&exCur()?examView():view.name==="practice"?practice():view.name==="report"?report():view.name==="summary"?summary():home();const a=document.getElementById("ans")||document.getElementById("lmans")||document.getElementById("lmnext");if(a)a.focus({preventScroll:true});}
+function render(){exSync();app.innerHTML=view.name==="dp"?dpView():view.name==="lesson"?lessonView():view.name==="exam"&&exCur()?examView():view.name==="practice"?practice():view.name==="report"?report():view.name==="summary"?summary():home();const a=document.getElementById("ans")||document.getElementById("lmans")||document.getElementById("lmnext")||document.getElementById("dpans")||document.getElementById("dpnext");if(a)a.focus({preventScroll:true});}
 
 /* ===== COURSE 2: LESSON-BY-LESSON MODE (original practice modeled on the book's lesson structure) ===== */
 const shuf=a=>a.slice().sort(()=>Math.random()-.5);
@@ -2429,6 +2429,455 @@ app.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return
 app.addEventListener("submit",e=>{if(e.target.id==="lmf"||e.target.id==="lmpf")e.preventDefault();if(e.target.id==="lmf"){lmSubmit(document.getElementById("lmans").value)}
  else if(e.target.id==="lmpf"){const v=document.getElementById("lmpin").value.trim(),m=document.getElementById("lmpm");if(!S.pin){m.innerHTML='<p class="fb info">Create a parent PIN first in “For parents” at the bottom of this page.</p>';return}if(v===S.pin){lmShowAns=true;render()}else m.innerHTML='<p class="fb no">Wrong PIN.</p>'}});
 setInterval(()=>{const el=document.getElementById("lmtimer"),run=lmRun();if(el&&run&&!run.done)el.textContent=fmtT((run.time||0)+Math.min(Date.now()-(view.t0||Date.now()),300000))},1000);
+
+/* ===== DAILY PRACTICE: topics from the Mathnasium checkup (original Saxon-style problems) ===== */
+const DF=(n,d)=>`[[${n}/${d}]]`;
+const dRed=(n,d)=>{const g=gcd(n,d);return [n/g,d/g]};
+const dFs=(n,d)=>{[n,d]=dRed(n,d);return d===1?String(n):`${n}/${d}`};
+const dDsp=(n,d)=>{[n,d]=dRed(n,d);const s=n<0?"−":"";n=Math.abs(n);return d===1?s+n:n>d?`${s}${Math.floor(n/d)}${n%d?" "+DF(n%d,d):""}`:s+DF(n,d)};
+const dN=x=>x<0?"−"+(-x):String(x);
+const dP=x=>x<0?`(−${-x})`:String(x);
+const dD=(x,p=4)=>{const s=String(+(+x).toFixed(p));return s.startsWith("-")?"−"+s.slice(1):s};
+const dM=x=>"$"+(+x).toFixed(2);
+const dSup=n=>String(n).split("").map(c=>"⁰¹²³⁴⁵⁶⁷⁸⁹"[+c]).join("");
+const dFac=n=>{const o=[];for(let i=1;i<=n;i++)if(n%i===0)o.push(i);return o};
+const dPf=n=>{const o=[];let m=n;for(let p=2;p*p<=m;p++)while(m%p===0){o.push(p);m/=p}if(m>1)o.push(m);return o};
+const dCop=(lo,hi,d)=>{let n,t=0;do{n=R(lo,hi);t++}while(gcd(n,d)!==1&&t<50);return n};
+const dName=()=>pick(["Maria","Tom","Lina","Omar","Sam","Nora","Jake","Ava","Ben","Zara"]);
+const dVar=()=>pick(["x","n","m","y","w","a"]);
+const CMP3=["<",">","="];
+const dCmp=(a,b)=>Math.abs(a-b)<1e-9?"=":a<b?"<":">";
+function dOrder(items,asc){ // items: [{s,v}] distinct values → choice question parts
+ const sorted=items.slice().sort((a,b)=>asc?a.v-b.v:b.v-a.v),right=sorted.map(x=>x.s).join(", ");
+ const opts=new Set([right]);let t=0;while(opts.size<4&&t<60){opts.add(shuf(items).map(x=>x.s).join(", "));t++}
+ return {opts:shuf([...opts]),right,sorted}}
+const dq=(type,text,answer,steps,final,extra)=>Object.assign({type,text,answer:String(answer),steps,final:String(final)},extra||{});
+
+const DPT=[
+/* 1 */{id:"oo",name:"Order of operations",ck:"0%",
+ r:"Do the steps in this order: 1) inside Parentheses and brackets, 2) Exponents, 3) Multiply and divide from left to right, 4) Add and subtract from left to right. Do one step at a time and rewrite the problem after each step.",
+ h:"Underline the part you must do first. Is there a parenthesis? An exponent? Then do × and ÷ from left to right before + and −.",
+ K:[3,4,4,5,5],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;let a,b,c,d,e,t,s,v;
+  if(L===1){
+   if(k===0){a=R(2,20);b=R(2,9);c=R(2,9);v=a+b*c;return dq("num",`Simplify: ${a} + ${b} × ${c}`,v,[`Multiply first: ${b} × ${c} = ${b*c}.`,`Then add: ${a} + ${b*c} = ${v}.`],v)}
+   if(k===1){c=R(2,9);const q=R(2,9);b=c*q;a=R(q+1,30);v=a-q;return dq("num",`Simplify: ${a} − ${b} ÷ ${c}`,v,[`Divide first: ${b} ÷ ${c} = ${q}.`,`Then subtract: ${a} − ${q} = ${v}.`],v)}
+   a=R(2,9);b=R(2,9);c=a*b+R(1,30);v=c-a*b;return dq("num",`Simplify: ${c} − ${a} × ${b}`,v,[`Multiply first: ${a} × ${b} = ${a*b}.`,`Then subtract: ${c} − ${a*b} = ${v}.`],v)}
+  if(L===2){
+   if(k===0){a=R(2,12);b=R(2,12);c=R(2,9);v=(a+b)*c;return dq("num",`Simplify: (${a} + ${b}) × ${c}`,v,[`Parentheses first: ${a} + ${b} = ${a+b}.`,`Then multiply: ${a+b} × ${c} = ${v}.`],v)}
+   if(k===1){c=R(2,6);d=R(2,6);a=R(3,9);b=R(Math.ceil((c*d+1)/a),9);if(a*b<=c*d)b=Math.ceil((c*d+1)/a);v=a*b-c*d;return dq("num",`Simplify: ${a} × ${b} − ${c} × ${d}`,v,[`Do both multiplications first: ${a} × ${b} = ${a*b} and ${c} × ${d} = ${c*d}.`,`Then subtract: ${a*b} − ${c*d} = ${v}.`],v)}
+   if(k===2){b=R(2,7);c=R(1,6);const q=R(2,9);a=(b+c)*q;return dq("num",`Simplify: ${a} ÷ (${b} + ${c})`,q,[`Parentheses first: ${b} + ${c} = ${b+c}.`,`Then divide: ${a} ÷ ${b+c} = ${q}.`],q)}
+   e=R(2,6);const q=R(2,6);d=e*q;a=R(2,15);b=R(2,9);c=R(2,9);v=a+b*c-q;return dq("num",`Simplify: ${a} + ${b} × ${c} − ${d} ÷ ${e}`,v,[`Multiply and divide first: ${b} × ${c} = ${b*c} and ${d} ÷ ${e} = ${q}.`,`Now it is ${a} + ${b*c} − ${q}. Add and subtract from left to right: ${a+b*c} − ${q} = ${v}.`],v)}
+  if(L===3){
+   if(k===0){a=R(2,20);b=R(2,5);c=R(2,4);v=a+b*b*c;return dq("num",`Simplify: ${a} + ${b}² × ${c}`,v,[`Exponent first: ${b}² = ${b} × ${b} = ${b*b}.`,`Multiply: ${b*b} × ${c} = ${b*b*c}.`,`Add: ${a} + ${b*b*c} = ${v}.`],v)}
+   if(k===1){a=R(5,12);b=R(2,6);c=R(2,Math.min(9,Math.floor((a*a-1)/b)));v=a*a-b*c;return dq("num",`Simplify: ${a}² − ${b} × ${c}`,v,[`Exponent first: ${a}² = ${a*a}.`,`Multiply: ${b} × ${c} = ${b*c}.`,`Subtract: ${a*a} − ${b*c} = ${v}.`],v)}
+   if(k===2){a=R(2,9);b=R(2,9);c=R(2,9);d=R(1,a*(b+c)-1);v=a*(b+c)-d;return dq("num",`Simplify: ${a} × (${b} + ${c}) − ${d}`,v,[`Parentheses first: ${b} + ${c} = ${b+c}.`,`Multiply: ${a} × ${b+c} = ${a*(b+c)}.`,`Subtract: ${a*(b+c)} − ${d} = ${v}.`],v)}
+   s=R(2,4);d=R(1,9);c=d+s;a=R(1,20);b=R(2,5);v=a+b*s*s;return dq("num",`Simplify: ${a} + ${b} × (${c} − ${d})²`,v,[`Parentheses first: ${c} − ${d} = ${s}.`,`Exponent: ${s}² = ${s*s}.`,`Multiply: ${b} × ${s*s} = ${b*s*s}.`,`Add: ${a} + ${b*s*s} = ${v}.`],v)}
+  if(L===4){
+   if(k===0){s=R(1,4);e=R(1,6);d=e+s;c=R(s+1,s+8);a=R(1,15);b=R(2,6);const in1=c-s;v=a+b*in1;return dq("num",`Simplify: ${a} + ${b} × [${c} − (${d} − ${e})]`,v,[`Innermost parentheses first: ${d} − ${e} = ${s}.`,`Then the brackets: ${c} − ${s} = ${in1}.`,`Multiply: ${b} × ${in1} = ${b*in1}.`,`Add: ${a} + ${b*in1} = ${v}.`],v)}
+   if(k===1){b=R(3,10);const ds=dFac(b*b).filter(x=>x>=2&&x<=20&&x!==b*b);c=pick(ds);a=R(2,9);v=a*a+b*b/c;return dq("num",`Simplify: ${a}² + ${b}² ÷ ${c}`,v,[`Exponents first: ${a}² = ${a*a} and ${b}² = ${b*b}.`,`Divide: ${b*b} ÷ ${c} = ${b*b/c}.`,`Add: ${a*a} + ${b*b/c} = ${v}.`],v)}
+   if(k===2){c=R(2,6);const q=R(2,8);b=c*q;a=R(q+1,q+20);d=R(2,6);e=R(2,6);v=a-q+d*e;return dq("num",`Simplify: ${a} − ${b} ÷ ${c} + ${d} × ${e}`,v,[`Multiply and divide first: ${b} ÷ ${c} = ${q} and ${d} × ${e} = ${d*e}.`,`Now it is ${a} − ${q} + ${d*e}. Go left to right: ${a} − ${q} = ${a-q}, then ${a-q} + ${d*e} = ${v}.`],v)}
+   if(k===3){const f=R(2,4),q=R(1,5),sm=f*q;d=R(1,sm-1);e=sm-d;c=R(3,6);a=R(1,9);b=R(2,4);const in1=c*c-q;v=a+b*in1;return dq("num",`Simplify: ${a} + ${b} × [${c}² − (${d} + ${e}) ÷ ${f}]`,v,[`Parentheses first: ${d} + ${e} = ${sm}.`,`Inside the brackets, exponent next: ${c}² = ${c*c}. Then divide: ${sm} ÷ ${f} = ${q}. Then subtract: ${c*c} − ${q} = ${in1}.`,`Multiply: ${b} × ${in1} = ${b*in1}.`,`Add: ${a} + ${b*in1} = ${v}.`],v)}
+   d=R(1,9);const dv=R(2,6);c=d+dv;const q=R(2,9),sm=dv*q;a=R(1,sm-1);b=sm-a;return dq("num",`Simplify: (${a} + ${b}) ÷ (${c} − ${d})`,q,[`Do both parentheses first: ${a} + ${b} = ${sm} and ${c} − ${d} = ${dv}.`,`Divide: ${sm} ÷ ${dv} = ${q}.`],q)}
+  /* L5: grade 7, negative numbers */
+  if(k===0){c=R(1,8);d=c+R(2,7);b=R(2,6);a=R(1,20);const in1=c-d;v=a-b*in1;return dq("num",`Simplify: ${a} − ${b} × (${c} − ${d})`,v,[`Parentheses first: ${c} − ${d} = ${dN(in1)}.`,`Multiply: ${b} × (${dN(in1)}) = ${dN(b*in1)}.`,`Subtract a negative = add: ${a} − (${dN(b*in1)}) = ${a} + ${-b*in1} = ${dN(v)}.`],dN(v))}
+  if(k===1){a=R(2,15);b=R(2,9);c=R(2,9);v=-a-b*c;return dq("num",`Simplify: −${a} + ${b} × (−${c})`,v,[`Multiply first: ${b} × (−${c}) = −${b*c} (positive × negative = negative).`,`Add: −${a} + (−${b*c}) = ${dN(v)}.`],dN(v))}
+  if(k===2){a=R(2,7);b=R(2,9);c=R(2,9);v=a*a-b*c;return dq("num",`Simplify: (−${a})² − ${b} × ${c}`,v,[`Exponent first: (−${a})² = (−${a}) × (−${a}) = ${a*a} (negative × negative = positive).`,`Multiply: ${b} × ${c} = ${b*c}.`,`Subtract: ${a*a} − ${b*c} = ${dN(v)}.`],dN(v))}
+  if(k===3){a=R(2,9);b=R(1,30);v=-a*a+b;return dq("num",`Simplify: −${a}² + ${b}`,v,[`The exponent belongs only to ${a}, not to the minus sign: −${a}² = −(${a} × ${a}) = −${a*a}.`,`Add: −${a*a} + ${b} = ${dN(v)}.`],dN(v))}
+  s=R(2,5);d=R(2,5);const m=pick([-6,-5,-4,-3,-2,2,3,4,5,6]);a=d*m+s*s;b=R(1,9);c=pick([b+s,b-s]);
+  return dq("num",`Simplify: [${dN(a)} − (${b} − ${c})²] ÷ ${d}`,m,[`Parentheses first: ${b} − ${c} = ${dN(b-c)}.`,`Exponent: (${dN(b-c)})² = ${s*s}.`,`Brackets: ${dN(a)} − ${s*s} = ${dN(a-s*s)}.`,`Divide: ${dN(a-s*s)} ÷ ${d} = ${dN(m)}.`],dN(m))}},
+
+/* 2 */{id:"gl",name:"GCF and LCM",ck:"0%",
+ r:"The GCF (greatest common factor) is the largest number that divides evenly into all the numbers. The LCM (least common multiple) is the smallest number that all the numbers divide into. Clue words: making the greatest number of equal groups → GCF. When two things happen together again → LCM.",
+ h:"For the GCF, list the factors of each number and find the biggest one they share. For the LCM, list multiples of the bigger number until the other number divides into it.",
+ K:[2,2,3,3,3],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;
+  const gcfQ=(nums,lo)=>{const g=nums.reduce(gcd);const st=Math.max(...nums)<=72?nums.map(n=>`Factors of ${n}: ${dFac(n).join(", ")}.`):nums.map(n=>`${n} = ${dPf(n).join(" · ")}.`);return dq("num",`Find the greatest common factor (GCF) of ${nums.join(nums.length>2?", ":" and ").replace(/, (\d+)$/,", and $1")}.`,g,[...st,Math.max(...nums)<=72?`The greatest factor they all share is ${g}.`:`Multiply the prime factors they all share: GCF = ${g}.`],g)};
+  const lcmQ=nums=>{const l=nums.reduce(lcm),mx=Math.max(...nums),ms=[];for(let x=mx;x<=l;x+=mx)ms.push(x);return dq("num",`Find the least common multiple (LCM) of ${nums.join(nums.length>2?", ":" and ").replace(/, (\d+)$/,", and $1")}.`,l,[`Multiples of ${mx}: ${ms.slice(0,8).join(", ")}${ms.length>8?", …":""}.`,`The first one that ${nums.filter(n=>n!==mx).join(" and ")} also ${nums.length>2?"divide":"divides"} into is ${l}.`],l)};
+  const two=(glo,ghi,mhi)=>{let g,a,b,t=0;do{g=R(glo,ghi);a=R(1,mhi);b=R(1,mhi);t++}while((a===b||gcd(a,b)!==1)&&t<99);return [g*a,g*b]};
+  if(L===1){if(k===0)return gcfQ(two(2,6,6));let a,b;do{a=R(2,10);b=R(2,10)}while(a===b||lcm(a,b)>60||a%b===0||b%a===0);return lcmQ([a,b])}
+  if(L===2){if(k===0)return gcfQ(two(3,12,6));let a,b;do{a=R(4,15);b=R(4,15)}while(a===b||lcm(a,b)>120||gcd(a,b)===1);return lcmQ([a,b])}
+  if(L===3){if(k===0){const g=R(2,8);let m;do{m=[R(1,7),R(1,7),R(1,7)]}while(new Set(m).size<3||m.reduce(gcd)!==1);return gcfQ(m.map(x=>x*g))}
+   if(k===1){let n;do{n=[R(2,9),R(2,9),R(2,9)]}while(new Set(n).size<3||n.reduce(lcm)>90);return lcmQ(n)}
+   const [a,b]=two(3,12,9),A=Math.min(a,b),B=Math.max(a,b),g=gcd(A,B);return dq("frac",`Use the GCF to reduce ${DF(A,B)} to lowest terms.`,dFs(A,B),[`The GCF of ${A} and ${B} is ${g}.`,`Divide the top and the bottom by ${g}: ${A} ÷ ${g} = ${A/g} and ${B} ÷ ${g} = ${B/g}.`],DF(A/g,B/g))}
+  if(L===4){const nm=dName();
+   if(k===0){const [a,b]=two(3,12,6),g=gcd(a,b);return dq("num",`${nm} has ${a} red pencils and ${b} blue pencils. ${nm} wants to make identical packs with the same number of red pencils in each pack and the same number of blue pencils in each pack, with none left over. What is the greatest number of packs ${nm} can make?`,g,["Identical groups with nothing left over, and the GREATEST number of groups → GCF.",`Factors of ${a}: ${dFac(a).join(", ")}. Factors of ${b}: ${dFac(b).join(", ")}.`,`The GCF is ${g}, so ${g} packs (each with ${a/g} red and ${b/g} blue).`],`${g} packs`)}
+   if(k===1){let a,b;do{a=R(2,8)*pick([2,3,5]);b=R(2,8)*pick([2,3,5])}while(a===b||lcm(a,b)>120||a%b===0||b%a===0);const l=lcm(a,b);return dq("num",`One bus leaves the station every ${a} minutes. Another bus leaves every ${b} minutes. Both buses leave at 8:00 a.m. In how many minutes will they next leave at the same time?`,l,["They happen together again → LCM.",`Multiples of ${Math.max(a,b)}: ${[1,2,3,4,5,6].map(i=>i*Math.max(a,b)).join(", ")}, …`,`The first one that ${Math.min(a,b)} also divides into is ${l}.`],`${l} minutes`)}
+   let a,b;do{a=pick([6,8,10,12]);b=pick([8,10,12,15,16])}while(a===b||a%b===0||b%a===0);const l=lcm(a,b);return dq("num",`Hot dogs come in packs of ${a}. Buns come in packs of ${b}. What is the least number of hot dogs ${nm} can buy to have exactly the same number of hot dogs and buns?`,l,["The same total from two different pack sizes → LCM.",`Multiples of ${a}: ${[1,2,3,4,5,6].map(i=>i*a).join(", ")}, …  Multiples of ${b}: ${[1,2,3,4,5].map(i=>i*b).join(", ")}, …`,`The smallest number on both lists is ${l}.`],`${l} hot dogs`)}
+  /* L5 grade 7 */
+  if(k===0)return gcfQ(two(6,30,9).sort((a,b)=>a-b));
+  if(k===1){let a,b;do{a=pick([6,8,9,10,12,14,15,16,18,20,24]);b=pick([8,9,10,12,15,16,18,20,21,24,30])}while(a===b||a%b===0||b%a===0||gcd(a,b)===1);const l=lcm(a,b),n1=dCop(1,a-1,a),n2=dCop(1,b-1,b);
+   return dq("num",`What is the least common denominator of ${DF(n1,a)} and ${DF(n2,b)}?`,l,["The least common denominator is the LCM of the denominators.",`${a} = ${dPf(a).join(" · ")} and ${b} = ${dPf(b).join(" · ")}.`,`Use each prime the greatest number of times it appears: LCM = ${l}.`],l)}
+  let a,b;do{a=R(12,40);b=R(12,40)}while(a===b||a%b===0||b%a===0||gcd(a,b)<3||lcm(a,b)>360);const l=lcm(a,b);return dq("num",`Find the least common multiple (LCM) of ${a} and ${b}.`,l,[`${a} = ${dPf(a).join(" · ")} and ${b} = ${dPf(b).join(" · ")}.`,`Use each prime the greatest number of times it appears in either number.`,`LCM = ${l}.`],l)}},
+
+/* 3 */{id:"er",name:"Equivalent and reducing fractions",ck:"0%",
+ r:"Equivalent fractions name the same amount. Multiply or divide the top AND the bottom by the same number. To reduce to lowest terms, divide the top and bottom by a common factor (best: the GCF) until only 1 divides both. An improper fraction in lowest terms is written as a mixed number.",
+ h:"Find a number that divides both the numerator and the denominator. Divide both by it. Can you divide again?",
+ K:[2,3,3,3,3],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;
+  const redQ=(n,d,g,mixed)=>{const N=n*g,D=d*g,[a,b]=dRed(N,D),G=gcd(N,D);return dq("frac",`Reduce ${DF(N,D)} to lowest terms${mixed?" and write it as a mixed number":""}.`,dFs(a,b),[`The GCF of ${N} and ${D} is ${G}.`,`Divide the top and bottom by ${G}: ${N} ÷ ${G} = ${a}, ${D} ÷ ${G} = ${b}, so ${DF(a,b)}.`,...(mixed?[`${a} ÷ ${b} = ${Math.floor(a/b)} R ${a%b}, so ${DF(a,b)} = ${dDsp(a,b)}.`]:[])],dDsp(a,b),mixed?{form:"mixed"}:{})};
+  const missQ=(n,d,m,where)=>where?dq("num",`Find the missing number: ${DF(n,d)} = ${DF("x",d*m)}`,n*m,[`The denominator was multiplied: ${d} × ${m} = ${d*m}.`,`Multiply the numerator by the same number: ${n} × ${m} = ${n*m}.`],`x = ${n*m}`):dq("num",`Find the missing number: ${DF(n,d)} = ${DF(n*m,"x")}`,d*m,[`The numerator was multiplied: ${n} × ${m} = ${n*m}.`,`Multiply the denominator by the same number: ${d} × ${m} = ${d*m}.`],`x = ${d*m}`);
+  if(L===1){const d=R(3,6),n=dCop(1,d-1,d);return k===0?redQ(n,d,R(2,4)):missQ(n,d,R(2,5),1)}
+  if(L===2){const d=R(4,12),n=dCop(1,d-1,d);if(k===0)return redQ(n,d,R(3,9));if(k===1)return missQ(n,d,R(3,8),0);const g=R(3,8);return dq("num",`Find the missing number: ${DF(n*g,d*g)} = ${DF("x",d)}`,n,[`The denominator was divided: ${d*g} ÷ ${g} = ${d}.`,`Divide the numerator by the same number: ${n*g} ÷ ${g} = ${n}.`],`x = ${n}`)}
+  if(L===3){if(k===0){const d=R(3,9),n=dCop(d+1,3*d,d);return redQ(n,d,R(2,6),1)}
+   if(k===1){const d=R(3,8),n=dCop(1,d-1,d),ms=shuf([2,3,4,5,6]).slice(0,3),eqs=ms.map(m=>DF(n*m,d*m));let bn,bd;do{bn=n*R(2,5)+pick([-1,1]);bd=d*R(2,5)}while(bn<1||bn*d===n*bd);const bad=DF(bn,bd);
+    return dq("choice",`Which fraction is NOT equivalent to ${DF(n,d)}?`,bad,[`Reduce each choice to lowest terms and compare with ${DF(n,d)}.`,`${bad} reduces to ${dDsp(bn,bd)}, which is not ${DF(n,d)}.`],bad,{options:shuf([...eqs,bad])})}
+   const u=pick([["minutes","an hour",60],["inches","a foot",12],["hours","a day",24],["months","a year",12],["seconds","a minute",60],["cents","a dollar",100]]);let n;do{n=R(2,u[2]-1)}while(gcd(n,u[2])===1);const [a,b]=dRed(n,u[2]);
+   return dq("frac",`${n} ${u[0]} is what fraction of ${u[1]}? Write it in lowest terms.`,dFs(a,b),[`There are ${u[2]} ${u[0]} in ${u[1]}, so the fraction is ${DF(n,u[2])}.`,`Reduce: divide the top and bottom by ${gcd(n,u[2])}.`],DF(a,b))}
+  if(L===4){if(k===0){const d=R(5,15),n=dCop(2,d-1,d);return redQ(n,d,R(6,15))}
+   if(k===1){let p,q,m1,m2;do{q=R(3,9);p=dCop(1,q-1,q);m1=R(2,6);m2=R(2,7)}while(m1===m2||m2%m1===0||m1%m2===0);return dq("num",`Find the missing number: ${DF(p*m1,q*m1)} = ${DF("x",q*m2)}`,p*m2,[`${q*m2} is not a multiple of ${q*m1}, so reduce first: ${DF(p*m1,q*m1)} = ${DF(p,q)}.`,`Now ${DF(p,q)} = ${DF("x",q*m2)}: ${q} × ${m2} = ${q*m2}, so multiply the top by ${m2} too: ${p} × ${m2} = ${p*m2}.`],`x = ${p*m2}`)}
+   const d=R(4,9),n=dCop(1,d-1,d),m=R(2,4),opts=[];const right=`${DF(n*m,d*m)} and ${DF(n*(m+1),d*(m+1))}`;opts.push(right);
+   opts.push(`${DF(n*m,d*m)} and ${DF(n*(m+1)+1,d*(m+1))}`,`${DF(n+1,d+1)} and ${DF(n,d)}`,`${DF(n*m,d)} and ${DF(n,d*m)}`);
+   return dq("choice",`Which pair of fractions are equivalent?`,right,["Reduce both fractions in each pair to lowest terms.",`${DF(n*m,d*m)} and ${DF(n*(m+1),d*(m+1))} both reduce to ${DF(n,d)}.`],right,{options:shuf(opts)})}
+  /* L5 grade 7 */
+  if(k===0){const d=pick([4,5,8,20,25,40]),n=dCop(1,d-1,d),dec=n/d,s=dD(dec,3),pl=s.split(".")[1].length,D=10**pl,N=Math.round(dec*D);return dq("frac",`Write ${s} as a fraction in lowest terms.`,dFs(N,D),[`${s} means ${N} ${pl===1?"tenths":pl===2?"hundredths":"thousandths"}: ${DF(N,D)}.`,`Reduce: divide the top and bottom by ${gcd(N,D)}.`],DF(n,d))}
+  if(k===1){const d=R(3,9),n=dCop(1,d-1,d),g=R(2,9),v=pick(["x","y","a","n"]);return dq("frac",`Simplify: ${DF(n*g+v,d*g+v)}  (${v} is not zero)`,dFs(n,d),[`${v} is a factor of the top and the bottom, so it divides out: ${DF(n*g,d*g)}.`,`Reduce: divide the top and bottom by ${g}.`],DF(n,d))}
+  let p,q,m1,m2;do{q=R(3,12);p=dCop(1,q-1,q);m1=R(3,9);m2=R(3,12)}while(m1===m2||m2%m1===0||m1%m2===0);return dq("num",`Find the missing number: ${DF(q*m1,p*m1)} = ${DF(q*m2,"x")}`,p*m2,[`Reduce the first fraction: ${DF(q*m1,p*m1)} = ${dDsp(q,p)}${q>p?` (${DF(q,p)})`:""}.`,`${q} × ${m2} = ${q*m2}, so multiply the bottom by ${m2} too: ${p} × ${m2} = ${p*m2}.`],`x = ${p*m2}`)}},
+
+/* 4 */{id:"cf",name:"Comparing and ordering fractions",ck:"0%",
+ r:"To compare fractions, rename them with a common denominator, then compare the numerators. Or cross-multiply: multiply each numerator by the OTHER fraction's denominator; the larger product is on the side of the larger fraction. Same numerators: the smaller denominator means bigger pieces. Negative numbers: the one closer to zero is greater.",
+ h:"Find a common denominator for both fractions. Rewrite each one, then compare the numerators.",
+ K:[3,1,2,2,3],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;
+  const cmpQ=(as,av,bs,bv,steps)=>{const a=dCmp(av,bv);return dq("choice",`Compare: ${as} ○ ${bs}  (choose <, > or =)`,a,[...steps,`So ${as} ${a} ${bs}.`],`${as} ${a} ${bs}`,{options:CMP3})};
+  const cross=(a,b,c,d)=>[`Cross-multiply: ${a} × ${d} = ${a*d} and ${c} × ${b} = ${c*b}.`,`${a*d} ${dCmp(a*d,c*b)} ${c*b}.`];
+  if(L===1){if(k===0){const d=R(3,12),a=R(1,d-1);let b;do{b=R(1,d-1)}while(b===a);return cmpQ(DF(a,d),a/d,DF(b,d),b/d,[`The denominators are the same (${d}), so compare the numerators: ${a} ${dCmp(a,b)} ${b}.`])}
+   if(k===1){const n=R(1,5);let a,b;do{a=R(n+1,12);b=R(n+1,12)}while(a===b);return cmpQ(DF(n,a),n/a,DF(n,b),n/b,[`The numerators are the same, so compare the denominators. The smaller denominator means bigger pieces.`,`${a<b?a:b} is smaller than ${a<b?b:a}, so ${DF(n,a<b?a:b)} is greater.`])}
+   const d=R(3,12),a=R(1,d-1);return cmpQ(DF(a,d),a/d,DF(1,2),.5,[`Half of ${d} is ${d/2}.`,`${a} ${dCmp(a,d/2)} ${d/2}, so compare ${DF(a,d)} with ${DF(1,2)} that way.`])}
+  if(L===2){const d=R(2,6),m=R(2,4),D=d*m,a=R(1,d-1),b=pick([a*m,R(1,D-1)]);return cmpQ(DF(a,d),a/d,DF(b,D),b/D,[`${D} is a multiple of ${d}. Rename ${DF(a,d)} with denominator ${D}: multiply top and bottom by ${m} to get ${DF(a*m,D)}.`,`Compare the numerators: ${a*m} ${dCmp(a*m,b)} ${b}.`])}
+  if(L===3){if(k===0){let b,d;do{b=R(3,9);d=R(3,9)}while(b===d||b%d===0||d%b===0);const a=R(1,b-1),c=R(1,d-1);return cmpQ(DF(a,b),a/b,DF(c,d),c/d,cross(a,b,c,d))}
+   const w=R(1,5);let b,d;do{b=R(3,8);d=R(3,8)}while(b===d);const a=dCop(1,b-1,b),c=dCop(1,d-1,d);return cmpQ(`${w} ${DF(a,b)}`,w+a/b,`${w} ${DF(c,d)}`,w+c/d,[`The whole numbers are the same (${w}), so compare the fractions ${DF(a,b)} and ${DF(c,d)}.`,...cross(a,b,c,d)])}
+  if(L===4){const mk=()=>{const d=pick([2,3,4,5,6,8,9,10,12]),n=R(1,d-1);return {s:DF(n,d),v:n/d,n,d}};let it;do{it=[mk(),mk(),mk(),...(k===1?[mk()]:[])]}while(new Set(it.map(x=>x.v.toFixed(6))).size<it.length||new Set(it.map(x=>x.s)).size<it.length||it.map(x=>x.d).reduce(lcm)>72);
+   const l=it.map(x=>x.d).reduce(lcm),ren=it.map(x=>`${x.s} = ${DF(x.n*l/x.d,l)}`).join(", ");
+   if(k===0){const o=dOrder(it,true);return dq("choice",`Arrange these fractions in order from least to greatest: ${shuf(it).map(x=>x.s).join(", ")}`,o.right,[`Rename with the common denominator ${l}: ${ren}.`,`Order the numerators from least to greatest.`],o.right,{options:o.opts})}
+   const big=it.reduce((a,b)=>b.v>a.v?b:a);return dq("choice",`Which fraction is the greatest?`,big.s,[`Rename with the common denominator ${l}: ${ren}.`,`The largest numerator shows the greatest fraction.`],big.s,{options:shuf(it.map(x=>x.s))})}
+  /* L5 grade 7 */
+  if(k===0){let b,d;do{b=R(3,9);d=R(3,9)}while(b===d);const a=R(1,b-1),c=R(1,d-1);if(a*d===c*b)return this.f(5,0);return cmpQ(`−${DF(a,b)}`,-a/b,`−${DF(c,d)}`,-c/d,[`First compare without the signs: ${cross(a,b,c,d).join(" ")}`,"With negatives the order flips: the number closer to zero is greater."])}
+  if(k===1){const d=R(3,8),n=R(1,d-1),w=R(1,3),n2=R(1,d),it=[{s:`−${DF(n,d)}`,v:-n/d},{s:`${w} ${DF(n,d)}`,v:w+n/d},{s:DF(n2,d+1),v:n2/(d+1)},{s:`−${w}`,v:-w}];const o=dOrder(it,true);
+   return dq("choice",`Arrange from least to greatest: ${shuf(it).map(x=>x.s).join(", ")}`,o.right,["Negative numbers are less than positive numbers. The negative number farthest from zero is the least.","Proper fractions are between 0 and 1; mixed numbers are greater than 1."],o.right,{options:o.opts})}
+  const d=pick([4,5,8,20]),n=dCop(1,d-1,d),v=n/d,dec=+(v+pick([-.05,-.01,0,.01,.05])).toFixed(3);return cmpQ(DF(n,d),v,dD(dec,3),dec,[`Change the fraction to a decimal: ${n} ÷ ${d} = ${dD(v,3)}.`,`Compare ${dD(v,3)} with ${dD(dec,3)} by lining up the decimal points.`])}},
+
+/* 5 */{id:"cd",name:"Comparing and ordering decimals",ck:"0%",
+ r:"Line up the decimal points. Add zeros at the end so the numbers have the same number of decimal places (0.5 = 0.50 = 0.500). Then compare digit by digit from the left. More digits does NOT mean bigger: 0.5 > 0.45. For negatives, the number closer to zero is greater.",
+ h:"Write the numbers one under another with the decimal points lined up. Fill the empty places with zeros, then compare from the left.",
+ K:[1,2,2,2,2],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;
+  const s3=m=>dD(m/1000,3),pad=(m,p)=>(m/1000).toFixed(p);
+  const cmpQ=(a,b)=>{const A=s3(a),B=s3(b),c=dCmp(a,b),p=Math.max((A.split(".")[1]||"").length,(B.split(".")[1]||"").length);return dq("choice",`Compare: ${A} ○ ${B}  (choose <, > or =)`,c,[`Line up the decimal points and add zeros: ${a<0?"−":""}${pad(Math.abs(a),p)} and ${b<0?"−":""}${pad(Math.abs(b),p)}.`,a<0?`Without the signs, compare ${pad(-a,p)} and ${pad(-b,p)}. With negatives the order flips.`:`Compare digit by digit from the left.`],`${A} ${c} ${B}`,{options:CMP3})};
+  const ordQ=(ms,asc)=>{const it=ms.map(m=>({s:s3(m),v:m})),o=dOrder(it,asc),p=Math.max(...it.map(x=>(x.s.split(".")[1]||"").length));return dq("choice",`Arrange from ${asc?"least to greatest":"greatest to least"}: ${shuf(it).map(x=>x.s).join(", ")}`,o.right,[`Add zeros so each has ${p} decimal places: ${it.map(x=>(x.v<0?"−":"")+pad(Math.abs(x.v),p)).join(", ")}.`,`Compare from the left${ms.some(m=>m<0)?" (negatives: farther from zero is less)":""}.`],o.right,{options:o.opts})};
+  const uniq=f=>{let a;do{a=f()}while(new Set(a).size<a.length);return a};
+  if(L===1){const t=R(1,9)*100,h=pick([t-R(1,9)*10+R(-5,5)*0,t+R(1,9)*10,t,R(1,99)*10]);return cmpQ(t,h)}
+  if(L===2){const a=R(1,9)*100+R(0,9)*10;if(k===0){const w=R(0,3)*1000;return cmpQ(w+a,w+pick([a+R(1,9),Math.floor(a/100)*100+R(1,9)*10+R(1,9)*0,R(1,99)*10+5]))}
+   const ms=uniq(()=>[a,a+5,Math.floor(a/100)*100+R(0,9)*10+R(1,9),R(1,9)*100+R(0,9)*10+R(0,9)]);const big=Math.max(...ms);return dq("choice",`Which number is the greatest: ${ms.map(s3).join(", ")}?`,s3(big),["Add zeros so every number has three decimal places, then compare from the left."],s3(big),{options:shuf(ms.map(s3))})}
+  if(L===3){const ms=uniq(()=>[R(1,9)*100,R(1,9)*100+R(1,9)*10,R(1,9)*100+R(0,9)*10+R(1,9)]);if(k===0)return ordQ(ms,true);const all=uniq(()=>{const a=R(1,9)*100;return [a,a+R(1,9)*10,a+5,R(1,9)*100+R(0,9)*10+R(1,9)]});return dq("choice",`Which number is the least: ${all.map(s3).join(", ")}?`,s3(Math.min(...all)),["Add zeros so every number has three decimal places, then compare from the left."],s3(Math.min(...all)),{options:shuf(all.map(s3))})}
+  if(L===4){if(k===0){const d=pick([2,3,4,5,8]),n=dCop(1,d-1,d),v=n/d,m=Math.round(v*1000)+pick([-50,-20,0,0,20,50]);const fs=DF(n,d),ds=s3(m),c=dCmp(v,m/1000);return dq("choice",`Compare: ${fs} ○ ${ds}  (choose <, > or =)`,c,[`Change the fraction to a decimal: ${n} ÷ ${d} = ${d===3?dD(v,3)+"…":dD(v,3)}.`,`Now compare the two decimals with the decimal points lined up.`],`${fs} ${c} ${ds}`,{options:CMP3})}
+   const w=R(0,2)*1000,ms=uniq(()=>[w+R(1,9)*100,w+R(1,9)*100+R(1,9)*10,w+R(1,9)*100+R(0,9)*10+R(1,9),w+R(0,9)*10+R(1,9)]);return ordQ(ms,false)}
+  if(k===0){const a=R(1,9)*100+pick([0,R(1,9)*10]),b=pick([a+R(1,9)*10,Math.floor(a/100)*100+R(1,9)*10+R(1,9),R(1,9)*100]);return cmpQ(-a,-b)}
+  const ms=uniq(()=>[-(R(1,9)*100+R(1,9)*10),-(R(1,9)*100),R(1,9)*100+R(0,9)*10,-(R(1,9)*10+R(1,9))]);return ordQ(ms,true)}},
+
+/* 6 */{id:"fp",name:"Fractional parts",ck:"0%",
+ r:"To find a fraction of a number: divide the number by the denominator to find ONE part, then multiply by the numerator. (3/4 of 24: 24 ÷ 4 = 6, 6 × 3 = 18.) If you know a fractional part and want the whole: divide by the numerator to find one part, then multiply by the denominator. Drawing a box split into equal parts helps.",
+ h:"Draw a rectangle split into as many equal parts as the denominator. How much is in ONE part?",
+ K:[2,2,3,3,3],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;
+  const ofQ=(n,d,N,text,unit)=>{const one=N/d,v=one*n;return dq("num",text||`What is ${DF(n,d)} of ${N}?`,v,[`Find one part: ${N} ÷ ${d} = ${one}.`,`${n} part${n>1?"s":""}: ${one} × ${n} = ${v}.`],unit?`${v} ${unit}`:v)};
+  if(L===1){const d=R(2,6);if(k===0)return ofQ(1,d,d*R(2,10));const d2=R(3,6);return ofQ(dCop(2,d2-1,d2),d2,d2*R(2,8))}
+  if(L===2){const d=R(3,10),n=dCop(2,d-1,d),N=d*R(3,12);if(k===0)return ofQ(n,d,N);return ofQ(n,d,N,`${DF(n,d)} of the ${N} students in the school band play a brass instrument. How many students play a brass instrument?`,"students")}
+  if(L===3){const d=R(3,8),n=dCop(1,d-1,d),N=d*R(3,9),one=N/d;
+   if(k===0)return dq("num",`${DF(n,d)} of the ${N} students ride the bus to school. How many students do NOT ride the bus?`,N-one*n,[`One part: ${N} ÷ ${d} = ${one}.`,`Ride the bus: ${one} × ${n} = ${one*n}.`,`Do NOT ride: ${N} − ${one*n} = ${N-one*n}. (Or: ${d-n} of ${d} parts do not ride: ${one} × ${d-n}.)`],`${N-one*n} students`);
+   if(k===1)return ofQ(n,d,N,`${dName()} had $${N} and spent ${DF(n,d)} of it on a book. How much did the book cost?`,"dollars");
+   const T=R(16,36),b=R(3,T-3),gs=T-b,[x,y]=dRed(gs,T);return dq("frac",`In a class of ${T} students, ${b} are boys. What fraction of the class are girls? Write it in lowest terms.`,dFs(gs,T),[`Girls: ${T} − ${b} = ${gs}.`,`Girls out of all students: ${DF(gs,T)}.`,`Reduce to lowest terms.`],DF(x,y))}
+  if(L===4){const d=R(3,9),n=dCop(2,d-1,d),one=R(2,12),part=one*n,W=one*d;
+   if(k===0)return dq("num",`${DF(n,d)} of a number is ${part}. What is the number?`,W,[`${n} parts are worth ${part}, so one part is ${part} ÷ ${n} = ${one}.`,`The whole is ${d} parts: ${one} × ${d} = ${W}.`],W);
+   if(k===1)return dq("num",`${dName()} read ${part} pages, which is ${DF(n,d)} of the book. How many pages are in the whole book?`,W,[`${n} parts = ${part} pages, so one part = ${part} ÷ ${n} = ${one} pages.`,`The whole book is ${d} parts: ${one} × ${d} = ${W} pages.`],`${W} pages`);
+   const notp=one*(d-n);return dq("num",`${DF(n,d)} of the students in a club voted. ${notp} students did not vote. How many students are in the club?`,W,[`If ${DF(n,d)} voted, then ${DF(d-n,d)} did not vote.`,`${d-n} part${d-n>1?"s":""} = ${notp}, so one part = ${notp} ÷ ${d-n} = ${one}.`,`All ${d} parts: ${one} × ${d} = ${W}.`],`${W} students`)}
+  if(k===0){const d1=pick([3,4,5,8]),n1=dCop(1,d1-1,d1),d2=pick([2,3,4]),n2=dCop(1,d2-1,d2),N=d1*d2*R(2,6),sp=N/d1*n1,rest=N-sp,sp2=rest/d2*n2,left=rest-sp2;
+   const nm=dName();return dq("num",`${nm} had $${N}. ${nm} spent ${DF(n1,d1)} of the money on shoes and then ${DF(n2,d2)} of what was left on a shirt. How much money was left?`,left,[`Shoes: ${DF(n1,d1)} of ${N} = ${sp}. Left: ${N} − ${sp} = ${rest}.`,`Shirt: ${DF(n2,d2)} of ${rest} = ${sp2}.`,`Left: ${rest} − ${sp2} = ${left}.`],`$${left}`)}
+  if(k===1){const d1=pick([2,3,4,5]),n1=dCop(1,d1-1,d1),d2=pick([3,4,5,6]),n2=dCop(1,d2-1,d2),N=d1*d2*R(1,5),a=N/d2*n2,b=a/d1*n1;return dq("num",`What is ${DF(n1,d1)} of ${DF(n2,d2)} of ${N}?`,b,[`Work from the right. ${DF(n2,d2)} of ${N}: ${N} ÷ ${d2} × ${n2} = ${a}.`,`${DF(n1,d1)} of ${a}: ${a} ÷ ${d1} × ${n1} = ${b}.`],b)}
+  const W=pick([24,30,36,40,48,60,72]),ps=dFac(W).filter(x=>x>1&&x<W),p=pick(ps)*R(1,2)%W||pick(ps),[x,y]=dRed(p,W);return dq("frac",`${p} is what fraction of ${W}? Write it in lowest terms.`,dFs(p,W),[`Part over whole: ${DF(p,W)}.`,`Reduce: divide the top and bottom by ${gcd(p,W)}.`],DF(x,y))}},
+
+/* 7 */{id:"pc",name:"Percents",ck:"0%",
+ r:"Percent means “out of 100.” To find a percent of a number, change the percent to a fraction or decimal and multiply (25% of 80 = 0.25 × 80 = 20). Shortcuts: 10% = divide by 10, 50% = half, 25% = one fourth. To find what percent: part ÷ whole × 100. Discount: subtract from the price. Tax and tip: add to the price.",
+ h:"Find 10% (or 1%) of the number first, then build up to the percent you need.",
+ K:[1,2,3,3,4],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;
+  const pOf=(p,N,text,unit,money)=>{const v=p*N/100,ten=N/10;return dq("num",text||`What is ${p}% of ${N}?`,money?v.toFixed(2):dD(v),[p===50?`50% is half: ${N} ÷ 2 = ${dD(v)}.`:p===25?`25% is one fourth: ${N} ÷ 4 = ${dD(v)}.`:`10% of ${N} is ${dD(ten)}.`,...(p===50||p===25?[]:[p%10===0?`${p}% is ${p/10} × 10%: ${p/10} × ${dD(ten)} = ${dD(v)}.`:`${p}% = ${dD(p/100)}, and ${dD(p/100)} × ${N} = ${dD(v)}.`])],money?dM(v):dD(v)+(unit?" "+unit:""))};
+  if(L===1){const p=pick([10,50,25]),N=p===25?4*R(2,25):p===50?2*R(3,50):10*R(2,30);return pOf(p,N)}
+  if(L===2){if(k===0){const p=pick([20,30,40,60,70,75,80,90]),N=p===75?4*R(3,30):10*R(2,25);return pOf(p,N)}
+   const Q=pick([10,20,25,50]),r=R(Math.ceil(Q/2),Q-1),pct=r/Q*100;if(pct%1)return this.f(2,1);return dq("num",`A quiz has ${Q} questions. ${dName()} answered ${r} correctly. What percent were correct?`,pct,[`Correct out of total: ${DF(r,Q)}.`,`Make the denominator 100: multiply the top and bottom by ${100/Q} to get ${DF(r*100/Q,100)} = ${pct}%.`],`${pct}%`)}
+  if(L===3){if(k===0){const P=pick([20,25,40,50,60,75,80]),t=pick([5,6,8,10]);return pOf(t,P,`A toy costs $${P}. The sales tax rate is ${t}%. How much is the tax?`,"",1)}
+   if(k===1){const W=pick([20,25,40,50,80]),p=pick([10,20,25,40,50,60,75,80]),part=W*p/100;if(part%1)return this.f(3,1);return dq("num",`What percent of ${W} is ${part}?`,p,[`Write part over whole: ${DF(part,W)}.`,`Divide: ${part} ÷ ${W} = ${dD(p/100)}.`,`Change to a percent: ${dD(p/100)} = ${p}%.`],`${p}%`)}
+   const B=pick([20,30,40,60,80]),t=pick([15,20]);return pOf(t,B,`A meal costs $${B}. ${dName()} leaves a ${t}% tip. How much is the tip?`,"",1)}
+  if(L===4){if(k===0){const P=pick([40,60,80,120,24,36]),p=pick([25,20,10,30,50]),off=P*p/100;return dq("num",`A jacket costs $${P}. It is on sale for ${p}% off. What is the sale price?`,(P-off).toFixed(2),[`Discount: ${p}% of $${P} = $${dD(off)}.`,`Sale price: $${P} − $${dD(off)} = ${dM(P-off)}.`],dM(P-off))}
+   if(k===1){const p=pick([20,25,30,40,60,75]),W=pick([20,40,60,80,120]),part=W*p/100;if(part%1)return this.f(4,1);return dq("num",`${p}% of a number is ${part}. What is the number?`,W,[`${p}% = ${DF(p,100)} = ${dDsp(p,100)}.`,`${dDsp(p,100)} of the number is ${part}: divide ${part} by ${dD(p/100)}: ${part} ÷ ${dD(p/100)} = ${W}.`],W)}
+   const P=pick([30,45,50,80,60]),t=pick([5,6,8]),tx=P*t/100;return dq("num",`A pair of shoes costs $${P}. The sales tax is ${t}%. What is the total cost including tax?`,(P+tx).toFixed(2),[`Tax: ${t}% of $${P} = ${dM(tx)}.`,`Total: $${P} + ${dM(tx)} = ${dM(P+tx)}.`],dM(P+tx))}
+  if(k===0){const a=pick([20,40,50,80,25]),p=pick([10,20,25,50]),up=Math.random()<.5,b=up?a*(1+p/100):a*(1-p/100);if(b%1)return this.f(5,0);return dq("num",`A price changed from $${a} to $${b}. What was the percent of ${up?"increase":"decrease"}?`,p,[`Amount of change: ${up?`${b} − ${a}`:`${a} − ${b}`} = ${Math.abs(b-a)}.`,`Percent of change = change ÷ ORIGINAL price: ${Math.abs(b-a)} ÷ ${a} = ${dD(p/100)}.`,`${dD(p/100)} = ${p}%.`],`${p}%`)}
+  if(k===1){const P=pick([200,400,500,800,1000]),r=pick([2,3,4,5,6]),t=R(2,5),I=P*r*t/100;return dq("num",`${dName()} puts $${P} in a savings account that earns ${r}% simple interest each year. How much interest is earned in ${t} years?`,I.toFixed(2),[`Interest = principal × rate × time.`,`${r}% = ${dD(r/100)}. ${P} × ${dD(r/100)} = ${dD(P*r/100)} per year.`,`${dD(P*r/100)} × ${t} years = ${dD(I)}.`],dM(I))}
+  if(k===2){const P=pick([40,60,80,100,120]),p1=pick([20,25,50]),p2=10,a=P*(1-p1/100),b=a*(1-p2/100);return dq("num",`A $${P} game is marked ${p1}% off. Then you get another ${p2}% off the sale price. What is the final price?`,b.toFixed(2),[`First discount: ${p1}% of $${P} = $${dD(P*p1/100)}, so the price is $${dD(a)}.`,`Second discount: ${p2}% of $${dD(a)} = $${dD(a/10)}.`,`Final price: $${dD(a)} − $${dD(a/10)} = ${dM(b)}. (It is NOT ${p1+p2}% off the original.)`],dM(b))}
+  const N=pick([20,30,40,60,80]),p=pick([120,125,150,200,250]),v=N*p/100;return pOf(p,N,`What is ${p}% of ${N}?`)}},
+
+/* 8 */{id:"cv",name:"Fractions, decimals and percents",ck:"25%",
+ r:"Fraction → decimal: divide the numerator by the denominator. Decimal → percent: move the decimal point 2 places to the right. Percent → decimal: move it 2 places to the left. Percent → fraction: write it over 100 and reduce. Remember: [[1/2]] = 0.5 = 50%, [[1/4]] = 0.25 = 25%, [[1/5]] = 0.2 = 20%, [[1/8]] = 0.125 = 12.5%, [[1/3]] = 0.333… = 33[[1/3]]%.",
+ h:"Which way are you changing it? Use the matching rule, then check that your answer is a sensible size.",
+ K:[3,3,3,5,5],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;
+  const toPct=(dec,txt)=>dq("num",txt||`Write ${dD(dec)} as a percent.`,dD(dec*100),[`Move the decimal point 2 places to the right (multiply by 100).`,`${dD(dec)} = ${dD(dec*100)}%.`],`${dD(dec*100)}%`);
+  const toDec=(p)=>dq("num",`Write ${dD(p)}% as a decimal.`,dD(p/100,5),[`Move the decimal point 2 places to the left (divide by 100).`,`${dD(p)}% = ${dD(p/100,5)}.`],dD(p/100,5));
+  const pToF=(p)=>{const [a,b]=dRed(p,100);return dq("frac",`Write ${p}% as a fraction in lowest terms.`,dFs(p,100),[`${p}% means ${DF(p,100)}.`,`Reduce: divide the top and bottom by ${gcd(p,100)}.`],dDsp(p,100),p>100?{form:"mixed"}:{})};
+  const fToD=(n,d)=>dq("num",`Write ${DF(n,d)} as a decimal.`,dD(n/d,4),[`Divide the numerator by the denominator: ${n} ÷ ${d} = ${dD(n/d,4)}.`,...(100%d===0?[`Or rename with denominator 100: ${DF(n*100/d,100)} = ${dD(n/d,4)}.`]:[])],dD(n/d,4));
+  const fToP=(n,d)=>dq("num",`Write ${DF(n,d)} as a percent.`,dD(n/d*100),[100%d===0?`Rename with denominator 100: ${DF(n,d)} = ${DF(n*100/d,100)}.`:`Divide: ${n} ÷ ${d} = ${dD(n/d,4)}.`,`That is ${dD(n/d*100)}%.`],`${dD(n/d*100)}%`);
+  if(L===1){if(k===0)return toPct(R(11,99)/100);if(k===1)return toDec(R(11,99));const d=pick([10,100]),n=dCop(1,d-1,d);return fToD(n,d)}
+  if(L===2){const d=pick([2,4,5,20,25,50]),n=dCop(1,d-1,d);if(k===0)return fToD(n,d);if(k===1)return fToP(n,d);const t=pick([2,4,5,6,8]);const [a,b]=dRed(t,10);return dq("frac",`Write 0.${t} as a fraction in lowest terms.`,dFs(t,10),[`0.${t} is ${t} tenths: ${DF(t,10)}.`,`Reduce: divide the top and bottom by ${gcd(t,10)}.`],DF(a,b))}
+  if(L===3){if(k===0){let p;do{p=R(2,19)*5}while(gcd(p,100)===1);return pToF(p)}if(k===1){let h;do{h=R(2,98)}while(gcd(h,100)===1);const [a,b]=dRed(h,100);return dq("frac",`Write ${dD(h/100)} as a fraction in lowest terms.`,dFs(h,100),[`${dD(h/100)} is ${h} hundredths: ${DF(h,100)}.`,`Reduce: divide the top and bottom by ${gcd(h,100)}.`],DF(a,b))}return toDec(R(1,9))}
+  if(L===4){if(k===0){const n=pick([1,3,5,7]);return fToD(n,8)}if(k===1){const n=pick([1,3,5,7]);return fToP(n,8)}
+   if(k===2){const w=R(1,9),d=pick([2,4,5,20,25]),n=dCop(1,d-1,d);return dq("num",`Write ${w} ${DF(n,d)} as a decimal.`,dD(w+n/d),[`The whole number ${w} stays in front of the decimal point.`,`${DF(n,d)} = ${n} ÷ ${d} = ${dD(n/d)}, so ${w} ${DF(n,d)} = ${dD(w+n/d)}.`],dD(w+n/d))}
+   if(k===3)return pToF(pick([125,150,175,120,140,160,250,225]));
+   const d=pick([4,5,8,20]),n=dCop(1,d-1,d),v=n/d,right=`${dD(v*100)}%`,opts=shuf([right,`${dD(v*10)}%`,`${n}.${d}%`,`${dD(v*1000)}%`].filter((x,i,a)=>a.indexOf(x)===i));if(opts.length<3)return this.f(4,0);return dq("choice",`Which percent is equal to ${DF(n,d)}?`,right,[`${DF(n,d)} = ${n} ÷ ${d} = ${dD(v,4)}.`,`Move the decimal point 2 places right: ${right}.`],right,{options:opts})}
+  if(k===0){const t=pick([[1,3],[2,3],[1,6],[5,6]]),[n,d]=t,w=Math.floor(100*n/d),r=100*n-d*w,[a,b]=dRed(r,d);return dq("num",`Write ${DF(n,d)} as a percent. (Use a mixed number, like 12 [[1/2]]%.)`,`${w} ${a}/${b}`,[`${DF(n,d)} × 100% = ${DF(100*n,d)}%.`,`${100*n} ÷ ${d} = ${w} R ${r}, so ${w} ${DF(a,b)}%.`],`${w} ${DF(a,b)}%`)}
+  if(k===1)return toDec(pick([0.5,0.2,0.8,0.25,0.75,1.5]));
+  if(k===2){const p=pick([12.5,37.5,62.5,87.5]),n=p/12.5;return dq("frac",`Write ${p}% as a fraction in lowest terms.`,`${n}/8`,[`${p}% = ${dD(p/100,4)}.`,`${dD(p/100,4)} = ${DF(p*10,1000)}, and reduced that is ${DF(n,8)}.`],DF(n,8))}
+  if(k===3){const t=pick([[2,3],[1,3],[5,6],[1,6],[1,7],[2,9]]),[n,d]=t,v=Math.round(n/d*100)/100;return dq("num",`Write ${DF(n,d)} as a decimal rounded to the nearest hundredth.`,v.toFixed(2),[`Divide: ${n} ÷ ${d} = ${(n/d).toFixed(4)}…`,`Look at the thousandths digit to round to hundredths: ${v.toFixed(2)}.`],v.toFixed(2))}
+  let it;do{const a=R(30,49),d=pick([8,5,4,20]),n=dCop(1,d-1,d);it=[{s:dD(a/100+R(-3,3)/100),v:0},{s:DF(n,d),v:n/d},{s:`${R(30,49)}%`,v:0}];it[0].v=+it[0].s;it[2].v=parseFloat(it[2].s)/100}while(new Set(it.map(x=>x.v)).size<3);
+  const o=dOrder(it,true);return dq("choice",`Arrange from least to greatest: ${shuf(it).map(x=>x.s).join(", ")}`,o.right,["Change all three to decimals (or all to percents).","Then compare with the decimal points lined up."],o.right,{options:o.opts})}},
+
+/* 9 */{id:"ra",name:"Ratios",ck:"75%",
+ r:"A ratio compares two numbers by division. Write it as a fraction in lowest terms, in the order the words say: “boys to girls” means boys on top. Do not change a ratio to a mixed number. If one of the numbers is not given, find it first (total − part). A ratio box (ratio column and actual count column) helps with totals.",
+ h:"Write the two numbers in the order the question says, as a fraction, then reduce.",
+ K:[1,2,2,2,3],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;
+  const rq=(a,b,text,steps)=>{const [x,y]=dRed(a,b);return dq("ratio",text,`${x}/${y}`,[...steps,...(gcd(a,b)>1?[`Reduce: ${DF(a,b)} = ${DF(x,y)}.`]:[`${DF(a,b)} is already in lowest terms.`])],DF(x,y))};
+  const pair=()=>{let g,a,b;do{g=R(2,6);a=R(1,8);b=R(1,8)}while(a===b||gcd(a,b)!==1);return [g*a,g*b]};
+  if(L===1){const [B,G]=pair();return rq(B,G,`In a class there are ${B} boys and ${G} girls. What is the ratio of boys to girls?`,[`Boys to girls: ${DF(B,G)}.`])}
+  if(L===2){const [B,G]=pair(),T=B+G;if(k===0)return rq(G,T,`A team has ${B} boys and ${G} girls. What is the ratio of girls to all the players?`,[`All players: ${B} + ${G} = ${T}.`,`Girls to all players: ${DF(G,T)}.`]);return rq(G,B,`There are ${T} students in the class. ${B} are boys. What is the ratio of girls to boys?`,[`Girls: ${T} − ${B} = ${G}.`,`Girls to boys: ${DF(G,B)}.`])}
+  if(L===3){if(k===0){const m=pick([15,20,30,40,45,50]),h=R(1,3);return rq(m,h*60,`What is the ratio of ${m} minutes to ${h} hour${h>1?"s":""}?`,[`Use the same units: ${h} hour${h>1?"s":""} = ${h*60} minutes.`,`${m} minutes to ${h*60} minutes: ${DF(m,h*60)}.`])}
+   const [W,Lo]=pair(),G=W+Lo;return rq(W,Lo,`A team played ${G} games and won ${W} of them. There were no ties. What is the ratio of games won to games lost?`,[`Games lost: ${G} − ${W} = ${Lo}.`,`Won to lost: ${DF(W,Lo)}.`])}
+  if(L===4){let a,b;do{a=R(2,7);b=R(2,9)}while(a===b||gcd(a,b)!==1);const m=R(3,8);
+   if(k===0){const T=(a+b)*m;return dq("num",`The ratio of boys to girls in a school play is ${a} to ${b}. There are ${T} students in the play. How many girls are in the play?`,b*m,[`Ratio box: boys ${a}, girls ${b}, total ${a+b}.`,`The actual total is ${T}, so the multiplier is ${T} ÷ ${a+b} = ${m}.`,`Girls: ${b} × ${m} = ${b*m}.`],`${b*m} girls`)}
+   return dq("num",`The ratio of red marbles to blue marbles in a bag is ${a} to ${b}. There are ${a*m} red marbles. How many blue marbles are there?`,b*m,[`Ratio ${a} red → actual ${a*m} red, so the multiplier is ${a*m} ÷ ${a} = ${m}.`,`Blue: ${b} × ${m} = ${b*m}.`],`${b*m} blue marbles`)}
+  if(k===0){let a,b;do{a=R(1,9);b=R(1,9)}while(a===b);const A=a/2,B=b/2;if(A%1===0&&B%1===0)return this.f(5,0);return rq(a,b,`Write the ratio of ${dD(A)} to ${dD(B)} as a fraction in lowest terms.`,[`Multiply both numbers by 2 to remove the decimals: ${dD(A)} × 2 = ${a} and ${dD(B)} × 2 = ${b}.`,`${DF(a,b)}.`])}
+  if(k===1){const P=[[1,2],[1,3],[2,3],[1,4],[3,4],[3,8],[5,8]];let p,q;do{p=pick(P);q=pick(P)}while(p===q);const l=lcm(p[1],q[1]),a=p[0]*l/p[1],b=q[0]*l/q[1];return rq(a,b,`A recipe uses ${DF(p[0],p[1])} cup of sugar and ${DF(q[0],q[1])} cup of milk. What is the ratio of sugar to milk?`,[`Multiply both by ${l} (a common denominator) to clear the fractions: ${DF(p[0],p[1])} × ${l} = ${a} and ${DF(q[0],q[1])} × ${l} = ${b}.`,`Sugar to milk: ${DF(a,b)}.`])}
+  let a,b;do{a=R(3,8);b=R(1,a-1)}while(gcd(a,b)!==1);const m=R(2,7),diff=(a-b)*m;return dq("num",`The ratio of boys to girls in a club is ${a} to ${b}. There are ${diff} more boys than girls. How many boys are in the club?`,a*m,[`In the ratio, boys − girls = ${a} − ${b} = ${a-b}.`,`The actual difference is ${diff}, so the multiplier is ${diff} ÷ ${a-b} = ${m}.`,`Boys: ${a} × ${m} = ${a*m}.`],`${a*m} boys`)}},
+
+/* 10 */{id:"pr",name:"Solving proportions",ck:"0%",
+ r:"A proportion says two ratios are equal, like [[3/4]] = [[x/20]]. To solve it, cross-multiply (multiply along the diagonals) and set the products equal: 3 × 20 = 4 × x. Then divide both sides by the number next to x. Check: both ratios should reduce to the same fraction.",
+ h:"Multiply diagonally across the equal sign. Write it as ___ × x = ___, then divide.",
+ K:[2,1,1,3,4],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;const v="x";
+  const solve=(a,b,c,d,pos)=>{ // a/b = c/d, one of the four unknown (pos 0..3)
+   const vals=[a,b,c,d],ans=vals[pos],t=vals.map((n,i)=>i===pos?v:n);
+   const diagKnown=pos===0||pos===3?[b,c]:[a,d],other=pos===0?d:pos===3?a:pos===1?c:b,known=diagKnown[0]*diagKnown[1];
+   return dq("num",`Solve for ${v}: ${DF(t[0],t[1])} = ${DF(t[2],t[3])}`,ans,[`Cross-multiply (multiply the diagonals): ${other} × ${v} = ${diagKnown[0]} × ${diagKnown[1]}.`,`${other} × ${v} = ${known}.`,`Divide both sides by ${other}: ${v} = ${known} ÷ ${other} = ${dD(ans)}.`],`${v} = ${dD(ans)}`)};
+  const fr=()=>{const q=R(2,9),p=dCop(1,9,q);return [p,q]};
+  if(L===1){const [p,q]=fr(),m=R(2,6);return k===0?solve(p,q,p*m,q*m,2):solve(p,q,p*m,q*m,3)}
+  if(L===2){const [p,q]=fr();let m1,m2;do{m1=R(2,5);m2=R(2,6)}while(m1===m2);return solve(p*m1,q*m1,p*m2,q*m2,R(2,3))}
+  if(L===3){const [p,q]=fr();let m1,m2;do{m1=R(2,6);m2=R(2,8)}while(m1===m2);return solve(p*m1,q*m1,p*m2,q*m2,R(0,3))}
+  if(L===4){if(k===0){const n=R(2,5),c=pick([1.5,2.25,3.5,1.2,0.75]),m=R(n+1,9),cost=+(c*n).toFixed(2),ans=+(c*m).toFixed(2);return dq("num",`If ${n} notebooks cost ${dM(cost)}, how much would ${m} notebooks cost?`,ans.toFixed(2),[`Set up a proportion, notebooks over dollars: ${n}/${dD(cost)} = ${m}/x.`,`Cross-multiply: ${n} × x = ${dD(cost)} × ${m} = ${dD(cost*m)}.`,`Divide: ${dD(cost*m)} ÷ ${n} = ${dD(ans)}.`],dM(ans))}
+   if(k===1){const s=pick([10,20,25,50]),dIn=pick([1.5,2.5,3,3.5,4,6]),mi=s*dIn;return dq("num",`On a map, 1 inch represents ${s} miles. Two towns are ${dD(dIn)} inches apart on the map. How many miles apart are they?`,mi,[`Proportion: ${DF(1,s)} = ${dD(dIn)}/x (inches over miles).`,`Cross-multiply: 1 × x = ${s} × ${dD(dIn)}.`,`x = ${dD(mi)}.`],`${dD(mi)} miles`)}
+   const c=R(2,3),b=pick([12,8,10]),m=R(2,5),need=b*m/c;if(need%1)return this.f(4,2);return dq("num",`A recipe uses ${c} cups of flour for ${b} muffins. How many cups of flour are needed for ${b*m} muffins?`,c*m,[`Proportion: ${DF(c,b)} = ${DF(v,b*m)} (cups over muffins).`,`Cross-multiply: ${b} × ${v} = ${c} × ${b*m} = ${c*b*m}.`,`Divide: ${c*b*m} ÷ ${b} = ${c*m}.`],`${c*m} cups`)}
+  if(k===0){const a=pick([2.5,1.5,0.5,3.5]),b=pick([2,4,5]),m=pick([2,3,4]),x=a*m;return dq("num",`Solve for x: ${dD(a)} : ${b} = x : ${b*m}`,dD(x),[`As fractions: ${dD(a)}/${b} = x/${b*m}.`,`Cross-multiply: ${b} × x = ${dD(a)} × ${b*m} = ${dD(a*b*m)}.`,`Divide: ${dD(a*b*m)} ÷ ${b} = ${dD(x)}.`],`x = ${dD(x)}`)}
+  if(k===1){let a,b,d;do{b=pick([4,6,8,12]);a=R(1,b-1);d=pick([5,10,3,9,15])}while((a*d)%b===0||((a*d*2)%b!==0));return dq("num",`Solve for x: ${DF(a,b)} = ${DF("x",d)}`,dD(a*d/b),[`Cross-multiply: ${b} × x = ${a} × ${d} = ${a*d}.`,`Divide: ${a*d} ÷ ${b} = ${dD(a*d/b)}. (The answer does not have to be a whole number.)`],`x = ${dD(a*d/b)}`)}
+  if(k===2){const W=pick([20,24,40,25,50,16]),p=pick([25,50,75,20,40,60]),P=W*p/100;if(P%1)return this.f(5,2);return dq("num",`Solve for x: ${DF("x",100)} = ${DF(P,W)}`,p,[`Cross-multiply: ${W} × x = 100 × ${P} = ${100*P}.`,`Divide: ${100*P} ÷ ${W} = ${p}. (This means ${P} out of ${W} is ${p}%.)`],`x = ${p}`)}
+  const h=pick([6,8,10,12]),s=pick([4,6,9,15]),S=s*pick([2,3,4,5]),T=h*S/s;if(T%1)return this.f(5,3);return dq("num",`A ${h}-foot pole casts a ${s}-foot shadow. At the same time, a tree casts a ${S}-foot shadow. How tall is the tree?`,T,[`Height over shadow is the same: ${DF(h,s)} = ${DF("x",S)}.`,`Cross-multiply: ${s} × x = ${h} × ${S} = ${h*S}.`,`Divide: ${h*S} ÷ ${s} = ${T}.`],`${T} feet`)}},
+
+/* 11 */{id:"rr",name:"Rates and proportional reasoning",ck:"0%",
+ r:"A rate compares two different kinds of quantities, like miles and hours. A unit rate tells how much for ONE: divide (miles ÷ hours = miles per hour; price ÷ items = price per item). Then multiply the unit rate to find any amount. Distance = rate × time, and time = distance ÷ rate. In a proportional relationship y = kx, where k = y ÷ x is the same for every pair.",
+ h:"Find how much for ONE (the unit rate) first. Then multiply.",
+ K:[2,2,3,3,4],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;
+  if(L===1){if(k===0){const h=R(2,6),r=R(4,13)*5;return dq("num",`A car travels ${r*h} miles in ${h} hours at a steady speed. How many miles per hour is it going?`,r,[`Miles per hour = miles ÷ hours.`,`${r*h} ÷ ${h} = ${r}.`],`${r} miles per hour`)}
+   const n=R(3,9),c=R(2,12);return dq("num",`${n} tickets cost $${n*c}. What is the cost of one ticket?`,c,[`Price for one = total price ÷ number of tickets.`,`$${n*c} ÷ ${n} = $${c}.`],`$${c}`)}
+  if(L===2){if(k===0){const r=R(8,13)*5,t=R(2,6);return dq("num",`A train goes ${r} miles per hour. How far does it travel in ${t} hours?`,r*t,[`Distance = rate × time.`,`${r} × ${t} = ${r*t}.`],`${r*t} miles`)}
+   const n=pick([2,4,5,3]),u=pick([0.45,0.9,1.25,0.8,1.5,2.4]),P=+(u*n).toFixed(2);return dq("num",`${n} pounds of apples cost ${dM(P)}. What is the price per pound?`,u.toFixed(2),[`Price per pound = price ÷ pounds.`,`${dM(P)} ÷ ${n} = ${dM(u)}.`],dM(u))}
+  if(L===3){if(k===0){const a=pick([12,16,20,24]),b=pick([16,24,32,36].filter(x=>x!==a)),pa=pick([3,4,5,6])*(a/4)*.25,ua=pa/a;let ub=ua*pick([.8,1.2,.9,1.1]),pb=+(ub*b).toFixed(2);ub=pb/b;if(Math.abs(ua-ub)<.002)return this.f(3,0);const right=ua<ub?`${a} oz for ${dM(pa)}`:`${b} oz for ${dM(pb)}`;
+    return dq("choice",`Which is the better buy: ${a} oz of cereal for ${dM(pa)}, or ${b} oz for ${dM(pb)}?`,right,[`Find the price per ounce for each.`,`${dM(pa)} ÷ ${a} ≈ $${ua.toFixed(3)} per oz. ${dM(pb)} ÷ ${b} ≈ $${ub.toFixed(3)} per oz.`,`The lower price per ounce is the better buy.`],right,{options:[`${a} oz for ${dM(pa)}`,`${b} oz for ${dM(pb)}`]})}
+   if(k===1){const r=R(3,9),xs=[2,4,6,R(7,12)];return dq("num",`The table shows a constant rate. Hours: ${xs.slice(0,3).join(", ")}, ${xs[3]}. Dollars earned: $${xs[0]*r}, $${xs[1]*r}, $${xs[2]*r}, ?  How many dollars for ${xs[3]} hours?`,xs[3]*r,[`Unit rate: $${xs[0]*r} ÷ ${xs[0]} = $${r} per hour.`,`${xs[3]} hours × $${r} = $${xs[3]*r}.`],`$${xs[3]*r}`)}
+   const r=R(8,12)*5,t=R(2,7);return dq("num",`A bus travels ${r*t} miles at ${r} miles per hour. How many hours does the trip take?`,t,[`Time = distance ÷ rate.`,`${r*t} ÷ ${r} = ${t}.`],`${t} hours`)}
+  if(L===4){if(k===0){const w=R(4,9)*5,m=R(3,12);return dq("num",`${dName()} types ${w} words per minute. How many minutes will it take to type ${w*m} words?`,m,[`Minutes = words ÷ words per minute.`,`${w*m} ÷ ${w} = ${m}.`],`${m} minutes`)}
+   if(k===1){const c=R(2,4),b=pick([12,18,24]),need=R(c+1,c+5);return dq("num",`A recipe uses ${c} cups of flour to make ${b} cookies. How many cookies can be made with ${need} cups of flour?`,b/c*need,[`Cookies per cup: ${b} ÷ ${c} = ${dD(b/c)}.`,`${need} cups × ${dD(b/c)} = ${dD(b/c*need)}.`],`${dD(b/c*need)} cookies`)}
+   const h=R(3,8),p=pick([9,10,12,15,8]),H=R(h+2,h+12),nm=dName();return dq("num",`${nm} earns $${h*p} for ${h} hours of work. At the same rate, how much would ${nm} earn for ${H} hours?`,H*p,[`Unit rate: $${h*p} ÷ ${h} = $${p} per hour.`,`$${p} × ${H} = $${H*p}.`],`$${H*p}`)}
+  if(k===0){const kk=pick([1.5,2.5,0.5,3.5,1.25]),x=pick([2,4,6,8]);return dq("num",`y is proportional to x. When x = ${x}, y = ${dD(kk*x)}. What is the constant of proportionality k (in y = kx)?`,dD(kk),[`k = y ÷ x.`,`${dD(kk*x)} ÷ ${x} = ${dD(kk)}.`],`k = ${dD(kk)}`)}
+  if(k===1){const kk=pick([2.5,3.5,1.5,4.5,0.75]),x=pick([4,6,8,10,12]);return dq("num",`The equation y = ${dD(kk)}x shows the cost y (in dollars) of x pounds of grapes. What is the cost of ${x} pounds?`,(kk*x).toFixed(2),[`Put ${x} in for x: y = ${dD(kk)} × ${x}.`,`y = ${dD(kk*x)}.`],dM(kk*x))}
+  if(k===2){const kk=R(2,6),xs=[1,2,3,4],prop=Math.random()<.5,ys=xs.map(x=>prop?kk*x:kk*x+R(1,3)*(x===1?1:1));return dq("choice",`x: ${xs.join(", ")}  →  y: ${ys.join(", ")}. Is y proportional to x?`,prop?"Yes, y ÷ x is always the same":"No, y ÷ x changes",[`Find y ÷ x for each pair: ${xs.map((x,i)=>dD(ys[i]/x,2)).join(", ")}.`,prop?"They are all the same, so it is proportional.":"They are not all the same, so it is not proportional."],prop?"Yes":"No",{options:["Yes, y ÷ x is always the same","No, y ÷ x changes"]})}
+  const s=pick([2,2.5,1.5,4,5]),c=pick([4,6,8,3]);return dq("num",`A scale drawing uses 1 cm : ${dD(s)} m. A room is ${c} cm long in the drawing. How long is the real room, in meters?`,dD(s*c),[`Each centimeter stands for ${dD(s)} meters.`,`${c} × ${dD(s)} = ${dD(s*c)}.`],`${dD(s*c)} m`)}},
+
+/* 12 */{id:"ex",name:"Exponents and square roots",ck:"50%",
+ r:"An exponent tells how many times the base is used as a factor: 4³ = 4 × 4 × 4 = 64, NOT 4 × 3. Exponent 2 is “squared,” 3 is “cubed.” A square root √ undoes squaring: √49 = 7 because 7² = 49. 10ⁿ is 1 followed by n zeros. Any nonzero number to the 0 power is 1.",
+ h:"Write the base as a factor as many times as the exponent says, then multiply step by step.",
+ K:[3,3,3,4,5],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;
+  const pw=(b,e)=>{const v=b**e;return dq("num",`Simplify: ${b}${dSup(e)}`,v,[`${b}${dSup(e)} means ${Array(e).fill(b).join(" × ")}.`,`= ${v}.`],v)};
+  if(L===1){if(k===0)return pw(R(2,12),2);if(k===1)return pw(R(2,5),3);const e=R(2,6);return dq("num",`Simplify: 10${dSup(e)}`,10**e,[`10${dSup(e)} is 1 followed by ${e} zeros.`,`= ${10**e}.`],10**e)}
+  if(L===2){if(k===0){const e=R(3,5);let b;do{b=R(2,9)}while(b===e||b*e===e**b);const right=`${b}${dSup(e)}`;return dq("choice",`Which means ${Array(e).fill(b).join(" × ")}?`,right,[`The base ${b} is used as a factor ${e} times, so the exponent is ${e}.`],right,{options:shuf([right,`${e}${dSup(b)}`,`${b} × ${e}`,`${b*e}`])})}
+   if(k===1){const a=R(2,9),b=R(2,4),v=a*a+b**3;return dq("num",`Simplify: ${a}² + ${b}³`,v,[`${a}² = ${a*a}.`,`${b}³ = ${b} × ${b} × ${b} = ${b**3}.`,`${a*a} + ${b**3} = ${v}.`],v)}
+   const r=R(2,12);return dq("num",`Simplify: √${r*r}`,r,[`Which number times itself is ${r*r}?`,`${r} × ${r} = ${r*r}, so √${r*r} = ${r}.`],r)}
+  if(L===3){if(k===0){const a=R(4,12),r=R(2,a-1),v=a*a-r;return dq("num",`Simplify: ${a}² − √${r*r}`,v,[`${a}² = ${a*a}.`,`√${r*r} = ${r}.`,`${a*a} − ${r} = ${v}.`],v)}
+   if(k===1){let a,b;do{a=R(2,6);b=R(2,6)}while(a===b||a**b===b**a);const A=`${a}${dSup(b)}`,B=`${b}${dSup(a)}`,right=a**b>b**a?A:B;return dq("choice",`Which is greater: ${A} or ${B}?`,right,[`${A} = ${a**b}.`,`${B} = ${b**a}.`],right,{options:[A,B]})}
+   const d=[R(1,9),R(0,9),R(0,9),R(1,9)],v=d[0]*1000+d[1]*100+d[2]*10+d[3];return dq("num",`Simplify: (${d[0]} × 10³) + (${d[1]} × 10²) + (${d[2]} × 10¹) + (${d[3]} × 10⁰)`,v,[`10³ = 1000, 10² = 100, 10¹ = 10, 10⁰ = 1.`,`${d[0]*1000} + ${d[1]*100} + ${d[2]*10} + ${d[3]} = ${v}.`],v)}
+  if(L===4){if(k===0){const a=R(2,5),b=R(2,5),A=Math.random()<.5,v=A?a*b*b:(a*b)**2;return dq("num",A?`Simplify: ${a} × ${b}²`:`Simplify: (${a} × ${b})²`,v,A?[`Exponent first: ${b}² = ${b*b}. The exponent is only on ${b}.`,`${a} × ${b*b} = ${v}.`]:[`Parentheses first: ${a} × ${b} = ${a*b}.`,`${a*b}² = ${v}.`],v)}
+   if(k===1){const t=pick([0.2,0.3,0.4,0.5,0.6,0.9,1.2,0.1]);return dq("num",`Simplify: (${dD(t)})²`,dD(t*t,4),[`(${dD(t)})² = ${dD(t)} × ${dD(t)}.`,`${dD(t*10)} × ${dD(t*10)} = ${dD(t*t*100)}, and there are 2 decimal places in all, so ${dD(t*t,4)}.`],dD(t*t,4))}
+   if(k===2){const d=R(2,6),n=dCop(1,d-1,d);return dq("frac",`Simplify: (${DF(n,d)})²`,`${n*n}/${d*d}`,[`Multiply the fraction by itself: ${DF(n,d)} × ${DF(n,d)}.`,`Top: ${n} × ${n} = ${n*n}. Bottom: ${d} × ${d} = ${d*d}.`],DF(n*n,d*d))}
+   const a=R(2,9),b=R(2,9),c=R(2,5),v=a+b*c;return dq("num",`Simplify: √${a*a} + √${b*b} × ${c}`,v,[`Square roots first: √${a*a} = ${a} and √${b*b} = ${b}.`,`Multiply: ${b} × ${c} = ${b*c}.`,`Add: ${a} + ${b*c} = ${v}.`],v)}
+  if(k===0){const a=R(2,9),neg=Math.random()<.5;return dq("num",neg?`Simplify: −${a}²`:`Simplify: (−${a})²`,neg?-a*a:a*a,neg?[`The exponent is only on ${a}: ${a}² = ${a*a}.`,`Then the minus sign: −${a*a}.`]:[`(−${a}) × (−${a}).`,`Negative × negative = positive: ${a*a}.`],neg?dN(-a*a):a*a)}
+  if(k===1){const b=R(2,5),m=R(2,5),n=R(2,5);return dq("num",`${b}${dSup(m)} · ${b}${dSup(n)} = ${b}^?  What is the missing exponent?`,m+n,[`${b}${dSup(m)} · ${b}${dSup(n)} means ${b} is a factor ${m} times and then ${n} more times.`,`${m} + ${n} = ${m+n}, so ${b}${dSup(m+n)}.`],m+n)}
+  if(k===2){const c=R(11,99)/10,e=R(2,5),v=Math.round(c*10)*10**(e-1);return dq("num",`Write ${dD(c)} × 10${dSup(e)} in standard form.`,v,[`Multiplying by 10${dSup(e)} moves the decimal point ${e} places to the right.`,`${dD(c)} → ${v}.`],v)}
+  if(k===3){const c=R(11,99),e=R(3,6),v=c*10**(e-1);return dq("num",`${v.toLocaleString("en-US")} = ${dD(c/10)} × 10^?  What is the exponent?`,e,[`Move the decimal point from the end of ${v} to just after the first digit.`,`That is ${e} places, so the exponent is ${e}.`],e)}
+  const a=R(2,9),b=R(2,3),v=1+b**3;return dq("num",`Simplify: ${a}⁰ + ${b}³`,v,[`Any nonzero number to the 0 power is 1: ${a}⁰ = 1.`,`${b}³ = ${b**3}.`,`1 + ${b**3} = ${v}.`],v)}},
+
+/* 13 */{id:"eq",name:"Solving equations",ck:"0%",
+ r:"To solve, get the letter alone. Do the inverse (opposite) operation to BOTH sides: subtraction undoes addition, division undoes multiplication. In a two-step equation, undo the adding or subtracting first, then the multiplying or dividing. Check by putting your answer back into the equation.",
+ h:"What is being done to the letter? Do the opposite to both sides, one step at a time.",
+ K:[4,4,3,4,5],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;const v=dVar(),chk=(e,a)=>`Check: ${e.replace(new RegExp(v,"g"),`(${dD(a)})`)} ✓`;
+  if(L===1){const x=R(2,40),a=R(2,40);if(k===0)return dq("num",`Solve: ${v} + ${a} = ${x+a}`,x,[`Subtract ${a} from both sides: ${v} = ${x+a} − ${a}.`,`${v} = ${x}.`],`${v} = ${x}`);
+   if(k===1)return dq("num",`Solve: ${v} − ${a} = ${x}`,x+a,[`Add ${a} to both sides: ${v} = ${x} + ${a}.`,`${v} = ${x+a}.`],`${v} = ${x+a}`);
+   const b=R(2,12),y=R(2,12);if(k===2)return dq("num",`Solve: ${b}${v} = ${b*y}`,y,[`${b}${v} means ${b} times ${v}. Divide both sides by ${b}.`,`${v} = ${b*y} ÷ ${b} = ${y}.`],`${v} = ${y}`);
+   return dq("num",`Solve: ${DF(v,b)} = ${y}`,b*y,[`${v} is divided by ${b}. Multiply both sides by ${b}.`,`${v} = ${y} × ${b} = ${b*y}.`],`${v} = ${b*y}`)}
+  if(L===2){if(k===0){const a=R(1,9)+R(1,3)/4,x=R(1,9)+R(1,9)/10;return dq("num",`Solve: ${v} + ${dD(a)} = ${dD(x+a)}`,dD(x),[`Subtract ${dD(a)} from both sides (line up the decimal points).`,`${v} = ${dD(x+a)} − ${dD(a)} = ${dD(x)}.`],`${v} = ${dD(x)}`)}
+   if(k===1){const b=R(2,9),x=R(1,9)/10+R(0,3);return dq("num",`Solve: ${b}${v} = ${dD(b*x)}`,dD(x),[`Divide both sides by ${b}.`,`${dD(b*x)} ÷ ${b} = ${dD(x)}.`],`${v} = ${dD(x)}`)}
+   if(k===2){const a=R(30,99),x=R(5,a-5);return dq("num",`Solve: ${a} − ${v} = ${a-x}`,x,[`${v} is the number taken away. Subtract the difference from ${a}: ${v} = ${a} − ${a-x}.`,`${v} = ${x}. (Check: ${a} − ${x} = ${a-x}.)`],`${v} = ${x}`)}
+   const d=pick([4,6,8,10,12]),a=R(1,d-2),b=R(a+1,d-1);return dq("frac",`Solve: ${v} + ${DF(a,d)} = ${DF(b,d)}`,dFs(b-a,d),[`Subtract ${DF(a,d)} from both sides: ${v} = ${DF(b,d)} − ${DF(a,d)} = ${DF(b-a,d)}.`,`Reduce if you can.`],`${v} = ${dDsp(b-a,d)}`)}
+  if(L===3){const x=R(2,12),a=R(2,9),b=R(1,20);if(k===0)return dq("num",`Solve: ${a}${v} + ${b} = ${a*x+b}`,x,[`Undo the adding first: subtract ${b} from both sides: ${a}${v} = ${a*x}.`,`Undo the multiplying: divide both sides by ${a}: ${v} = ${x}.`],`${v} = ${x}`);
+   if(k===1)return dq("num",`Solve: ${a}${v} − ${b} = ${a*x-b}`,x,[`Undo the subtracting first: add ${b} to both sides: ${a}${v} = ${a*x}.`,`Divide both sides by ${a}: ${v} = ${x}.`],`${v} = ${x}`);
+   return dq("num",`Solve: ${DF(v,a)} + ${b} = ${x+b}`,a*x,[`Subtract ${b} from both sides: ${DF(v,a)} = ${x}.`,`Multiply both sides by ${a}: ${v} = ${a*x}.`],`${v} = ${a*x}`)}
+  if(L===4){const x=R(3,15),a=R(2,5),b=R(2,20);
+   if(k===0){const W=["twice","three times","four times","five times"][a-2];return dq("num",`${b} more than ${W} a number is ${a*x+b}. What is the number?`,x,[`Write an equation: ${a}${v} + ${b} = ${a*x+b}.`,`Subtract ${b}: ${a}${v} = ${a*x}.`,`Divide by ${a}: ${v} = ${x}.`],x)}
+   if(k===1){const c=R(20,60);return dq("num",`Solve: ${c} + ${a}${v} = ${c+a*x}`,x,[`Subtract ${c} from both sides: ${a}${v} = ${a*x}.`,`Divide by ${a}: ${v} = ${x}.`],`${v} = ${x}`)}
+   if(k===2){const p=R(2,6),n=R(2,6),nb=R(2,9);return dq("num",`${dName()} bought ${n} pens and one $${nb} notebook. The total was $${n*p+nb}. All the pens cost the same. How much did one pen cost?`,p,[`Equation: ${n}p + ${nb} = ${n*p+nb}.`,`Subtract ${nb}: ${n}p = ${n*p}.`,`Divide by ${n}: p = ${p}.`],`$${p}`)}
+   const d=R(2,5),n=dCop(1,d-1,d),m=R(2,9),c=n*m;return dq("num",`Solve: ${DF(n,d)}${v} = ${c}`,d*m,n===1?[`${DF(1,d)}${v} means ${v} ÷ ${d}. Multiply both sides by ${d}.`,`${c} × ${d} = ${d*m}.`]:[`Multiply both sides by the reciprocal ${DF(d,n)} (or divide by ${n}, then multiply by ${d}).`,`${c} ÷ ${n} = ${m}, and ${m} × ${d} = ${d*m}.`],`${v} = ${d*m}`)}
+  /* L5 grade 7 */
+  if(k===0){const x=pick([-6,-5,-4,-3,-2,2,3,4,5,6]),a=R(2,6),b=R(1,15),c=-a*x+b;return dq("num",`Solve: −${a}${v} + ${b} = ${dN(c)}`,x,[`Subtract ${b} from both sides: −${a}${v} = ${dN(c-b)}.`,`Divide both sides by −${a}: ${v} = ${dN(x)}.`],`${v} = ${dN(x)}`)}
+  if(k===1){const x=R(1,12),a=R(2,6),b=R(1,9);return dq("num",`Solve: ${a}(${v} + ${b}) = ${a*(x+b)}`,x,[`Divide both sides by ${a}: ${v} + ${b} = ${x+b}. (Or distribute: ${a}${v} + ${a*b} = ${a*(x+b)}.)`,`Subtract ${b}: ${v} = ${x}.`],`${v} = ${x}`)}
+  if(k===2){const x=R(-5,9),a=R(2,6),b=R(1,9);if(x===0)return this.f(5,2);return dq("num",`Solve: ${a}(${v} − ${b}) = ${dN(a*(x-b))}`,x,[`Divide both sides by ${a}: ${v} − ${b} = ${dN(x-b)}.`,`Add ${b}: ${v} = ${dN(x)}.`],`${v} = ${dN(x)}`)}
+  if(k===3){const x=R(2,10),c=R(2,5),a=c+R(1,4),d=R(1,20),b=d-(a-c)*x;return dq("num",`Solve: ${a}${v} ${b<0?"−":"+"} ${Math.abs(b)} = ${c}${v} + ${d}`,x,[`Subtract ${c}${v} from both sides: ${a-c}${v} ${b<0?"−":"+"} ${Math.abs(b)} = ${d}.`,`${b<0?"Add":"Subtract"} ${Math.abs(b)}: ${a-c}${v} = ${d-b}.`,`Divide by ${a-c}: ${v} = ${x}.`],`${v} = ${x}`)}
+  const a=R(2,6),y=pick([-4,-3,-2,2,3,5]),b=R(2,12),c=y-b;return dq("num",`Solve: ${DF(v,a)} − ${b} = ${dN(c)}`,a*y,[`Add ${b} to both sides: ${DF(v,a)} = ${dN(y)}.`,`Multiply both sides by ${a}: ${v} = ${dN(a*y)}.`],`${v} = ${dN(a*y)}`)}},
+
+/* 14 */{id:"wp",name:"Word problems",ck:"0%",
+ r:"Use the four steps. 1) Understand: what do you know, and what is the question? 2) Plan: is it combining (+), separating (−), comparing — “how many more” (larger − smaller), equal groups (× or ÷), or more than one step? 3) Solve: write an equation, then calculate. 4) Check: does the answer make sense?",
+ h:"Find the question sentence first. Is it a total, a difference, or equal groups? Write the equation before you calculate.",
+ K:[3,3,3,3,4],
+ f(L,k){const K=this.K[L-1];k=k==null?R(0,K-1):k%K;const nm=dName(),n2=dName();
+  if(L===1){const a=R(25,250),b=R(15,200);if(k===0)return dq("num",`${nm} had ${a} baseball cards. A friend gave ${nm} ${b} more cards. How many cards does ${nm} have now?`,a+b,["Combining: some + some more = total.",`${a} + ${b} = ${a+b}.`],`${a+b} cards`);
+   if(k===1){const t=a+b;return dq("num",`There were ${t} books on a shelf. Students checked out ${b} books. How many books are still on the shelf?`,a,["Separating: start − take away = left.",`${t} − ${b} = ${a}.`],`${a} books`)}
+   const big=Math.max(a,b)+R(1,40),sm=Math.min(a,b);return dq("num",`${nm} scored ${big} points. ${n2===nm?"A friend":n2} scored ${sm} points. How many more points did ${nm} score?`,big-sm,["Comparing (how many more): larger − smaller = difference.",`${big} − ${sm} = ${big-sm}.`],`${big-sm} points`)}
+  if(L===2){if(k===0){const r=R(6,25),p=R(12,32);return dq("num",`An auditorium has ${r} rows of seats with ${p} seats in each row. How many seats are there in all?`,r*p,["Equal groups: number of groups × number in each group = total.",`${r} × ${p} = ${r*p}.`],`${r*p} seats`)}
+   if(k===1){const g=R(4,12),e=R(6,25);return dq("num",`${g*e} students are divided equally into ${g} teams. How many students are on each team?`,e,["Equal groups, total known: total ÷ number of groups = number in each group.",`${g*e} ÷ ${g} = ${e}.`],`${e} students`)}
+   const n=R(2,5),p=R(105,450),T=pick([20,20,25,30]);if(n*p>T*100-50)return this.f(2,2);return dq("num",`${nm} bought ${n} notebooks for ${dM(p/100)} each and paid with a $${T} bill. How much change should ${nm} get?`,((T*100-n*p)/100).toFixed(2),[`Step 1, cost: ${n} × ${dM(p/100)} = ${dM(n*p/100)}.`,`Step 2, change: $${T}.00 − ${dM(n*p/100)} = ${dM((T*100-n*p)/100)}.`],dM((T*100-n*p)/100))}
+  if(L===3){if(k===0){const c=R(3,4),avg=R(70,95);let s=[];for(let i=0;i<c-1;i++)s.push(avg+R(-12,8));s.push(avg*c-s.reduce((a,b)=>a+b,0));if(s[c-1]>100||s[c-1]<50)return this.f(3,0);return dq("num",`${nm}'s test scores were ${s.join(", ")}. What is the average (mean) score?`,avg,[`Add the scores: ${s.join(" + ")} = ${avg*c}.`,`Divide by the number of scores: ${avg*c} ÷ ${c} = ${avg}.`],avg)}
+   if(k===1){const a=R(3,6),pa=R(2,9)*25,b=R(2,4),pb=R(3,12)*25,tot=a*pa+b*pb,T=Math.ceil(tot/1000)*10+(tot%1000===0?10:0);return dq("num",`${nm} bought ${a} pencils at ${dM(pa/100)} each and ${b} markers at ${dM(pb/100)} each. ${nm} paid with $${T}. How much change did ${nm} get?`,((T*100-tot)/100).toFixed(2),[`Pencils: ${a} × ${dM(pa/100)} = ${dM(a*pa/100)}. Markers: ${b} × ${dM(pb/100)} = ${dM(b*pb/100)}.`,`Total: ${dM(tot/100)}.`,`Change: $${T}.00 − ${dM(tot/100)} = ${dM((T*100-tot)/100)}.`],dM((T*100-tot)/100))}
+   const h=R(7,10),m=pick([0,15,20,30,45,50]),dh=R(1,3),dm=pick([10,25,35,40,45,55]),st=h*60+m,en=st+dh*60+dm,eh=Math.floor(en/60),em=en%60,f12=x=>{const hh=Math.floor(x/60),mm=x%60;return `${hh>12?hh-12:hh}:${String(mm).padStart(2,"0")} ${hh>=12?"p.m.":"a.m."}`};
+   return dq("time",`A field trip started at ${f12(st)} and lasted ${dh} hour${dh>1?"s":""} ${dm} minutes. At what time did it end? (Type it like 1:05 pm.)`,`${eh}:${String(em).padStart(2,"0")}`,[`Add the hours: ${f12(st)} + ${dh} hour${dh>1?"s":""} = ${f12(st+dh*60)}.`,`Add the minutes: ${f12(st+dh*60)} + ${dm} minutes = ${f12(en)}.`],f12(en))}
+  if(L===4){if(k===0){const avg=R(80,92),s=[avg+R(-8,6),avg+R(-6,8),avg+R(-8,8)],f=avg*4-s.reduce((a,b)=>a+b,0);if(f>100||f<60)return this.f(4,0);return dq("num",`The average of ${nm}'s four test scores is ${avg}. Three of the scores are ${s.join(", ")}. What is the fourth score?`,f,[`The four scores must add up to ${avg} × 4 = ${avg*4}.`,`The three known scores add up to ${s.reduce((a,b)=>a+b,0)}.`,`Fourth score: ${avg*4} − ${s.reduce((a,b)=>a+b,0)} = ${f}.`],f)}
+   if(k===1){const w=R(1,3),d=pick([2,3,4]),n=dCop(1,d-1,d),m=R(2,3),N=(w*d+n)*m;return dq("frac",`A recipe uses ${w} ${DF(n,d)} cups of flour. How many cups are needed to make ${m===2?"a double":"a triple"} batch?`,dFs(N,d),[`Multiply by ${m}: ${w} ${DF(n,d)} × ${m}.`,`${w} × ${m} = ${w*m} and ${DF(n,d)} × ${m} = ${DF(n*m,d)}.`,`${w*m} + ${DF(n*m,d)} = ${dDsp(N,d)}.`],`${dDsp(N,d)} cups`,{form:"mixed"})}
+   if(k===2){const t=R(2,5),b=R(4,15);return dq("num",`${nm} has ${t} times as many stickers as ${n2===nm?"a friend":n2}. Together they have ${b*(t+1)} stickers. How many stickers does ${nm} have?`,b*t,[`Think of ${t} + 1 = ${t+1} equal parts.`,`One part: ${b*(t+1)} ÷ ${t+1} = ${b}.`,`${nm} has ${t} parts: ${b} × ${t} = ${b*t}.`],`${b*t} stickers`)}
+   const a=R(12,30),f=R(3,9),tue=2*a,wed=tue-f,tot=a+tue+wed;return dq("num",`${nm} read ${a} pages on Monday. On Tuesday ${nm} read twice as many pages as on Monday. On Wednesday ${nm} read ${f} fewer pages than on Tuesday. How many pages did ${nm} read in all three days?`,tot,[`Tuesday: 2 × ${a} = ${tue}.`,`Wednesday: ${tue} − ${f} = ${wed}.`,`Total: ${a} + ${tue} + ${wed} = ${tot}.`],`${tot} pages`)}
+  if(k===0){const r1=R(9,13)*5,t1=R(1,3),r2=R(9,13)*5,t2=R(1,3),D=r1*t1+r2*t2,T=t1+t2;if(D%T||r1===r2)return this.f(5,0);return dq("num",`A family drove ${t1} hour${t1>1?"s":""} at ${r1} miles per hour and then ${t2} hour${t2>1?"s":""} at ${r2} miles per hour. What was their average speed for the whole trip?`,D/T,[`Distances: ${r1} × ${t1} = ${r1*t1} and ${r2} × ${t2} = ${r2*t2}. Total ${D} miles.`,`Total time: ${T} hours.`,`Average speed = total distance ÷ total time = ${D} ÷ ${T} = ${D/T}.`],`${D/T} miles per hour`)}
+  if(k===1){const w=pick([10,12,15,9]),h=R(10,25),p=pick([20,25,40,50]);return dq("num",`${nm} earns $${w} per hour and worked ${h} hours. ${nm} saves ${p}% of the money. How much does ${nm} save?`,(w*h*p/100).toFixed(2),[`Earned: $${w} × ${h} = $${w*h}.`,`Saved: ${p}% of $${w*h} = ${dM(w*h*p/100)}.`],dM(w*h*p/100))}
+  if(k===2){const n=R(10,40),c=pick([3,4]),S=c===3?3*n+3:4*n+6;return dq("num",`The sum of ${c===3?"three":"four"} consecutive whole numbers is ${S}. What is the largest of the numbers?`,n+c-1,[`Let the smallest be n. ${c===3?"n + (n + 1) + (n + 2) = 3n + 3":"n + (n + 1) + (n + 2) + (n + 3) = 4n + 6"} = ${S}.`,`${c===3?"3n":"4n"} = ${S-(c===3?3:6)}, so n = ${n}.`,`The largest is n + ${c-1} = ${n+c-1}.`],n+c-1)}
+  const left=R(3,15),sp=R(2,10),st=(left+sp)*2;return dq("num",`${nm} spent half of the money in a wallet on lunch, and then spent $${sp} on a book. ${nm} had $${left} left. How much money was in the wallet at the start?`,st,["Work backward from the end, undoing each step.",`Before the book: $${left} + $${sp} = $${left+sp}.`,`That was half of the starting money, so the start was $${left+sp} × 2 = $${st}.`],`$${st}`)}}
+];
+const DPBY=Object.fromEntries(DPT.map(t=>[t.id,t]));
+function dpGen(id,L,k,avoid){const T=DPBY[id];let q,t=0,kk;do{kk=k==null?R(0,T.K[L-1]-1):k;q=qClean(T.f(L,kk));t++}while(t<30&&avoid&&avoid.has(q.text));q._k=kk;q.lv=L;return q}
+
+/* ===== DAILY PRACTICE: state, daily lesson, level-up ===== */
+const DP_CHECK="Mathnasium checkup #6 (11/16/2026)";
+const LVN=["","Level 1 · Grade 5 review","Level 2 · Grade 6","Level 3 · Grade 6","Level 4 · Grade 6 (harder)","Level 5 · Grade 7"];
+const DP_DAY=20,DP_UP=2,DP_DOWN=2,DP_MASTER=4;
+function dpState(){S.dp=S.dp||{};const d=S.dp;d.lv=d.lv||{};d.st=d.st||{};d.days=d.days||{};
+ DPT.forEach(t=>{if(!d.lv[t.id])d.lv[t.id]=parseInt(t.ck)>0?2:1;if(!d.st[t.id])d.st[t.id]={run:0,miss:0,top:0,n:0,ok:0,first:0,best:d.lv[t.id],last:0,start:d.lv[t.id]}});return d}
+const dpToday=()=>{const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`};
+const dpDayName=k=>new Date(k+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+const dpLv=id=>dpState().lv[id];
+const dpSt=id=>dpState().st[id];
+function dpStatus(id){const s=dpSt(id),L=dpLv(id);if(s.mastered)return {cls:"done",label:"Mastered ✓"};if(!s.n)return {cls:"new",label:"Not started"};if(L>=4)return {cls:"mid",label:"Getting strong"};if(L>s.start)return {cls:"mid",label:"Improving"};return {cls:"review",label:"Needs practice"}}
+function dpPips(L){let h="";for(let i=1;i<=5;i++)h+=`<i style="display:inline-block;width:18px;height:10px;border-radius:5px;margin-right:3px;border:1.5px solid currentColor;${i<=L?"background:var(--accent)":"opacity:.35"}"></i>`;return `<span role="img" aria-label="Level ${L} of 5">${h}</span>`}
+function dpPlan(){const d=dpState(),unm=DPT.filter(t=>!d.st[t.id].mastered).map(t=>t.id);
+ const A=unm[0],rest=unm.slice(1).sort((x,y)=>(d.st[x].last||0)-(d.st[y].last||0)||DPT.findIndex(t=>t.id===x)-DPT.findIndex(t=>t.id===y)),B=rest[0];
+ const mast=DPT.filter(t=>d.st[t.id].mastered).map(t=>t.id),seen=DPT.filter(t=>d.st[t.id].n&&t.id!==A&&t.id!==B).map(t=>t.id).sort((x,y)=>(d.st[x].last||0)-(d.st[y].last||0));
+ const rv=n=>{const pool=mast.length?mast:seen.length?seen:[A,B].filter(Boolean);return Array.from({length:n},(_,i)=>pool.length?pool[i%pool.length]:A).map(x=>x)};
+ if(!A){const all=DPT.map(t=>t.id);return {focus:[],plan:shuf(all).concat(shuf(all)).slice(0,DP_DAY)}}
+ if(!B)return {focus:[A],plan:Array(12).fill(A).concat(shuf(rv(8)))};
+ return {focus:[A,B],plan:Array(8).fill(A).concat(Array(8).fill(B),shuf(rv(4)))}}
+function dpNewSession(kind,id){const d=dpState();let p;if(kind==="topic")p={focus:[id],plan:Array(10).fill(id)};else p=dpPlan();
+ const s={kind,id,date:dpToday(),focus:p.focus,plan:p.plan,items:[],i:0,time:0,done:false,at:Date.now(),start:Object.fromEntries(DPT.map(t=>[t.id,d.lv[t.id]]))};
+ if(kind==="topic")d.ex=s;else d.cur=s;save();return s}
+function dpItem(s,i){if(!s.items[i]){const id=s.plan[i],av=new Set(s.items.map(x=>x.q.text)),L=dpLv(id),q=dpGen(id,L,null,av);s.items[i]={id,lv:L,q,tries:[],res:null,hint:0,t:0,intro:(i===0||s.plan[i-1]!==id)&&s.focus.includes(id)&&!s.items.some(x=>x&&x.id===id)}}return s.items[i]}
+function dpSess(){const d=dpState();return view.s==="ex"?d.ex:d.cur}
+function dpMax(q){return q.type==="choice"&&q.options&&q.options.length<=2?1:2}
+function dpEx(it){if(!it.ex){let e,t=0;do{e=dpGen(it.id,it.lv,it.q._k);t++}while(t<60&&(e.text+(e.options||[]).join()===it.q.text+(it.q.options||[]).join()||(e.final===it.q.final&&e.text===it.q.text)));it.ex={text:e.text,steps:e.steps,final:e.final,options:e.options}}return it.ex}
+function dpHelp(it,full){const T=DPBY[it.id];return `<div class="hintbox"><b>Remember:</b> ${fmt(T.r)}<br><b>How to start:</b> ${fmt(T.h)}</div>${full?lmExHtml(dpEx(it),"Worked example (different numbers, same steps)"):""}`}
+function dpTick(s,it){const now=Date.now(),dl=Math.min(now-(view.t0||now),300000);if(it)it.t+=dl;s.time=(s.time||0)+dl;view.t0=now;const dy=dpState().days,k=dpToday();dy[k]=dy[k]||{n:0,ok:0,first:0,ms:0,topics:[]};dy[k].ms+=dl}
+function dpRecord(s,it){const d=dpState(),st=d.st[it.id],k=dpToday(),dy=d.days[k]=d.days[k]||{n:0,ok:0,first:0,ms:0,topics:[]};
+ const first=it.res==="right"&&it.tries.length===1;st.n++;st.last=Date.now();if(it.res==="right")st.ok++;if(first)st.first++;dy.n++;if(it.res==="right")dy.ok++;if(first)dy.first++;if(!dy.topics.includes(it.id))dy.topics.push(it.id);
+ const L=d.lv[it.id];
+ if(first){st.run++;st.miss=0;if(L===5){st.top++;if(st.top>=DP_MASTER&&!st.mastered){st.mastered=Date.now();it.mast=1}}
+  if(st.run>=DP_UP&&L<5){d.lv[it.id]=L+1;st.run=0;st.best=Math.max(st.best||1,L+1);it.up=L+1}}
+ else if(it.res==="right"){st.run=0}
+ else{st.run=0;st.top=0;st.miss++;if(st.miss>=DP_DOWN&&L>1){d.lv[it.id]=L-1;st.miss=0;it.down=L-1}}
+ S.log.push({t:"Daily",src:it.id,c:DPBY[it.id].name,lv:it.lv,a:it.tries.length,ok:it.res==="right",at:Date.now(),text:it.q.text,final:it.q.final,tries:it.tries.slice(),ms:it.t,hint:it.hint?1:0});if(S.log.length>3000)S.log=S.log.slice(-3000)}
+function dpSubmit(val){const s=dpSess();if(!s||s.done)return;const it=dpItem(s,s.i);if(it.res)return;const r=lmCheck(it.q,val);
+ if(r.result==="format"){view.msg=r.msg+" (This did not use a try.)";render();return}
+ dpTick(s,it);it.tries.push(String(val).trim());view.msg="";
+ if(r.result==="right"){it.res="right";S.pts=(S.pts||0)+1}
+ else{view.msg=r.msg||"";if(it.tries.length>=dpMax(it.q)){it.res="missed";dpEx(it)}}
+ if(it.res){dpRecord(s,it);
+  if(it.res==="missed"&&s.items.filter(x=>x&&x.x&&x.id===it.id).length<3){const L=dpLv(it.id),av=new Set(s.items.filter(Boolean).map(x=>x.q.text)),nq=dpGen(it.id,L,L===it.lv?it.q._k:null,av);
+   s.plan.splice(s.i+1,0,it.id);s.items.splice(s.i+1,0,{id:it.id,lv:L,q:nq,tries:[],res:null,hint:0,t:0,x:1,intro:false});s.xn=(s.xn||0)+1}}
+ save();render()}
+function dpNext(){const s=dpSess();if(!s)return;let n=s.i+1;if(n>=s.plan.length){s.done=true;s.end=Date.now();save();render();window.scrollTo(0,0);return}s.i=n;dpItem(s,n);view.msg="";view.t0=Date.now();save();render();window.scrollTo(0,0)}
+function dpOpen(which){view={name:"dp",s:which,t0:Date.now()};const s=dpSess();if(s&&!s.done)dpItem(s,s.i);save();render();window.scrollTo(0,0)}
+function dpHome(){const d=dpState(),c=d.cur,today=dpToday(),todayDone=c&&c.date===today&&c.done,open=c&&!c.done,p=open?{focus:c.focus}:dpPlan(),days=Object.keys(d.days).filter(k=>d.days[k].n>0).sort(),mastered=DPT.filter(t=>d.st[t.id].mastered).length;
+ let streak=0;{const dt=new Date();if(!(d.days[today]&&d.days[today].n))dt.setDate(dt.getDate()-1);for(;;){const k=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;if(d.days[k]&&d.days[k].n){streak++;dt.setDate(dt.getDate()-1)}else break}}
+ const doneN=open?c.items.filter(x=>x&&x.res).length:0;
+ const btn=open?`<button class="btn primary big" data-dpgo="cur">${c.date===today?"Continue today's lesson":"Finish your lesson from "+dpDayName(c.date)} (${doneN} of ${c.plan.length})</button>`:todayDone?`<span class="pill done">Today's lesson is done ✓</span><button class="btn" data-dpnew="day">Do another lesson</button>`:`<button class="btn primary big" data-dpnew="day">Start today's lesson (${DP_DAY} problems)</button>`;
+ const focus=p.focus.map(id=>`<b>${esc(DPBY[id].name)}</b> (${LVN[dpLv(id)]})`).join(" and ");
+ const cards=DPT.map(t=>{const s=d.st[t.id],L=d.lv[t.id],stt=dpStatus(t.id);return `<div class="topic"><div class="row spread"><h3>${esc(t.name)}</h3><span class="pill ${stt.cls}">${stt.label}</span></div><div class="meta">${dpPips(L)} ${LVN[L]}</div><div class="meta">Checkup score: ${t.ck}${s.n?` · ${s.first} of ${s.n} right on the 1st try`:""}</div><div class="row"><button class="btn" data-dpnew="topic" data-dpid="${t.id}">Extra practice (10)</button></div></div>`}).join("");
+ return `<section class="panel" style="border:2.5px solid var(--accent)"><div class="row spread"><h2>📅 Daily Practice</h2><span class="sub">🔥 ${streak} day${streak===1?"":"s"} in a row · ${mastered} of ${DPT.length} topics mastered</span></div>
+ <p class="sub" style="margin:0">Built from your ${DP_CHECK}: the topics you missed. Do one lesson every day. Each lesson teaches a topic, then gives practice problems like the Saxon book.</p>
+ <ul class="sub" style="margin:.3em 0 .3em 1.2em;padding:0"><li><b>2 right in a row on the first try = Level up</b> ⬆. Levels go from 1 (Grade 5 review) to 5 (Grade 7).</li><li>Wrong? You get a hint and one more try. You never see the answer: you get the rule and a worked example with different numbers, then a new problem.</li><li>Master a topic: reach Level 5 and get ${DP_MASTER} in a row right there.</li></ul>
+ ${p.focus.length?`<p style="margin:0">Today's topics: ${focus}, plus a short review.</p>`:`<p style="margin:0">Every topic is mastered! Today's lesson is a mixed review.</p>`}
+ <div class="row">${btn}</div></section>
+ <section class="panel"><h2>Your skill levels</h2><div class="grid">${cards}</div></section>`}
+function dpView(){const s=dpSess();if(!s)return home();return header()+(s.done?dpResults(s):dpQView(s))}
+function dpQView(s){const it=dpItem(s,s.i),q=it.q,T=DPBY[it.id],max=dpMax(q),n=it.tries.length,open=!it.res,ttl=s.kind==="topic"?`Extra practice: ${T.name}`:`Daily lesson · ${dpDayName(s.date)}`;
+ const strip=`<div class="strip">${s.plan.map((_,j)=>{const x=s.items[j];return `<button tabindex="-1" class="${x&&x.res==="right"?(x.tries.length===1?"right":"tried"):x&&x.res==="missed"?"locked":""} ${j===s.i?"cur":""}" aria-label="Problem ${j+1}" disabled>${j+1}</button>`}).join("")}</div>`;
+ const top=`<section class="panel" style="position:sticky;top:0;z-index:5"><div class="row spread"><h2>${esc(ttl)}</h2><button class="btn" data-go="home">← Home (pauses)</button></div><div class="stats"><span>Problem <b>${s.i+1}</b> of ${s.plan.length}</span><span>Time <b id="dptimer">${fmtT(s.time)}</b></span><span>⭐ <b>${S.pts||0}</b></span></div>${strip}</section>`;
+ if(it.intro&&!it.read){const ex=it.lesson||(it.lesson=(()=>{const e=dpGen(it.id,it.lv,it.q._k);return {text:e.text,steps:e.steps,final:e.final,options:e.options}})());save();
+  return top+`<section class="panel"><h2>📖 Lesson: ${esc(T.name)}</h2><p class="sub" style="margin:0">${LVN[it.lv]} · Checkup score: ${T.ck}. Read the rule, then work the example on paper before you look at the steps.</p><div class="hintbox"><b>The rule:</b> ${fmt(T.r)}</div><div class="hintbox"><b>How to start a problem like this:</b> ${fmt(T.h)}</div>${lmExHtml(ex,"Worked example")}<div class="row"><button class="btn primary" id="dpnext" data-dpread="1">I read the lesson ✓ Start practice</button></div></section>`}
+ let inp="";if(open){if(q.type==="choice")inp=`<div class="choices" role="group" aria-label="Choices">${q.options.map(o=>`<button data-dpch="${esc(o)}" style="font-size:18px">${fmt(o)}</button>`).join("")}</div>`;
+  else inp=`<form id="dpf" class="answer" autocomplete="off"><input id="dpans" placeholder="${q.type==="time"?"like 1:05 pm":q.type==="frac"?"like 3/4 or 1 1/2":q.type==="ratio"?"like 2/3":"Type your answer"}" aria-label="Your answer"><button class="btn primary" type="submit">Check</button></form>`}
+ let fb="";if(view.msg)fb+=`<div class="fb info">${esc(view.msg)}</div>`;
+ if(open&&!n)fb+=it.hint?`<div class="fb info">💡 Hint</div>${dpHelp(it,false)}`:`<div class="row"><button class="btn" data-dphint="1">💡 Show a hint</button></div>`;
+ if(it.res==="right")fb+=`<div class="fb ok">✓ Correct! +1 ⭐${n>1?" You fixed it yourself. Great thinking!":""}</div>${it.up?`<div class="fb ok" style="font-size:1.15em">⬆ Level up! ${esc(T.name)} is now ${LVN[it.up]}.</div>`:""}${it.mast?`<div class="fb ok" style="font-size:1.15em">🏆 You mastered ${esc(T.name)}!</div>`:""}<details><summary>See the explanation</summary><div class="steps"><ol>${q.steps.map(x=>`<li>${fmt(x)}</li>`).join("")}</ol></div></details>`;
+ else if(it.res==="missed")fb+=`<div class="fb no">Not this time. Your answer${n>1?"s":""}: ${it.tries.map(fmt).join(" · ")}. Study the rule and the worked example below. They use different numbers but the same steps. Next you get a new problem of the same kind.</div>${it.down?`<div class="fb info">This topic moves back to ${LVN[it.down]} for a little more practice. You can level up again!</div>`:""}${dpHelp(it,true)}`;
+ else if(n>0)fb+=`<div class="fb no">Not yet. You answered ${fmt(it.tries[n-1])}. Read the hint and try once more.</div>${dpHelp(it,false)}`;
+ const nextBtn=it.res?`<div class="row"><button class="btn primary" id="dpnext" data-dpnext="1">${s.i+1>=s.plan.length?"See my results":it.res==="missed"&&s.items[s.i+1]&&s.items[s.i+1].x?"Try a new one →":"Next →"}</button></div>`:"";
+ return top+`<article class="qcard"><span class="qlabel">Problem ${s.i+1} · ${esc(T.name)} · ${LVN[it.lv]}${it.x?" · new try":""}</span><div class="qtext">${fmt(q.text)}</div>${inp}${fb}${nextBtn}</article>`}
+function dpResults(s){const its=s.items.filter(Boolean),base=its.filter(x=>!x.x),first=base.filter(x=>x.res==="right"&&x.tries.length===1).length,pct=base.length?Math.round(100*first/base.length):0,d=dpState();
+ const ids=[...new Set(s.plan)],ch=ids.map(id=>{const a=s.start[id],b=d.lv[id];return `<li><b>${esc(DPBY[id].name)}</b>: ${a===b?LVN[b]:`${LVN[a]} → <b>${LVN[b]}</b> ${b>a?"⬆":"⬇"}`}${d.st[id].mastered?" 🏆 mastered":""}</li>`}).join("");
+ const weak=ids.filter(id=>its.some(x=>x.id===id&&x.res==="missed"));
+ return `<section class="panel"><div class="row spread"><h2>${s.kind==="topic"?"Extra practice":"Today's lesson"}: results</h2><button class="btn" data-go="home">← Home</button></div><p class="big-score">${pct}% <span class="sub">right on the first try (${first} of ${base.length})</span></p><p style="margin:0">Time: <b>${fmtT(s.time)}</b>${s.xn?` · ${s.xn} extra practice problem${s.xn>1?"s":""}`:""}</p>
+ <h3 style="margin:.6em 0 .2em">Your levels</h3><ul style="margin:0 0 0 1.2em;padding:0">${ch}</ul>
+ ${weak.length?`<p style="margin:.6em 0 0">Keep working on: <b>${weak.map(id=>esc(DPBY[id].name)).join(", ")}</b>. They will come back in your next lessons.</p>`:`<p style="margin:.6em 0 0">No misses. Excellent!</p>`}
+ <div class="row"><button class="btn primary" data-go="home">Done</button>${s.kind==="topic"?`<button class="btn" data-dpnew="topic" data-dpid="${s.id}">10 more</button>`:""}</div></section>`}
+function dpReport(){const d=dpState();
+ const rows=DPT.map(t=>{const s=d.st[t.id],stt=dpStatus(t.id);return `<tr><td>${esc(t.name)}</td><td>${t.ck}</td><td>${LVN[s.start]}</td><td><b>${LVN[d.lv[t.id]]}</b></td><td>${LVN[s.best||d.lv[t.id]]}</td><td>${s.n}</td><td>${s.n?`${s.first} (${Math.round(100*s.first/s.n)}%)`:"–"}</td><td><span class="pill ${stt.cls}">${stt.label}</span></td></tr>`}).join("");
+ const days=Object.keys(d.days).filter(k=>d.days[k].n).sort().reverse().slice(0,21),drows=days.map(k=>{const x=d.days[k];return `<tr><td>${dpDayName(k)}</td><td>${x.n}</td><td>${x.first} (${Math.round(100*x.first/x.n)}%)</td><td>${fmtT(x.ms)}</td><td>${x.topics.map(id=>esc(DPBY[id]?DPBY[id].name:id)).join(", ")}</td></tr>`}).join("");
+ const miss=(S.log||[]).filter(l=>l.t==="Daily"&&(!l.ok||l.a>1)).slice(-25).reverse();
+ return `<section class="panel"><h2>Daily Practice progress</h2><p class="sub" style="margin:0">Topics come from the ${DP_CHECK}. Each topic has 5 levels: 1 = Grade 5 review, 2–4 = Grade 6 (Saxon Course 2), 5 = Grade 7. Two right in a row on the first try moves him up a level; two misses in a row move him down one. A topic is mastered after ${DP_MASTER} first-try answers in a row at Level 5.</p><div class="tablewrap"><table><thead><tr><th>Topic</th><th>Checkup</th><th>Started at</th><th>Level now</th><th>Highest</th><th>Problems</th><th>Right 1st try</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></section>
+ <section class="panel"><h2>Days practiced</h2>${drows?`<div class="tablewrap"><table><thead><tr><th>Day</th><th>Problems</th><th>Right 1st try</th><th>Time</th><th>Topics</th></tr></thead><tbody>${drows}</tbody></table></div>`:`<div class="empty">No Daily Practice yet.</div>`}</section>
+ <section class="panel"><h2>Daily Practice: problems he missed or needed a second try on</h2>${lmShowAns?`<p class="sub" style="margin:0">Correct answers are showing (parent view). <button class="btn" data-lmhide="1">Hide answers</button></p>`:`<form id="dppf" class="row parent" autocomplete="off"><label for="dppin">Parent PIN to show the correct answers</label><input id="dppin" type="password" inputmode="numeric" maxlength="8"><button class="btn" type="submit">Show answers</button></form><div id="dppm"></div>`}
+ ${miss.length?miss.map(l=>`<details><summary>${esc(l.c)} · ${LVN[l.lv]} · ${l.ok?`right on try ${l.a}`:"missed"}</summary><p style="margin:.5em 0 0">${fmt(l.text)}</p><p class="sub" style="margin:0">His answers: ${(l.tries||[]).map(esc).join(" · ")} · ${new Date(l.at).toLocaleString()}</p>${lmShowAns?`<p style="margin:0">Correct answer: <b>${fmt(l.final)}</b></p>`:""}</details>`).join(""):`<div class="empty">None yet.</div>`}</section>`}
+app.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const dd=b.dataset;
+ if(dd.dpnew){const s=dpNewSession(dd.dpnew,dd.dpid);dpOpen(dd.dpnew==="topic"?"ex":"cur")}
+ else if(dd.dpgo){dpOpen(dd.dpgo)}
+ else if(dd.dpread){const s=dpSess();if(s){const it=dpItem(s,s.i);it.read=1;view.t0=Date.now();save();render();window.scrollTo(0,0)}}
+ else if(dd.dpch!==undefined){dpSubmit(dd.dpch)}
+ else if(dd.dpnext){dpNext()}
+ else if(dd.dphint){const s=dpSess();if(s){const it=dpItem(s,s.i);if(!it.res){it.hint=1;save();render()}}}
+});
+app.addEventListener("submit",e=>{if(e.target.id==="dpf"){e.preventDefault();dpSubmit(document.getElementById("dpans").value)}
+ else if(e.target.id==="dppf"){e.preventDefault();const v=document.getElementById("dppin").value.trim(),m=document.getElementById("dppm");if(!S.pin){m.innerHTML='<p class="fb info">Create a parent PIN first in “For parents” at the bottom of this page.</p>';return}if(v===S.pin){lmShowAns=true;render()}else m.innerHTML='<p class="fb no">Wrong PIN.</p>'}});
+setInterval(()=>{const el=document.getElementById("dptimer"),s=view.name==="dp"?dpSess():null;if(el&&s&&!s.done)el.textContent=fmtT((s.time||0)+Math.min(Date.now()-(view.t0||Date.now()),300000))},1000);
 
 /* ===== EVENTS ===== */
 function startList(items,title,topic,total){let first=items.findIndex(x=>!S.q[x.id]||S.q[x.id].s==="open");if(first<0&&total&&items.length<total){items.push(makeOne(topic,lvOf(topic),new Set(items.map(x=>x.text))));save();first=items.length-1}view={name:"practice",items,i:first<0?0:first,title,topic,total};flash=null;render();window.scrollTo(0,0)}

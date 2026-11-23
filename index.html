@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Math Practice</title>
+<title>Math Grand Prix</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
@@ -113,6 +113,29 @@ details summary{cursor:pointer;font-weight:700}
 .big-score .sub{font-family:var(--body);font-size:18px;font-weight:400}
 
 @media (prefers-reduced-motion:no-preference){.qcard{animation:in .18s ease-out}@keyframes in{from{transform:translateY(4px);opacity:.6}}}
+/* Racing theme */
+:root{--accent:#d90429;--accent-soft:#fde4e7;--hi:#ffd23f}
+@media (prefers-color-scheme:dark){:root{--accent:#ff4d63;--accent-soft:#3a1a22}}
+.flagband{height:12px;border-radius:6px;background:conic-gradient(#111 25%,#fff 0 50%,#111 0 75%,#fff 0) 0 0/12px 12px;border:1.5px solid #111;opacity:.9}
+.race-hero{background:linear-gradient(135deg,var(--card) 55%,var(--accent-soft))}
+.hero-car svg{display:block;filter:drop-shadow(0 4px 3px rgba(0,0,0,.25))}
+.garage{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px}
+.gcar{display:grid;justify-items:center;gap:2px;padding:10px 6px;border-radius:14px;border:2px solid var(--line);background:var(--card);font-weight:700;font-size:14px}
+.gcar small{font-weight:400;color:var(--muted);font-size:12px}
+.gcar.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.gcar:disabled{opacity:.6;cursor:default}
+.gcar .lock{font-size:26px;line-height:32px}
+.track{position:relative;height:50px;margin-top:8px;overflow:hidden}
+.track .road{position:absolute;left:0;right:0;top:24px;height:22px;border-radius:6px;background:#3b4150;background-image:repeating-linear-gradient(90deg,#f5f5f5 0 14px,transparent 14px 28px);background-size:100% 2px;background-repeat:no-repeat;background-position:0 10px}
+.track .flag{position:absolute;right:2px;top:16px;width:18px;height:34px;background:conic-gradient(#111 25%,#fff 0 50%,#111 0 75%,#fff 0) 0 0/9px 9px;border:1px solid #111}
+.track .rcar{position:absolute;top:6px;transition:left .9s cubic-bezier(.2,.8,.2,1)}
+.track .rcar svg{display:block}
+.rcar.boost{animation:boost .7s ease-out}
+@keyframes boost{0%{transform:none}40%{transform:translateY(-3px) rotate(-4deg)}100%{transform:none}}
+.podium{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:.4em 0}
+.podium .medal{font-size:64px;line-height:1}
+.btn.big{font-size:18px;padding:.7em 1.2em}
+@media (prefers-reduced-motion:reduce){.track .rcar{transition:none}.rcar.boost{animation:none}}
 </style>
 </head>
 <body>
@@ -1821,12 +1844,12 @@ function bar(c){const g=c.total?c.right/c.total*100:0,r=c.total?c.locked/c.total
 function last10(t){const r=recent(t);let h="";for(let k=0;k<10;k++){const l=r[k];h+=`<i class="${l?(l.ok?"ok":"no"):""}"></i>`}return `<div class="ten" role="img" aria-label="Last ${r.length} problems: ${r.filter(l=>l.ok).length} right">${h}</div>`}
 function header(){
   const DL=S.log.filter(l=>l.t==="Daily"),tot=DL.length,ok=DL.filter(l=>l.ok).length;
-  return `<header><div><h1>Math <span class="mark mark-ink">Practice</span></h1><div class="sub">Daily Practice · 6th grade</div></div>
-  <nav aria-label="Sections"><button class="tab" data-go="home" ${view.name!=="report"?'aria-current="page"':""}>Practice</button><button class="tab" data-go="report" ${view.name==="report"?'aria-current="page"':""}>My report</button></nav></header>
+  return `<header><div><h1>Math <span class="mark mark-ink">Grand Prix</span> 🏎️</h1><div class="sub">Daily math race · 6th grade</div></div>
+  <nav aria-label="Sections"><button class="tab" data-go="home" ${view.name!=="report"?'aria-current="page"':""}>Practice</button><button class="tab" data-go="report" ${view.name==="report"?'aria-current="page"':""}>My report</button></nav></header><div class="flagband" aria-hidden="true"></div>
   <section class="panel" aria-label="Overall progress"><div class="stats"><span>Problems finished <b>${tot}</b></span><span><i class="dot" style="background:var(--good)"></i>Right <b>${ok}</b></span><span><i class="dot" style="background:var(--bad)"></i>Missed <b>${tot-ok}</b></span></div></section>`;
 }
 const EXAM_ONLY=true;
-function home(){if(EXAM_ONLY)return header()+`<section class="panel"><p class="big-score" style="margin:0">⭐ ${S.pts||0} <span class="sub">points</span></p><p class="sub" style="margin:0">You get 1 point for every correct answer.</p></section>${dpHome()}`;
+function home(){if(EXAM_ONLY)return header()+dpPoints()+dpHome();
   const cards=VISIBLE.map(t=>{const c=counts(byTopic(t)),st=status(t),set=S.sets[t],sc=set?counts(set.list):null,cont=set&&setOpen(set);
     return `<div class="topic"><div class="row spread"><h3>${esc(t)}</h3><span class="pill ${st.cls}">${st.label}</span></div>${LESSON_SUB[t]?`<div class="meta">${LESSON_SUB[t]}</div>`:""}${last10(t)}
     <div class="meta">${st.n?`Last ${st.n}: ${st.ok} right`:"No problems yet"}</div>
@@ -2774,6 +2797,20 @@ const DPT=[
 const DPBY=Object.fromEntries(DPT.map(t=>[t.id,t]));
 function dpGen(id,L,k,avoid){const T=DPBY[id];let q,t=0,kk;do{kk=k==null?R(0,T.K[L-1]-1):k;q=qClean(T.f(L,kk));t++}while(t<30&&avoid&&avoid.has(q.text));q._k=kk;q.lv=L;return q}
 
+/* ===== RACING THEME: cars, garage, track ===== */
+const CARS=[{p:0,n:"Red Racer",c:"#e10600"},{p:25,n:"Blue Bolt",c:"#1e5bff"},{p:60,n:"Green Machine",c:"#12a150"},{p:100,n:"Gold Rush",c:"#e0a800"},{p:175,n:"Purple Flash",c:"#7b2ff7"},{p:250,n:"Orange Blaze",c:"#ff7a00"},{p:350,n:"Midnight Turbo",c:"#20232a"},{p:500,n:"Silver Champion",c:"#9aa3ad"}];
+const carSVG=(c,w=64)=>`<svg viewBox="0 0 64 28" width="${w}" height="${Math.round(w*28/64)}" aria-hidden="true"><rect x="1" y="6" width="9" height="3" rx="1" fill="#222"/><rect x="3" y="8" width="3" height="9" fill="${c}"/><path d="M4 19 L9 13 L23 12 L29 7 L40 7 L45 12 L56 13 L61 17 L61 21 L4 21 Z" fill="${c}" stroke="rgba(0,0,0,.35)" stroke-width=".8"/><path d="M30.5 8.2 L39.2 8.2 L42.5 12 L28.6 12 Z" fill="#cfe8ff"/><circle cx="35" cy="10.2" r="2.3" fill="#ffd23f"/><rect x="11" y="15" width="44" height="1.8" fill="#fff" opacity=".85"/><circle cx="15" cy="21.5" r="5.2" fill="#1b1b1b"/><circle cx="15" cy="21.5" r="2.1" fill="#c9c9c9"/><circle cx="50" cy="21.5" r="5.2" fill="#1b1b1b"/><circle cx="50" cy="21.5" r="2.1" fill="#c9c9c9"/></svg>`;
+const carsOpen=()=>CARS.filter(x=>(S.pts||0)>=x.p);
+const myCar=()=>{const o=carsOpen();return o.find(x=>x.n===S.car)||o[o.length-1]||CARS[0]};
+const nextCar=()=>CARS.find(x=>(S.pts||0)<x.p);
+const CHEER=["Vroom! Correct! 🏎️💨","Turbo boost! Correct! 🔥","Perfect lap! ✓","You're in the lead! ✓","Pole position! ✓","Smooth driving! ✓","Nitro! Correct! ⚡","Zoom zoom! ✓"];
+function dpPoints(){const nc=nextCar(),car=myCar();return `<section class="panel race-hero"><div class="row spread" style="align-items:center"><div><p class="big-score" style="margin:0">🏆 ${S.pts||0} <span class="sub">race points</span></p><p class="sub" style="margin:0">1 point for every correct answer. ${nc?`<b>${nc.p-(S.pts||0)}</b> more to unlock <b>${nc.n}</b>!`:"You unlocked every car! 🏁"}</p></div><div class="hero-car">${carSVG(car.c,120)}</div></div></section>`}
+function dpGarage(){const car=myCar();return `<section class="panel"><h2>🏁 Your garage</h2><p class="sub" style="margin:0">Win points to unlock new race cars. Tap a car to drive it.</p><div class="garage">${CARS.map(x=>{const open=(S.pts||0)>=x.p,sel=open&&x.n===car.n;return `<button class="gcar${sel?" sel":""}" ${open?`data-car="${esc(x.n)}"`:"disabled"} aria-pressed="${sel}">${open?carSVG(x.c,70):`<span class="lock">🔒</span>`}<span>${esc(x.n)}</span><small>${open?(sel?"Driving ✓":"Tap to drive"):x.p+" points"}</small></button>`}).join("")}</div></section>`}
+function dpTrack(s){const done=s.items.filter(x=>x&&x.res).length,to=Math.round(100*done/s.plan.length),from=view.carAt==null?to:view.carAt;view.carTo=to;setTimeout(dpAnimCar,40);
+ return `<div class="track" role="img" aria-label="Race progress: ${done} of ${s.plan.length} problems done"><div class="road"></div><div class="flag" title="Finish"></div><div class="rcar" id="dpcar" style="left:calc((100% - 74px) * ${from/100})">${carSVG(myCar().c,58)}</div></div>`}
+function dpAnimCar(){const el=document.getElementById("dpcar");if(!el||view.carTo==null)return;el.style.left=`calc((100% - 74px) * ${view.carTo/100})`;if(view.carAt!=null&&view.carTo>view.carAt){el.classList.remove("boost");void el.offsetWidth;el.classList.add("boost")}view.carAt=view.carTo}
+function dpPlace(sc){return sc>=90?["🥇","1st place! Champion driver!"]:sc>=80?["🥈","2nd place! So close to the top!"]:sc>=70?["🥉","3rd place! On the podium!"]:["🏁","You finished the race! Practice and race again to reach the podium."]}
+
 /* ===== DAILY PRACTICE: state, daily lesson, level-up ===== */
 const DP_CHECK="Mathnasium checkup #6 (11/16/2026)";
 const LVN=["","Level 1 · Grade 5 review","Level 2 · Grade 6","Level 3 · Grade 6","Level 4 · Grade 6 (harder)","Level 5 · Grade 7"];
@@ -2816,7 +2853,7 @@ function dpRecord(s,it){const d=dpState(),st=d.st[it.id],k=dpToday(),dy=d.days[k
 function dpSubmit(val){const s=dpSess();if(!s||s.done)return;const it=dpItem(s,s.i);if(it.res)return;const r=lmCheck(it.q,val);
  if(r.result==="format"){view.msg=r.msg+" (This did not use a try.)";render();return}
  dpTick(s,it);it.tries.push(String(val).trim());view.msg="";
- if(r.result==="right"){it.res="right";S.pts=(S.pts||0)+1}
+ if(r.result==="right"){const b4=carsOpen().length;it.res="right";S.pts=(S.pts||0)+1;const o=carsOpen();if(o.length>b4)it.newCar=o[o.length-1].n}
  else{view.msg=r.msg||"";if(it.tries.length>=dpMax(it.q,it)){it.res="missed";dpEx(it)}}
  if(it.chk){view.msg="";if(it.res==="right")S.pts=S.pts}
  if(it.res){dpRecord(s,it);
@@ -2829,41 +2866,41 @@ function dpOpen(which){view={name:"dp",s:which,t0:Date.now()};const s=dpSess();i
 function dpHome(){const d=dpState(),c=d.cur,today=dpToday(),todayDone=c&&c.date===today&&c.done,open=c&&!c.done,p=open?{focus:c.focus}:dpPlan(),days=Object.keys(d.days).filter(k=>d.days[k].n>0).sort(),mastered=DPT.filter(t=>d.st[t.id].mastered).length;
  let streak=0;{const dt=new Date();if(!(d.days[today]&&d.days[today].n))dt.setDate(dt.getDate()-1);for(;;){const k=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;if(d.days[k]&&d.days[k].n){streak++;dt.setDate(dt.getDate()-1)}else break}}
  const doneN=open?c.items.filter(x=>x&&x.res).length:0;
- const btn=open?`<button class="btn primary big" data-dpgo="cur">${c.date===today?"Continue today's lesson":"Finish your lesson from "+dpDayName(c.date)} (${doneN} of ${c.plan.length})</button>`:todayDone?`<span class="pill done">Today's lesson is done ✓</span><button class="btn" data-dpnew="day">Do another lesson</button>`:`<button class="btn primary big" data-dpnew="day">Start today's lesson (${DP_DAY} problems)</button>`;
+ const btn=open?`<button class="btn primary big" data-dpgo="cur">${c.date===today?"Continue today's race 🏎️":"Finish your race from "+dpDayName(c.date)} (${doneN} of ${c.plan.length})</button>`:todayDone?`<span class="pill done">Today's race is done 🏁</span><button class="btn" data-dpnew="day">Race again</button>`:`<button class="btn primary big" data-dpnew="day">🏎️ Start today's race (${DP_DAY} problems)</button>`;
  const focus=p.focus.map(id=>`<b>${esc(DPBY[id].name)}</b>`).join(" and ");
  const cards=DPT.map(t=>{const s=d.st[t.id],L=d.lv[t.id],stt=dpStatus(t.id);return `<div class="topic"><div class="row spread"><h3>${esc(t.name)}</h3><span class="pill ${stt.cls}">${stt.label}</span></div><div class="meta">Checkup score: ${t.ck}${s.chk?` · Last topic check: <b>${s.chk}</b>`:""}</div><div class="row"><button class="btn" data-dpnew="topic" data-dpid="${t.id}">Extra practice + check (10)</button></div></div>`}).join("");
- return `<section class="panel" style="border:2.5px solid var(--accent)"><div class="row spread"><h2>📅 Daily Practice</h2><span class="sub">🔥 ${streak} day${streak===1?"":"s"} in a row · ${mastered} of ${DPT.length} topics mastered</span></div>
+ return `<section class="panel" style="border:2.5px solid var(--accent)"><div class="row spread"><h2>🏁 Today's Grand Prix</h2><span class="sub">🔥 ${streak} day${streak===1?"":"s"} in a row · ${mastered} of ${DPT.length} topics mastered</span></div>
  <p class="sub" style="margin:0">Built from your ${DP_CHECK}: the topics you missed. Do one lesson every day. Each lesson teaches a topic, then gives practice problems like the Saxon book.</p>
- <ul class="sub" style="margin:.3em 0 .3em 1.2em;padding:0"><li>Each topic: read the lesson, practice, then a graded <b>Topic check</b> (3 questions, 1 try each, no hints).</li><li>Practice: wrong answer = a hint and one more try. You never see the answer: you get the rule and a worked example with different numbers, then a new problem.</li><li>The lesson is timed and scored out of 100.</li></ul>
- ${p.focus.length?`<p style="margin:0">Today's topics: ${focus}, plus a short review.</p>`:`<p style="margin:0">Every topic is mastered! Today's lesson is a mixed review.</p>`}
+ <ul class="sub" style="margin:.3em 0 .3em 1.2em;padding:0"><li>Each topic: read the lesson in the pit lane 📖, practice laps, then a graded <b>Topic check lap</b> 🏁 (3 questions, 1 try each, no hints).</li><li>Practice: wrong answer = a pit stop 🔧 with a hint and one more try. You never see the answer: you get the rule and a worked example with different numbers, then a new problem.</li><li>Every correct answer drives your car closer to the finish line. The race is timed and scored out of 100. Score 90+ for 🥇!</li></ul>
+ ${p.focus.length?`<p style="margin:0">Today's topics: ${focus}, plus a short review lap.</p>`:`<p style="margin:0">Every topic is mastered! Today's race is a mixed review.</p>`}
  <div class="row">${btn}</div></section>
- <section class="panel"><h2>Your topics</h2><div class="grid">${cards}</div></section>`}
+ ${dpGarage()}<section class="panel"><h2>Your tracks</h2><div class="grid">${cards}</div></section>`}
 function dpView(){const s=dpSess();if(!s)return home();return header()+(s.done?dpResults(s):dpQView(s))}
-function dpQView(s){const it=dpItem(s,s.i),q=it.q,T=DPBY[it.id],max=dpMax(q,it),n=it.tries.length,open=!it.res,ttl=s.kind==="topic"?`Extra practice: ${T.name}`:`Daily lesson · ${dpDayName(s.date)}`;
+function dpQView(s){const it=dpItem(s,s.i),q=it.q,T=DPBY[it.id],max=dpMax(q,it),n=it.tries.length,open=!it.res,ttl=s.kind==="topic"?`Extra practice: ${T.name}`:`🏁 Grand Prix · ${dpDayName(s.date)}`;
  const strip=`<div class="strip">${s.plan.map((_,j)=>{const x=s.items[j],ck=(s.kinds||[])[j]==="c";return `<button tabindex="-1" class="${x&&x.res&&x.chk?"tried":x&&x.res==="right"?(x.tries.length===1?"right":"tried"):x&&x.res==="missed"?"locked":""} ${j===s.i?"cur":""}" aria-label="${ck?"Topic check question":"Problem"} ${j+1}" disabled>${ck?"✓":j+1}</button>`}).join("")}</div>`;
- const top=`<section class="panel" style="position:sticky;top:0;z-index:5"><div class="row spread"><h2>${esc(ttl)}</h2><button class="btn" data-go="home">← Home (pauses)</button></div><div class="stats"><span>Problem <b>${s.i+1}</b> of ${s.plan.length}</span><span style="font-size:1.3em">⏱ <b id="dptimer">${fmtT(s.time)}</b></span><span>⭐ <b>${S.pts||0}</b></span></div>${strip}</section>`;
+ const top=`<section class="panel" style="position:sticky;top:0;z-index:5"><div class="row spread"><h2>${esc(ttl)}</h2><button class="btn" data-go="home">← Home (pauses)</button></div><div class="stats"><span>Problem <b>${s.i+1}</b> of ${s.plan.length}</span><span style="font-size:1.3em">⏱ <b id="dptimer">${fmtT(s.time)}</b></span><span>🏆 <b>${S.pts||0}</b></span></div>${dpTrack(s)}${strip}</section>`;
  if(it.intro&&!it.read){const ex=it.lesson||(it.lesson=(()=>{const e=dpGen(it.id,it.lv,it.q._k);return {text:e.text,steps:e.steps,final:e.final,options:e.options}})());save();
-  return top+`<section class="panel"><h2>📖 Lesson: ${esc(T.name)}</h2><p class="sub" style="margin:0">Read the rule, then work the example on paper before you look at the steps.</p><div class="hintbox"><b>The rule:</b> ${fmt(T.r)}</div><div class="hintbox"><b>How to start a problem like this:</b> ${fmt(T.h)}</div>${lmExHtml(ex,"Worked example")}<div class="row"><button class="btn primary" id="dpnext" data-dpread="1">I read the lesson ✓ Start practice</button></div></section>`}
- if(it.chk&&it.chkIntro&&!it.read)return top+`<section class="panel" style="border:2.5px solid var(--accent)"><h2>✅ Topic check: ${esc(T.name)}</h2><p style="margin:0">${(s.kinds||[]).slice(s.i).findIndex((k,j)=>k!=="c"||s.plan[s.i+j]!==it.id)<0?(s.kinds||[]).slice(s.i).length:(s.kinds||[]).slice(s.i).findIndex((k,j)=>k!=="c"||s.plan[s.i+j]!==it.id)} questions to show you've got it. <b>This is graded:</b> 1 try each, no hints, and you see your score at the end. Work each one on paper first.</p><div class="row"><button class="btn primary" id="dpnext" data-dpread="1">Start the topic check</button></div></section>`;
+  return top+`<section class="panel"><h2>📖 Pit lane lesson: ${esc(T.name)}</h2><p class="sub" style="margin:0">Read the rule, then work the example on paper before you look at the steps.</p><div class="hintbox"><b>The rule:</b> ${fmt(T.r)}</div><div class="hintbox"><b>How to start a problem like this:</b> ${fmt(T.h)}</div>${lmExHtml(ex,"Worked example")}<div class="row"><button class="btn primary" id="dpnext" data-dpread="1">I read the lesson ✓ Start your engines! 🏎️</button></div></section>`}
+ if(it.chk&&it.chkIntro&&!it.read)return top+`<section class="panel" style="border:2.5px solid var(--accent)"><h2>🏁 Topic check lap: ${esc(T.name)}</h2><p style="margin:0">${(s.kinds||[]).slice(s.i).findIndex((k,j)=>k!=="c"||s.plan[s.i+j]!==it.id)<0?(s.kinds||[]).slice(s.i).length:(s.kinds||[]).slice(s.i).findIndex((k,j)=>k!=="c"||s.plan[s.i+j]!==it.id)} questions to show you've got it. <b>This is graded:</b> 1 try each, no hints, and you see your score at the end. Work each one on paper first.</p><div class="row"><button class="btn primary" id="dpnext" data-dpread="1">Green flag! Start the check 🟢</button></div></section>`;
  if(it.chk&&it.res&&it.chkEnd)return top+dpChkResult(s);
  let inp="";if(open){if(q.type==="choice")inp=`<div class="choices" role="group" aria-label="Choices">${q.options.map(o=>`<button data-dpch="${esc(o)}" style="font-size:18px">${fmt(o)}</button>`).join("")}</div>`;
   else inp=`<form id="dpf" class="answer" autocomplete="off"><input id="dpans" placeholder="${q.type==="time"?"like 1:05 pm":q.type==="frac"?"like 3/4 or 1 1/2":q.type==="ratio"?"like 2/3":"Type your answer"}" aria-label="Your answer"><button class="btn primary" type="submit">${it.chk?"Save answer":"Check"}</button></form>`}
  let fb="";if(view.msg)fb+=`<div class="fb info">${esc(view.msg)}</div>`;
  if(open&&!n&&!it.chk)fb+=it.hint?`<div class="fb info">💡 Hint</div>${dpHelp(it,false)}`:`<div class="row"><button class="btn" data-dphint="1">💡 Show a hint</button></div>`;
- if(it.res==="right")fb+=`<div class="fb ok">✓ Correct! +1 ⭐${n>1?" You fixed it yourself. Great thinking!":""}</div>${it.mast?`<div class="fb ok" style="font-size:1.15em">🏆 You mastered ${esc(T.name)}!</div>`:""}<details><summary>See the explanation</summary><div class="steps"><ol>${q.steps.map(x=>`<li>${fmt(x)}</li>`).join("")}</ol></div></details>`;
- else if(it.res==="missed")fb+=`<div class="fb no">Not this time. Your answer${n>1?"s":""}: ${it.tries.map(fmt).join(" · ")}. Study the rule and the worked example below. They use different numbers but the same steps. Next you get a new problem of the same kind.</div>${dpHelp(it,true)}`;
- else if(n>0)fb+=`<div class="fb no">Not yet. You answered ${fmt(it.tries[n-1])}. Read the hint and try once more.</div>${dpHelp(it,false)}`;
+ if(it.res==="right")fb+=`<div class="fb ok">${CHEER[(s.i+n)%CHEER.length]} +1 🏆${n>1?" Great pit stop. You fixed it yourself!":""}</div>${it.newCar?`<div class="fb ok" style="font-size:1.15em">🎉 New car unlocked: <b>${esc(it.newCar)}</b>! Pick it in your garage.</div>`:""}${it.mast?`<div class="fb ok" style="font-size:1.15em">🏆 You mastered ${esc(T.name)}!</div>`:""}<details><summary>See the explanation</summary><div class="steps"><ol>${q.steps.map(x=>`<li>${fmt(x)}</li>`).join("")}</ol></div></details>`;
+ else if(it.res==="missed")fb+=`<div class="fb no">🌀 Spin-out! Not this time. Your answer${n>1?"s":""}: ${it.tries.map(fmt).join(" · ")}. Study the rule and the worked example below. They use different numbers but the same steps. Next you get a new problem of the same kind.</div>${dpHelp(it,true)}`;
+ else if(n>0)fb+=`<div class="fb no">🔧 Pit stop! You answered ${fmt(it.tries[n-1])}. Read the hint and try once more.</div>${dpHelp(it,false)}`;
  const nextBtn=it.res?`<div class="row"><button class="btn primary" id="dpnext" data-dpnext="1">${s.i+1>=s.plan.length?"See my results":it.res==="missed"&&s.items[s.i+1]&&s.items[s.i+1].x?"Try a new one →":"Next →"}</button></div>`:"";
  return top+`<article class="qcard"><span class="qlabel">${it.chk?"Topic check (graded) · ":""}Problem ${s.i+1} · ${esc(T.name)}${it.x?" · new try":""}</span>${it.chk?`<p class="sub" style="margin:0">1 try · no hints</p>`:""}<div class="qtext">${fmt(q.text)}</div>${inp}${fb}${nextBtn}</article>`}
 function dpChkResult(s){const blk=dpChkBlock(s,s.i),ok=blk.filter(x=>x.res==="right").length,T=DPBY[blk[0].id],last=s.i+1>=s.plan.length;
- return `<section class="panel"><h2>✅ Topic check: ${esc(T.name)}</h2><p class="big-score">${ok} <span class="sub">of ${blk.length} right</span></p>${ok===blk.length?`<div class="fb ok">You've got it! 🎉</div>`:ok>=blk.length-1?`<div class="fb info">Almost there. Study the one you missed below.</div>`:`<div class="fb no">Not yet. Study the rule and the examples below. This topic comes back in your next lessons.</div>`}
+ return `<section class="panel"><h2>🏁 Topic check lap: ${esc(T.name)}</h2><p class="big-score">${ok} <span class="sub">of ${blk.length} right</span></p>${ok===blk.length?`<div class="fb ok">Perfect lap! You've got it! 🎉🏆</div>`:ok>=blk.length-1?`<div class="fb info">Almost there. Study the one you missed below.</div>`:`<div class="fb no">Not yet. Study the rule and the examples below. This topic comes back in your next lessons.</div>`}
  ${blk.map((x,j)=>`<div class="qcard" style="padding:14px"><span class="qlabel">Question ${j+1} · ${x.res==="right"?"✓ right":"✗ not right"}</span><div>${fmt(x.q.text)}</div><div class="tried-list">Your answer: ${fmt(x.tries[0]||"")}</div>${x.res==="right"?"":`<details><summary>How to solve this kind of problem</summary>${dpHelp(x,true)}</details>`}</div>`).join("")}
  <div class="row"><button class="btn primary" id="dpnext" data-dpnext="1">${last?"See my score":"Continue →"}</button></div></section>`}
 function dpScore(s){const base=s.items.filter(x=>x&&!x.x),pts=base.filter(x=>x.res==="right"&&(x.chk||x.tries.length===1)).length;return {pts,n:base.length,score:base.length?Math.round(100*pts/base.length):0}}
 function dpResults(s){const its=s.items.filter(Boolean),d=dpState(),sc=dpScore(s);if(s.score==null){s.score=sc.score;const k=s.date,dy=d.days[k];if(dy){dy.scores=dy.scores||[];dy.scores.push(sc.score)}save()}
  const ids=[...new Set(s.plan)],chks=[...new Set(its.filter(x=>x.chk).map(x=>x.id))],ch=chks.map(id=>{const b=its.filter(x=>x.chk&&x.id===id),ok=b.filter(x=>x.res==="right").length;return `<li><b>${esc(DPBY[id].name)}</b> topic check: <b>${ok} of ${b.length}</b> ${ok===b.length?"✓":""}${d.st[id].mastered?" 🏆 mastered":""}</li>`}).join("");
  const weak=ids.filter(id=>its.some(x=>x.id===id&&x.res==="missed"));
- return `<section class="panel"><div class="row spread"><h2>${s.kind==="topic"?"Extra practice":"Today's lesson"}: results</h2><button class="btn" data-go="home">← Home</button></div><p class="big-score">${s.score} / 100 <span class="sub">score</span></p><p class="sub" style="margin:0">Practice problems count when right on the first try; topic check questions count when right.</p><p style="margin:0">Time: <b>${fmtT(s.time)}</b>${s.xn?` · ${s.xn} extra practice problem${s.xn>1?"s":""}`:""}</p>
+ return `<section class="panel"><div class="row spread"><h2>🏁 ${s.kind==="topic"?"Practice race":"Grand Prix"} results</h2><button class="btn" data-go="home">← Home</button></div><div class="podium"><span class="medal">${dpPlace(s.score)[0]}</span><div><p class="big-score" style="margin:0">${s.score} / 100</p><p style="margin:0;font-weight:800">${dpPlace(s.score)[1]}</p></div>${carSVG(myCar().c,110)}</div><p class="sub" style="margin:0">Practice problems count when right on the first try; topic check questions count when right.</p><p style="margin:0">⏱ Race time: <b>${fmtT(s.time)}</b>${s.xn?` · ${s.xn} extra practice problem${s.xn>1?"s":""}`:""}</p>
  ${ch?`<h3 style="margin:.6em 0 .2em">Topic checks</h3><ul style="margin:0 0 0 1.2em;padding:0">${ch}</ul>`:""}
  ${weak.length?`<p style="margin:.6em 0 0">Keep working on: <b>${weak.map(id=>esc(DPBY[id].name)).join(", ")}</b>. They will come back in your next lessons.</p>`:`<p style="margin:.6em 0 0">No misses. Excellent!</p>`}
  <div class="row"><button class="btn primary" data-go="home">Done</button>${s.kind==="topic"?`<button class="btn" data-dpnew="topic" data-dpid="${s.id}">Practice again</button>`:""}</div></section>`}
@@ -2876,6 +2913,7 @@ function dpReport(){const d=dpState();
  <section class="panel"><h2>Daily Practice: problems he missed or needed a second try on</h2>${lmShowAns?`<p class="sub" style="margin:0">Correct answers are showing (parent view). <button class="btn" data-lmhide="1">Hide answers</button></p>`:`<form id="dppf" class="row parent" autocomplete="off"><label for="dppin">Parent PIN to show the correct answers and levels</label><input id="dppin" type="password" inputmode="numeric" maxlength="8"><button class="btn" type="submit">Show answers</button></form><div id="dppm"></div>`}
  ${miss.length?miss.map(l=>`<details><summary>${esc(l.c)}${l.chk?" · topic check":""}${lmShowAns?" · "+LVN[l.lv]:""} · ${l.ok?`right on try ${l.a}`:"missed"}</summary><p style="margin:.5em 0 0">${fmt(l.text)}</p><p class="sub" style="margin:0">His answers: ${(l.tries||[]).map(esc).join(" · ")} · ${new Date(l.at).toLocaleString()}</p>${lmShowAns?`<p style="margin:0">Correct answer: <b>${fmt(l.final)}</b></p>`:""}</details>`).join(""):`<div class="empty">None yet.</div>`}</section>`}
 app.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const dd=b.dataset;
+ if(dd.car){S.car=dd.car;save();render();return}
  if(dd.dpnew){const s=dpNewSession(dd.dpnew,dd.dpid);dpOpen(dd.dpnew==="topic"?"ex":"cur")}
  else if(dd.dpgo){dpOpen(dd.dpgo)}
  else if(dd.dpread){const s=dpSess();if(s){const it=dpItem(s,s.i);it.read=1;view.t0=Date.now();save();render();window.scrollTo(0,0)}}

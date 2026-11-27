@@ -147,6 +147,7 @@ details summary{cursor:pointer;font-weight:700}
 .pat{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--card)}
 .track .rcar{top:1px}
 .gchips{flex-wrap:wrap;gap:6px;margin-top:8px}.gchips .btn{padding:.35em .8em;font-size:14px}.gchips small{opacity:.7}
+.lsnlist{list-style:none;margin:.6em 0 0;padding:0;display:grid;gap:6px}.lsn{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1.5px solid var(--line);border-radius:12px}.lsn.done{background:var(--good-soft)}.lsn.new{border-color:var(--accent);border-width:2.5px}.lsn-n{flex:0 0 28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--line)}.lsn-t{flex:1;min-width:0}.lsn .pill{flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -2965,7 +2966,7 @@ function dpHome(){const d=dpState(),c=d.cur,today=dpToday(),todayDone=c&&c.date=
  <ul class="sub" style="margin:.3em 0 .3em 1.2em;padding:0"><li>Every race is <b>${DP_TOPIC} questions on one topic</b>: read the lesson in the pit lane 📖, ${DP_TOPIC-DP_CHK} practice laps, then a graded <b>Topic check lap</b> 🏁 (${DP_CHK} questions, 1 try each, no hints).</li><li>Get all ${DP_CHK} check questions right to win the track and move on to the next topic. If not, you race the same topic again tomorrow.</li><li>Practice: you get 3 tries. A wrong answer = a pit stop 🔧 with a hint. After the 3rd try you see the correct answer and how to solve it, then a new problem of the same kind.</li><li>Every correct answer drives your car closer to the finish line. The race is timed and scored out of 100. Score 90+ for 🥇!</li></ul>
  ${p.focus.length?`<p style="margin:0">Today's track: ${focus} (${DP_TOPIC} questions).</p>`:`<p style="margin:0">Every topic is mastered! Today's race is a mixed review.</p>`}
  <div class="row">${btn}</div></section>
- ${dpGarage()}<section class="panel"><h2>Your tracks</h2><p class="sub" style="margin:0">The app picks your track and makes the questions harder by itself as you get them right. Win a track to move to the next one.</p><div class="grid">${cards}</div></section>`}
+ ${dpLessons(0)}${dpGarage()}`}
 function dpView(){const s=dpSess();if(!s)return home();return header()+(s.done?dpResults(s):dpQView(s))}
 function dpQView(s){const it=dpItem(s,s.i),q=it.q,T=DPBY[it.id],max=dpMax(q,it),n=it.tries.length,open=!it.res,ttl=s.kind==="topic"?`Extra practice: ${T.name}`:`🏁 Grand Prix · ${dpDayName(s.date)}`;
  const strip=`<div class="strip">${s.plan.map((_,j)=>{const x=s.items[j],ck=(s.kinds||[])[j]==="c";return `<button tabindex="-1" class="${x&&x.res&&x.chk?"tried":x&&x.res==="right"?(x.tries.length===1?"right":"tried"):x&&x.res==="missed"?"locked":""} ${j===s.i?"cur":""}" aria-label="${ck?"Topic check question":"Problem"} ${j+1}" disabled>${ck?"✓":j+1}</button>`}).join("")}</div>`;
@@ -3032,6 +3033,23 @@ function dpMins(ms){const m=Math.round(ms/60000);return m<60?`${m} min`:`${Math.
 function dpTrendHTML(){const d=dpState(),keys=[];const dt=new Date();for(let i=13;i>=0;i--){const x=new Date(dt);x.setDate(dt.getDate()-i);keys.push(`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`)}
  const maxMs=Math.max(1,...keys.map(k=>d.days[k]?d.days[k].ms:0));
  return `<div class="trend" role="img" aria-label="Race score and practice time for the last 14 days">${keys.map(k=>{const x=d.days[k]||{},sc=x.scores&&x.scores.length?x.scores[x.scores.length-1]:null,pr=x.n?Math.round(100*x.first/x.n):null,h=sc!=null?sc:pr!=null?pr:0;return `<div class="tcol" title="${dpDayName(k)}: ${x.n?`${x.n} problems, ${fmtT(x.ms||0)}${sc!=null?`, race score ${sc}/100`:""}`:"no practice"}"><span class="tval">${sc!=null?sc:x.n?pr+"%":""}</span><div class="tbar${x.n?"":" none"}" style="height:${x.n?Math.max(6,h):4}%"></div><div class="tmin" style="height:${x.n?Math.max(3,Math.round(26*(x.ms||0)/maxMs)):0}px"></div><span class="tday">${new Date(k+"T12:00:00").toLocaleDateString("en-US",{weekday:"narrow"})}<br>${+k.slice(8)}</span></div>`}).join("")}</div><p class="sub" style="margin:.3em 0 0">Tall bar = race score (or % right on the 1st try). Thin gray bar = time practiced that day.</p>`}
+/* ===== LESSON TRACKER: done and still to do ===== */
+function dpLessonData(){const d=dpState(),L=dpLogs(),chk=(d.checks||[]).slice().sort((a,b)=>a.at-b.at),c=d.cur,open=c&&!c.done,now=open?c.focus[0]:(dpPlan().focus[0]||null);
+ const prevAt={};const done=chk.map(x=>{const from=prevAt[x.id]||0;prevAt[x.id]=x.at;const lg=L.filter(l=>l.src===x.id&&l.at>from&&l.at<=x.at+1000);return {id:x.id,at:x.at,ok:x.ok,n:x.n,pass:x.ok===x.n,q:lg.length,ms:lg.reduce((a,l)=>a+(l.ms||0),0),first:lg.filter(l=>l.ok&&l.a===1).length}});
+ const tries={};done.forEach(x=>tries[x.id]=(tries[x.id]||0)+1);
+ const order=DPT.map(t=>t.id),todo=order.filter(id=>!d.st[id].passed&&!d.st[id].mastered&&id!==now);
+ return {d,done,tries,now,todo,won:order.filter(id=>d.st[id].passed||d.st[id].mastered)}}
+function dpLessons(full){const {d,done,tries,now,todo,won}=dpLessonData(),N=DPT.length,pct=Math.round(100*won.length/N),fd=t=>new Date(t).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+ const row=(id,i)=>{const s=d.st[id],T=DPBY[id],k=tries[id]||0,isWon=s.passed||s.mastered,isNow=id===now;const icon=isWon?"✅":isNow?"🏎️":"⏳",lab=isWon?(s.mastered?"Mastered 🏆":"Done"):isNow?(k?`Doing now · try ${k+1}`:"Doing now"):(todo[0]===id?"Up next":"To do");const cls=isWon?"done":isNow?"new":"";
+  return `<li class="lsn ${cls}"><span class="lsn-n">${i+1}</span><span class="lsn-t"><b>${icon} ${esc(T.name)}</b><br><span class="sub">${isWon?`Finished ${fd(s.passed||s.mastered)} · check ${esc(s.chk||"")}${k>1?` · took ${k} lessons`:""}`:isNow?(k?`Last check ${esc(s.chk||"")} · needs ${DP_CHK} of ${DP_CHK} to finish`:`${DP_TOPIC} questions + topic check`):`${DP_TOPIC} questions + topic check`}</span></span><span class="pill ${isWon?"done":isNow?"new":""}">${lab}</span></li>`};
+ const ord=DPT.map(t=>t.id);
+ const list=`<ol class="lsnlist">${ord.map((id,i)=>row(id,i)).join("")}</ol>`;
+ const head=`<div class="row spread"><h2>📚 ${full?"Lesson tracker":"Your lessons"}</h2><span class="sub"><b>${won.length} of ${N}</b> done · <b>${N-won.length}</b> to go</span></div><div class="bar" style="margin:.4em 0" role="img" aria-label="${won.length} of ${N} lessons done"><i style="display:block;width:${pct}%;background:var(--good)"></i></div>`;
+ if(!full)return `<section class="panel">${head}<p class="sub" style="margin:0">One lesson a day. Get all ${DP_CHK} topic-check questions right to finish a lesson and move to the next one.</p>${list}</section>`;
+ const left=N-won.length,days=Object.keys(d.days).filter(k=>d.days[k].n).length;
+ const logRows=done.slice().reverse().map(x=>`<tr><td>${fd(x.at)}</td><td>${esc(DPBY[x.id]?DPBY[x.id].name:x.id)}</td><td>${x.q}</td><td>${x.q?Math.round(100*x.first/x.q)+"%":"–"}</td><td><b>${x.ok}/${x.n}</b></td><td>${x.ms?fmtT(x.ms):"–"}</td><td><span class="pill ${x.pass?"done":"review"}">${x.pass?"Passed ✓":"Repeat"}</span></td></tr>`).join("");
+ return `<section class="panel">${head}<p class="sub" style="margin:0">Lessons go in this order, from his ${DP_CHECK}. A lesson is done when he gets all ${DP_CHK} topic-check questions right; otherwise he repeats it the next day.${left?` At one lesson a day, the rest takes at least <b>${left} more day${left>1?"s":""}</b>.`:" All lessons are done; daily races are now mixed review."} He has practiced on ${days} day${days===1?"":"s"} and finished ${done.length} lesson${done.length===1?"":"s"} (${done.filter(x=>x.pass).length} passed, ${done.filter(x=>!x.pass).length} to repeat).</p>${list}
+ <h3 style="margin:.8em 0 .3em">Lessons he did</h3>${logRows?`<div class="tablewrap"><table><thead><tr><th>Day</th><th>Lesson</th><th>Questions</th><th>Right 1st try</th><th>Topic check</th><th>Time</th><th>Result</th></tr></thead><tbody>${logRows}</tbody></table></div>`:`<div class="empty">No lessons finished yet. Each one shows here after its topic check.</div>`}</section>`}
 function dpReport(){const d=dpState(),P=lmShowAns,L=dpLogs(),now=Date.now(),wk=now-7*864e5;
  /* this week */
  const days7=Object.keys(d.days).filter(k=>d.days[k].n&&new Date(k+"T23:59:59").getTime()>wk),w=days7.reduce((a,k)=>{const x=d.days[k];a.n+=x.n;a.f+=x.first;a.ms+=x.ms;(x.scores||[]).forEach(v=>a.sc.push(v));return a},{n:0,f:0,ms:0,sc:[]});
@@ -3055,7 +3073,7 @@ function dpReport(){const d=dpState(),P=lmShowAns,L=dpLogs(),now=Date.now(),wk=n
  const miss=L.filter(l=>!l.ok||l.a>1).slice(-30).reverse();
  const missH=`<section class="panel"><h2>Problems he missed or needed a second try on</h2>${P?`<p class="sub" style="margin:0">Correct answers are showing (parent view). <button class="btn" data-lmhide="1">Hide answers</button></p>`:`<form id="dppf" class="row parent" autocomplete="off"><label for="dppin">Parent PIN to show the correct answers and levels</label><input id="dppin" type="password" inputmode="numeric" maxlength="8"><button class="btn" type="submit">Show answers</button></form><div id="dppm"></div>`}
  ${miss.length?miss.map(l=>`<details><summary>${esc(l.c)}${l.chk?" · topic check":""}${P?" · "+LVN[l.lv]:""} · ${l.ok?`right on try ${l.a}`:"missed"}${l.err&&l.err.length?" · "+[...new Set(l.err)].map(c=>DPERR[c].n).join(", "):""}</summary><p style="margin:.5em 0 0">${fmt(l.text)}</p><p class="sub" style="margin:0">His answers: ${(l.tries||[]).map(esc).join(" · ")} · time ${fmtT(l.ms||0)} · ${new Date(l.at).toLocaleString()}</p>${P?`<p style="margin:0">Correct answer: <b>${fmt(l.final)}</b></p>`:""}</details>`).join(""):`<div class="empty">None yet.</div>`}</section>`;
- return week+pat+types+topics+daysH+missH}
+ return dpLessons(1)+week+pat+types+topics+daysH+missH}
 
 app.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const dd=b.dataset;
  if(dd.car){S.car=dd.car;save();render();return}
